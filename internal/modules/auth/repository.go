@@ -1,0 +1,229 @@
+package auth
+
+import (
+	"context"
+	"database/sql"
+	"errors"
+	"fmt"
+
+	"github.com/jmoiron/sqlx"
+)
+
+// Repository defines the auth repository interface
+type Repository interface {
+	// User operations
+	CreateUser(ctx context.Context, user *User) error
+	GetUserByID(ctx context.Context, id uint64) (*User, error)
+	GetUserByEmail(ctx context.Context, email string) (*User, error)
+	UpdateUser(ctx context.Context, user *User) error
+	DeleteUser(ctx context.Context, id uint64) error
+	EmailExists(ctx context.Context, email string) (bool, error)
+
+	// Refresh token operations
+	CreateRefreshToken(ctx context.Context, token *RefreshToken) error
+	GetRefreshTokenByHash(ctx context.Context, hash string) (*RefreshToken, error)
+	RevokeRefreshToken(ctx context.Context, hash string) error
+	RevokeAllUserTokens(ctx context.Context, userID uint64) error
+	CleanupExpiredTokens(ctx context.Context) error
+}
+
+// mysqlRepository implements Repository for MySQL
+type mysqlRepository struct {
+	db *sqlx.DB
+}
+
+// NewRepository creates a new auth repository
+func NewRepository(db *sqlx.DB) Repository {
+	return &mysqlRepository{db: db}
+}
+
+// CreateUser creates a new user
+func (r *mysqlRepository) CreateUser(ctx context.Context, user *User) error {
+	query := `
+		INSERT INTO users (
+			email, password_hash, role, full_name, phone, avatar_url,
+			company_name, company_description, company_website, company_logo_url,
+			is_active, is_verified, created_at, updated_at
+		) VALUES (
+			?, ?, ?, ?, ?, ?,
+			?, ?, ?, ?,
+			?, ?, NOW(), NOW()
+		)
+	`
+
+	result, err := r.db.ExecContext(ctx, query,
+		user.Email, user.PasswordHash, user.Role, user.FullName, user.Phone, user.AvatarURL,
+		user.CompanyName, user.CompanyDescription, user.CompanyWebsite, user.CompanyLogoURL,
+		user.IsActive, user.IsVerified,
+	)
+	if err != nil {
+		return fmt.Errorf("failed to create user: %w", err)
+	}
+
+	id, err := result.LastInsertId()
+	if err != nil {
+		return fmt.Errorf("failed to get last insert id: %w", err)
+	}
+
+	user.ID = uint64(id)
+	return nil
+}
+
+// GetUserByID retrieves a user by ID
+func (r *mysqlRepository) GetUserByID(ctx context.Context, id uint64) (*User, error) {
+	query := `
+		SELECT id, email, password_hash, role, full_name, phone, avatar_url,
+			   company_name, company_description, company_website, company_logo_url,
+			   is_active, is_verified, email_verified_at, created_at, updated_at, deleted_at
+		FROM users
+		WHERE id = ? AND deleted_at IS NULL
+	`
+
+	var user User
+	if err := r.db.GetContext(ctx, &user, query, id); err != nil {
+		if errors.Is(err, sql.ErrNoRows) {
+			return nil, nil
+		}
+		return nil, fmt.Errorf("failed to get user by id: %w", err)
+	}
+
+	return &user, nil
+}
+
+// GetUserByEmail retrieves a user by email
+func (r *mysqlRepository) GetUserByEmail(ctx context.Context, email string) (*User, error) {
+	query := `
+		SELECT id, email, password_hash, role, full_name, phone, avatar_url,
+			   company_name, company_description, company_website, company_logo_url,
+			   is_active, is_verified, email_verified_at, created_at, updated_at, deleted_at
+		FROM users
+		WHERE email = ? AND deleted_at IS NULL
+	`
+
+	var user User
+	if err := r.db.GetContext(ctx, &user, query, email); err != nil {
+		if errors.Is(err, sql.ErrNoRows) {
+			return nil, nil
+		}
+		return nil, fmt.Errorf("failed to get user by email: %w", err)
+	}
+
+	return &user, nil
+}
+
+// UpdateUser updates a user
+func (r *mysqlRepository) UpdateUser(ctx context.Context, user *User) error {
+	query := `
+		UPDATE users SET
+			full_name = ?,
+			phone = ?,
+			avatar_url = ?,
+			company_name = ?,
+			company_description = ?,
+			company_website = ?,
+			company_logo_url = ?,
+			is_active = ?,
+			is_verified = ?,
+			updated_at = NOW()
+		WHERE id = ? AND deleted_at IS NULL
+	`
+
+	_, err := r.db.ExecContext(ctx, query,
+		user.FullName, user.Phone, user.AvatarURL,
+		user.CompanyName, user.CompanyDescription, user.CompanyWebsite, user.CompanyLogoURL,
+		user.IsActive, user.IsVerified, user.ID,
+	)
+	if err != nil {
+		return fmt.Errorf("failed to update user: %w", err)
+	}
+
+	return nil
+}
+
+// DeleteUser soft deletes a user
+func (r *mysqlRepository) DeleteUser(ctx context.Context, id uint64) error {
+	query := `UPDATE users SET deleted_at = NOW() WHERE id = ?`
+	_, err := r.db.ExecContext(ctx, query, id)
+	if err != nil {
+		return fmt.Errorf("failed to delete user: %w", err)
+	}
+	return nil
+}
+
+// EmailExists checks if an email already exists
+func (r *mysqlRepository) EmailExists(ctx context.Context, email string) (bool, error) {
+	query := `SELECT COUNT(*) FROM users WHERE email = ? AND deleted_at IS NULL`
+	var count int
+	if err := r.db.GetContext(ctx, &count, query, email); err != nil {
+		return false, fmt.Errorf("failed to check email existence: %w", err)
+	}
+	return count > 0, nil
+}
+
+// CreateRefreshToken creates a new refresh token
+func (r *mysqlRepository) CreateRefreshToken(ctx context.Context, token *RefreshToken) error {
+	query := `
+		INSERT INTO refresh_tokens (user_id, token_hash, expires_at, device_info, ip_address, created_at)
+		VALUES (?, ?, ?, ?, ?, NOW())
+	`
+
+	result, err := r.db.ExecContext(ctx, query,
+		token.UserID, token.TokenHash, token.ExpiresAt, token.DeviceInfo, token.IPAddress,
+	)
+	if err != nil {
+		return fmt.Errorf("failed to create refresh token: %w", err)
+	}
+
+	id, _ := result.LastInsertId()
+	token.ID = uint64(id)
+	return nil
+}
+
+// GetRefreshTokenByHash retrieves a refresh token by hash
+func (r *mysqlRepository) GetRefreshTokenByHash(ctx context.Context, hash string) (*RefreshToken, error) {
+	query := `
+		SELECT id, user_id, token_hash, expires_at, revoked_at, device_info, ip_address, created_at
+		FROM refresh_tokens
+		WHERE token_hash = ?
+	`
+
+	var token RefreshToken
+	if err := r.db.GetContext(ctx, &token, query, hash); err != nil {
+		if errors.Is(err, sql.ErrNoRows) {
+			return nil, nil
+		}
+		return nil, fmt.Errorf("failed to get refresh token: %w", err)
+	}
+
+	return &token, nil
+}
+
+// RevokeRefreshToken revokes a refresh token
+func (r *mysqlRepository) RevokeRefreshToken(ctx context.Context, hash string) error {
+	query := `UPDATE refresh_tokens SET revoked_at = NOW() WHERE token_hash = ?`
+	_, err := r.db.ExecContext(ctx, query, hash)
+	if err != nil {
+		return fmt.Errorf("failed to revoke refresh token: %w", err)
+	}
+	return nil
+}
+
+// RevokeAllUserTokens revokes all refresh tokens for a user
+func (r *mysqlRepository) RevokeAllUserTokens(ctx context.Context, userID uint64) error {
+	query := `UPDATE refresh_tokens SET revoked_at = NOW() WHERE user_id = ? AND revoked_at IS NULL`
+	_, err := r.db.ExecContext(ctx, query, userID)
+	if err != nil {
+		return fmt.Errorf("failed to revoke all user tokens: %w", err)
+	}
+	return nil
+}
+
+// CleanupExpiredTokens removes expired tokens
+func (r *mysqlRepository) CleanupExpiredTokens(ctx context.Context) error {
+	query := `DELETE FROM refresh_tokens WHERE expires_at < NOW() OR revoked_at IS NOT NULL`
+	_, err := r.db.ExecContext(ctx, query)
+	if err != nil {
+		return fmt.Errorf("failed to cleanup expired tokens: %w", err)
+	}
+	return nil
+}

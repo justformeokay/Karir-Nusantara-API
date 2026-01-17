@@ -1,0 +1,816 @@
+{
+  "info": {
+    "_postman_id": "karir-nusantara-api-collection",
+    "name": "Karir Nusantara API",
+    "description": "API collection for Karir Nusantara job portal platform",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "variable": [
+    {
+      "key": "base_url",
+      "value": "http://localhost:8080/api/v1",
+      "type": "string"
+    },
+    {
+      "key": "access_token",
+      "value": "",
+      "type": "string"
+    }
+  ],
+  "auth": {
+    "type": "bearer",
+    "bearer": [
+      {
+        "key": "token",
+        "value": "{{access_token}}",
+        "type": "string"
+      }
+    ]
+  },
+  "item": [
+    {
+      "name": "Health",
+      "item": [
+        {
+          "name": "Health Check",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/../health",
+              "host": ["{{base_url}}"],
+              "path": ["..", "health"]
+            },
+            "description": "Check API health status"
+          },
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "Auth",
+      "item": [
+        {
+          "name": "Register Job Seeker",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "var jsonData = pm.response.json();",
+                  "if (jsonData.data && jsonData.data.access_token) {",
+                  "    pm.collectionVariables.set('access_token', jsonData.data.access_token);",
+                  "}"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "auth": {
+              "type": "noauth"
+            },
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"email\": \"jobseeker@example.com\",\n  \"password\": \"SecurePass123!\",\n  \"name\": \"John Doe\",\n  \"role\": \"job_seeker\"\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/auth/register",
+              "host": ["{{base_url}}"],
+              "path": ["auth", "register"]
+            },
+            "description": "Register a new job seeker account"
+          },
+          "response": []
+        },
+        {
+          "name": "Register Company",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "var jsonData = pm.response.json();",
+                  "if (jsonData.data && jsonData.data.access_token) {",
+                  "    pm.collectionVariables.set('access_token', jsonData.data.access_token);",
+                  "}"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "auth": {
+              "type": "noauth"
+            },
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"email\": \"hr@techcorp.com\",\n  \"password\": \"SecurePass123!\",\n  \"name\": \"HR Admin\",\n  \"role\": \"company\",\n  \"company_name\": \"PT Tech Corp Indonesia\",\n  \"company_description\": \"Leading technology company in Indonesia\",\n  \"company_industry\": \"Technology\",\n  \"company_size\": \"100-500\",\n  \"company_location\": \"Jakarta\"\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/auth/register",
+              "host": ["{{base_url}}"],
+              "path": ["auth", "register"]
+            },
+            "description": "Register a new company account"
+          },
+          "response": []
+        },
+        {
+          "name": "Login",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "var jsonData = pm.response.json();",
+                  "if (jsonData.data && jsonData.data.access_token) {",
+                  "    pm.collectionVariables.set('access_token', jsonData.data.access_token);",
+                  "}"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "auth": {
+              "type": "noauth"
+            },
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"email\": \"jobseeker@example.com\",\n  \"password\": \"SecurePass123!\"\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/auth/login",
+              "host": ["{{base_url}}"],
+              "path": ["auth", "login"]
+            },
+            "description": "Login with email and password"
+          },
+          "response": []
+        },
+        {
+          "name": "Refresh Token",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "var jsonData = pm.response.json();",
+                  "if (jsonData.data && jsonData.data.access_token) {",
+                  "    pm.collectionVariables.set('access_token', jsonData.data.access_token);",
+                  "}"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "auth": {
+              "type": "noauth"
+            },
+            "method": "POST",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/auth/refresh",
+              "host": ["{{base_url}}"],
+              "path": ["auth", "refresh"]
+            },
+            "description": "Refresh access token using refresh token cookie"
+          },
+          "response": []
+        },
+        {
+          "name": "Get Current User",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/auth/me",
+              "host": ["{{base_url}}"],
+              "path": ["auth", "me"]
+            },
+            "description": "Get current authenticated user info"
+          },
+          "response": []
+        },
+        {
+          "name": "Logout",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.collectionVariables.set('access_token', '');"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/auth/logout",
+              "host": ["{{base_url}}"],
+              "path": ["auth", "logout"]
+            },
+            "description": "Logout and invalidate refresh token"
+          },
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "Jobs",
+      "item": [
+        {
+          "name": "List Jobs (Public)",
+          "request": {
+            "auth": {
+              "type": "noauth"
+            },
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/jobs?page=1&limit=10",
+              "host": ["{{base_url}}"],
+              "path": ["jobs"],
+              "query": [
+                {
+                  "key": "page",
+                  "value": "1"
+                },
+                {
+                  "key": "limit",
+                  "value": "10"
+                },
+                {
+                  "key": "search",
+                  "value": "",
+                  "disabled": true
+                },
+                {
+                  "key": "location",
+                  "value": "",
+                  "disabled": true
+                },
+                {
+                  "key": "type",
+                  "value": "full_time",
+                  "disabled": true
+                },
+                {
+                  "key": "experience",
+                  "value": "mid",
+                  "disabled": true
+                },
+                {
+                  "key": "salary_min",
+                  "value": "5000000",
+                  "disabled": true
+                },
+                {
+                  "key": "salary_max",
+                  "value": "20000000",
+                  "disabled": true
+                },
+                {
+                  "key": "sort_by",
+                  "value": "created_at",
+                  "disabled": true
+                },
+                {
+                  "key": "sort_order",
+                  "value": "desc",
+                  "disabled": true
+                }
+              ]
+            },
+            "description": "List all active jobs with optional filters"
+          },
+          "response": []
+        },
+        {
+          "name": "Get Job by Slug (Public)",
+          "request": {
+            "auth": {
+              "type": "noauth"
+            },
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/jobs/software-engineer-1",
+              "host": ["{{base_url}}"],
+              "path": ["jobs", "software-engineer-1"]
+            },
+            "description": "Get job details by slug"
+          },
+          "response": []
+        },
+        {
+          "name": "Create Job (Company)",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"title\": \"Software Engineer\",\n  \"description\": \"We are looking for a talented Software Engineer to join our team. You will be responsible for developing and maintaining our core products.\",\n  \"requirements\": \"- 3+ years experience in Go or similar language\\n- Experience with REST APIs\\n- Familiar with MySQL/PostgreSQL\\n- Good understanding of software design patterns\\n- Experience with Git\",\n  \"benefits\": \"- Competitive salary\\n- Health insurance\\n- Remote work options\\n- Learning budget\\n- Annual bonus\",\n  \"type\": \"full_time\",\n  \"experience_level\": \"mid\",\n  \"location\": \"Jakarta\",\n  \"is_remote\": false,\n  \"salary_min\": 15000000,\n  \"salary_max\": 25000000,\n  \"salary_currency\": \"IDR\",\n  \"skills\": [\"Go\", \"React\", \"MySQL\", \"Docker\", \"Git\"],\n  \"expires_at\": \"2026-03-01T00:00:00Z\"\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/jobs",
+              "host": ["{{base_url}}"],
+              "path": ["jobs"]
+            },
+            "description": "Create a new job posting (company only)"
+          },
+          "response": []
+        },
+        {
+          "name": "Update Job (Company)",
+          "request": {
+            "method": "PUT",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"title\": \"Senior Software Engineer\",\n  \"description\": \"Updated job description...\",\n  \"requirements\": \"- 5+ years experience\\n- Leadership skills\",\n  \"benefits\": \"- Competitive salary\\n- Health insurance\",\n  \"type\": \"full_time\",\n  \"experience_level\": \"senior\",\n  \"location\": \"Jakarta\",\n  \"is_remote\": true,\n  \"salary_min\": 25000000,\n  \"salary_max\": 40000000,\n  \"salary_currency\": \"IDR\",\n  \"skills\": [\"Go\", \"React\", \"MySQL\", \"Kubernetes\"],\n  \"status\": \"active\"\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/jobs/1",
+              "host": ["{{base_url}}"],
+              "path": ["jobs", "1"]
+            },
+            "description": "Update a job posting (company only, own jobs)"
+          },
+          "response": []
+        },
+        {
+          "name": "Delete Job (Company)",
+          "request": {
+            "method": "DELETE",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/jobs/1",
+              "host": ["{{base_url}}"],
+              "path": ["jobs", "1"]
+            },
+            "description": "Delete a job posting (company only, own jobs)"
+          },
+          "response": []
+        },
+        {
+          "name": "List Company Jobs (Company)",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/jobs/company?page=1&limit=10",
+              "host": ["{{base_url}}"],
+              "path": ["jobs", "company"],
+              "query": [
+                {
+                  "key": "page",
+                  "value": "1"
+                },
+                {
+                  "key": "limit",
+                  "value": "10"
+                },
+                {
+                  "key": "status",
+                  "value": "active",
+                  "disabled": true
+                }
+              ]
+            },
+            "description": "List all jobs for the authenticated company"
+          },
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "CVs",
+      "item": [
+        {
+          "name": "Get My CV",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/cvs/me",
+              "host": ["{{base_url}}"],
+              "path": ["cvs", "me"]
+            },
+            "description": "Get the current user's CV (job seeker only)"
+          },
+          "response": []
+        },
+        {
+          "name": "Create/Update CV",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"personal_info\": {\n    \"full_name\": \"John Doe\",\n    \"email\": \"john.doe@example.com\",\n    \"phone\": \"+6281234567890\",\n    \"address\": \"Jl. Sudirman No. 123, Jakarta Selatan\",\n    \"date_of_birth\": \"1995-05-15\",\n    \"gender\": \"male\",\n    \"summary\": \"Experienced software developer with 5+ years of experience in web development. Passionate about creating efficient and scalable solutions.\"\n  },\n  \"education\": [\n    {\n      \"institution\": \"Universitas Indonesia\",\n      \"degree\": \"S1\",\n      \"field_of_study\": \"Teknik Informatika\",\n      \"start_date\": \"2013-09-01\",\n      \"end_date\": \"2017-07-01\",\n      \"gpa\": 3.75,\n      \"description\": \"Focus on software engineering and database systems\"\n    }\n  ],\n  \"experience\": [\n    {\n      \"company\": \"PT Teknologi Maju\",\n      \"position\": \"Senior Software Engineer\",\n      \"location\": \"Jakarta\",\n      \"start_date\": \"2020-01-01\",\n      \"end_date\": null,\n      \"is_current\": true,\n      \"description\": \"- Developed and maintained microservices architecture\\n- Led a team of 3 junior developers\\n- Improved API response time by 40%\"\n    },\n    {\n      \"company\": \"PT Startup Indonesia\",\n      \"position\": \"Software Engineer\",\n      \"location\": \"Jakarta\",\n      \"start_date\": \"2017-08-01\",\n      \"end_date\": \"2019-12-31\",\n      \"is_current\": false,\n      \"description\": \"- Built RESTful APIs using Go and Node.js\\n- Implemented CI/CD pipelines\"\n    }\n  ],\n  \"skills\": [\n    {\n      \"name\": \"Go\",\n      \"level\": \"advanced\",\n      \"years\": 4\n    },\n    {\n      \"name\": \"React\",\n      \"level\": \"intermediate\",\n      \"years\": 3\n    },\n    {\n      \"name\": \"MySQL\",\n      \"level\": \"advanced\",\n      \"years\": 5\n    },\n    {\n      \"name\": \"Docker\",\n      \"level\": \"intermediate\",\n      \"years\": 3\n    }\n  ],\n  \"certifications\": [\n    {\n      \"name\": \"AWS Certified Developer - Associate\",\n      \"issuer\": \"Amazon Web Services\",\n      \"issue_date\": \"2023-06-01\",\n      \"expiry_date\": \"2026-06-01\",\n      \"credential_id\": \"AWS-DEV-123456\",\n      \"credential_url\": \"https://aws.amazon.com/verification/123456\"\n    }\n  ],\n  \"languages\": [\n    {\n      \"language\": \"Indonesian\",\n      \"proficiency\": \"native\"\n    },\n    {\n      \"language\": \"English\",\n      \"proficiency\": \"professional\"\n    }\n  ]\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/cvs",
+              "host": ["{{base_url}}"],
+              "path": ["cvs"]
+            },
+            "description": "Create or update CV (job seeker only)"
+          },
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "Applications",
+      "item": [
+        {
+          "name": "Apply for Job",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"job_id\": 1,\n  \"cover_letter\": \"Yth. Tim HRD,\\n\\nSaya sangat tertarik dengan posisi Software Engineer di perusahaan Anda. Dengan pengalaman 5 tahun di bidang pengembangan software, saya yakin dapat memberikan kontribusi yang signifikan untuk tim Anda.\\n\\nSaya memiliki keahlian dalam Go, React, dan MySQL yang sesuai dengan persyaratan posisi ini. Saya juga berpengalaman dalam mengembangkan sistem microservices dan bekerja dalam tim Agile.\\n\\nTerima kasih atas pertimbangan Anda.\\n\\nHormat saya,\\nJohn Doe\"\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/applications",
+              "host": ["{{base_url}}"],
+              "path": ["applications"]
+            },
+            "description": "Apply for a job (job seeker only)"
+          },
+          "response": []
+        },
+        {
+          "name": "List My Applications",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/applications/me?page=1&limit=10",
+              "host": ["{{base_url}}"],
+              "path": ["applications", "me"],
+              "query": [
+                {
+                  "key": "page",
+                  "value": "1"
+                },
+                {
+                  "key": "limit",
+                  "value": "10"
+                },
+                {
+                  "key": "status",
+                  "value": "under_review",
+                  "disabled": true
+                }
+              ]
+            },
+            "description": "List my applications (job seeker only)"
+          },
+          "response": []
+        },
+        {
+          "name": "List Company Applications",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/applications/company?page=1&limit=10",
+              "host": ["{{base_url}}"],
+              "path": ["applications", "company"],
+              "query": [
+                {
+                  "key": "page",
+                  "value": "1"
+                },
+                {
+                  "key": "limit",
+                  "value": "10"
+                },
+                {
+                  "key": "status",
+                  "value": "",
+                  "disabled": true
+                }
+              ]
+            },
+            "description": "List all applications for company (company only)"
+          },
+          "response": []
+        },
+        {
+          "name": "List Job Applications",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/jobs/1/applications?page=1&limit=10",
+              "host": ["{{base_url}}"],
+              "path": ["jobs", "1", "applications"],
+              "query": [
+                {
+                  "key": "page",
+                  "value": "1"
+                },
+                {
+                  "key": "limit",
+                  "value": "10"
+                },
+                {
+                  "key": "status",
+                  "value": "",
+                  "disabled": true
+                }
+              ]
+            },
+            "description": "List applications for a specific job (company only)"
+          },
+          "response": []
+        },
+        {
+          "name": "Get Application Details",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/applications/1",
+              "host": ["{{base_url}}"],
+              "path": ["applications", "1"]
+            },
+            "description": "Get application details with timeline"
+          },
+          "response": []
+        },
+        {
+          "name": "Get Application Timeline",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/applications/1/timeline",
+              "host": ["{{base_url}}"],
+              "path": ["applications", "1", "timeline"]
+            },
+            "description": "Get application timeline only"
+          },
+          "response": []
+        },
+        {
+          "name": "Update Status - Under Review",
+          "request": {
+            "method": "PATCH",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"status\": \"under_review\",\n  \"note\": \"CV dan cover letter sedang kami tinjau\"\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/applications/1/status",
+              "host": ["{{base_url}}"],
+              "path": ["applications", "1", "status"]
+            },
+            "description": "Update application status to under_review (company only)"
+          },
+          "response": []
+        },
+        {
+          "name": "Update Status - Shortlisted",
+          "request": {
+            "method": "PATCH",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"status\": \"shortlisted\",\n  \"note\": \"Selamat! Anda masuk dalam daftar kandidat potensial\"\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/applications/1/status",
+              "host": ["{{base_url}}"],
+              "path": ["applications", "1", "status"]
+            },
+            "description": "Update application status to shortlisted (company only)"
+          },
+          "response": []
+        },
+        {
+          "name": "Update Status - Schedule Interview",
+          "request": {
+            "method": "PATCH",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"status\": \"interview_scheduled\",\n  \"note\": \"Anda diundang untuk interview tahap 1 dengan tim HR\",\n  \"scheduled_at\": \"2026-01-25T10:00:00+07:00\",\n  \"scheduled_location\": \"Google Meet - Link akan dikirim via email\",\n  \"scheduled_notes\": \"Harap siapkan portfolio dan contoh project yang pernah dikerjakan. Interview akan berlangsung sekitar 45 menit.\"\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/applications/1/status",
+              "host": ["{{base_url}}"],
+              "path": ["applications", "1", "status"]
+            },
+            "description": "Schedule an interview (company only)"
+          },
+          "response": []
+        },
+        {
+          "name": "Update Status - Interview Completed",
+          "request": {
+            "method": "PATCH",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"status\": \"interview_completed\",\n  \"note\": \"Interview tahap 1 telah selesai. Kami akan menghubungi Anda untuk tahap selanjutnya dalam 3-5 hari kerja.\"\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/applications/1/status",
+              "host": ["{{base_url}}"],
+              "path": ["applications", "1", "status"]
+            },
+            "description": "Mark interview as completed (company only)"
+          },
+          "response": []
+        },
+        {
+          "name": "Update Status - Assessment",
+          "request": {
+            "method": "PATCH",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"status\": \"assessment\",\n  \"note\": \"Anda diminta untuk mengerjakan technical assessment. Link akan dikirim via email.\"\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/applications/1/status",
+              "host": ["{{base_url}}"],
+              "path": ["applications", "1", "status"]
+            },
+            "description": "Send assessment (company only)"
+          },
+          "response": []
+        },
+        {
+          "name": "Update Status - Offered",
+          "request": {
+            "method": "PATCH",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"status\": \"offered\",\n  \"note\": \"Selamat! Kami dengan senang hati menawarkan posisi Software Engineer kepada Anda. Detail penawaran akan dikirim via email.\"\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/applications/1/status",
+              "host": ["{{base_url}}"],
+              "path": ["applications", "1", "status"]
+            },
+            "description": "Send job offer (company only)"
+          },
+          "response": []
+        },
+        {
+          "name": "Update Status - Hired",
+          "request": {
+            "method": "PATCH",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"status\": \"hired\",\n  \"note\": \"Selamat bergabung di tim kami! HR akan menghubungi Anda untuk proses onboarding.\"\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/applications/1/status",
+              "host": ["{{base_url}}"],
+              "path": ["applications", "1", "status"]
+            },
+            "description": "Mark as hired (company only)"
+          },
+          "response": []
+        },
+        {
+          "name": "Update Status - Rejected",
+          "request": {
+            "method": "PATCH",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"status\": \"rejected\",\n  \"note\": \"Terima kasih atas minat Anda. Sayangnya, kami memutuskan untuk melanjutkan dengan kandidat lain yang lebih sesuai dengan kebutuhan saat ini. Kami akan menyimpan data Anda untuk kesempatan di masa depan.\"\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/applications/1/status",
+              "host": ["{{base_url}}"],
+              "path": ["applications", "1", "status"]
+            },
+            "description": "Reject application (company only)"
+          },
+          "response": []
+        },
+        {
+          "name": "Withdraw Application",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"reason\": \"Saya telah menerima penawaran dari perusahaan lain\"\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/applications/1/withdraw",
+              "host": ["{{base_url}}"],
+              "path": ["applications", "1", "withdraw"]
+            },
+            "description": "Withdraw application (job seeker only)"
+          },
+          "response": []
+        }
+      ]
+    }
+  ]
+}
