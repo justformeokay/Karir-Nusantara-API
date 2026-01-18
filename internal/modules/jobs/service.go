@@ -17,6 +17,7 @@ type Service interface {
 	GetByID(ctx context.Context, id uint64) (*JobResponse, error)
 	GetBySlug(ctx context.Context, slug string) (*JobResponse, error)
 	Update(ctx context.Context, id uint64, companyID uint64, req *UpdateJobRequest) (*JobResponse, error)
+	UpdateStatus(ctx context.Context, id uint64, companyID uint64, status string) (*JobResponse, error)
 	Delete(ctx context.Context, id uint64, companyID uint64) error
 	List(ctx context.Context, params JobListParams) ([]*JobResponse, int64, error)
 	IncrementViewCount(ctx context.Context, id uint64) error
@@ -281,6 +282,64 @@ func (s *service) List(ctx context.Context, params JobListParams) ([]*JobRespons
 // IncrementViewCount increments the view count for a job
 func (s *service) IncrementViewCount(ctx context.Context, id uint64) error {
 	return s.repo.IncrementViewCount(ctx, id)
+}
+
+// UpdateStatus updates the job status (publish, close, pause, reopen)
+func (s *service) UpdateStatus(ctx context.Context, id uint64, companyID uint64, newStatus string) (*JobResponse, error) {
+	// Get existing job
+	job, err := s.repo.GetByID(ctx, id)
+	if err != nil {
+		return nil, apperrors.NewInternalError("Failed to get job", err)
+	}
+	if job == nil {
+		return nil, apperrors.NewNotFoundError("Job")
+	}
+
+	// Verify ownership
+	if job.CompanyID != companyID {
+		return nil, apperrors.NewForbiddenError("You don't have permission to modify this job")
+	}
+
+	// Validate status transition
+	if !isValidStatusTransition(job.Status, newStatus) {
+		return nil, apperrors.NewBadRequestError(fmt.Sprintf("Cannot change status from '%s' to '%s'", job.Status, newStatus))
+	}
+
+	// Update status
+	job.Status = newStatus
+
+	// Set published_at when publishing
+	if newStatus == JobStatusActive && !job.PublishedAt.Valid {
+		job.PublishedAt = sql.NullTime{Time: time.Now(), Valid: true}
+	}
+
+	if err := s.repo.Update(ctx, job); err != nil {
+		return nil, apperrors.NewInternalError("Failed to update job status", err)
+	}
+
+	return s.GetByID(ctx, id)
+}
+
+// isValidStatusTransition checks if the status transition is allowed
+func isValidStatusTransition(from, to string) bool {
+	validTransitions := map[string][]string{
+		JobStatusDraft:  {JobStatusActive},                          // draft -> active (publish)
+		JobStatusActive: {JobStatusPaused, JobStatusClosed},         // active -> paused/closed
+		JobStatusPaused: {JobStatusActive, JobStatusClosed},         // paused -> active (reopen) or closed
+		JobStatusClosed: {JobStatusActive},                          // closed -> active (reopen)
+	}
+
+	allowed, ok := validTransitions[from]
+	if !ok {
+		return false
+	}
+
+	for _, s := range allowed {
+		if s == to {
+			return true
+		}
+	}
+	return false
 }
 
 // loadJobRelations loads related data for a job

@@ -37,10 +37,13 @@ func (s *service) CreateOrUpdate(ctx context.Context, userID uint64, req *Create
 		return nil, apperrors.NewInternalError("Failed to check existing CV", err)
 	}
 
+	// Get experience data (supports both 'experience' and 'experiences' field names)
+	experienceData := req.GetExperience()
+
 	// Convert request to JSON
 	personalInfoJSON, _ := json.Marshal(req.PersonalInfo)
 	educationJSON, _ := json.Marshal(req.Education)
-	experienceJSON, _ := json.Marshal(req.Experience)
+	experienceJSON, _ := json.Marshal(experienceData)
 	skillsJSON, _ := json.Marshal(req.Skills)
 	certificationsJSON, _ := json.Marshal(req.Certifications)
 	languagesJSON, _ := json.Marshal(req.Languages)
@@ -60,7 +63,7 @@ func (s *service) CreateOrUpdate(ctx context.Context, userID uint64, req *Create
 	// Parse for completeness calculation
 	cv.PersonalInfoParsed = req.PersonalInfo
 	cv.EducationParsed = req.Education
-	cv.ExperienceParsed = req.Experience
+	cv.ExperienceParsed = experienceData
 	cv.SkillsParsed = req.Skills
 	cv.CertificationsParsed = req.Certifications
 	cv.LanguagesParsed = req.Languages

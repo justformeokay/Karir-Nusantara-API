@@ -1,0 +1,6 @@
+go run ./cmd/api/main.go
+2026/01/17 10:29:56 Connected to database successfully
+2026/01/17 10:29:56 Server starting on port 8081
+2026/01/17 10:29:56 Environment: development
+signal: killed
+make: *** [run] Error 1

@@ -19,7 +19,10 @@ import (
 	"github.com/karirnusantara/api/internal/modules/applications"
 	"github.com/karirnusantara/api/internal/modules/auth"
 	"github.com/karirnusantara/api/internal/modules/cvs"
+	"github.com/karirnusantara/api/internal/modules/dashboard"
 	"github.com/karirnusantara/api/internal/modules/jobs"
+	"github.com/karirnusantara/api/internal/modules/quota"
+	"github.com/karirnusantara/api/internal/modules/wishlist"
 	"github.com/karirnusantara/api/internal/shared/response"
 	"github.com/karirnusantara/api/internal/shared/validator"
 )
@@ -54,17 +57,26 @@ func main() {
 	jobsRepo := jobs.NewRepository(db)
 	cvsRepo := cvs.NewRepository(db)
 	applicationsRepo := applications.NewRepository(db)
+	wishlistRepo := wishlist.NewRepository(db)
+	quotaRepo := quota.NewRepository(db)
+	dashboardRepo := dashboard.NewRepository(db)
 
 	// Initialize other services
 	jobsService := jobs.NewService(jobsRepo)
 	cvsService := cvs.NewService(cvsRepo)
 	applicationsService := applications.NewService(applicationsRepo, cvsService, jobsService)
+	wishlistService := wishlist.NewService(wishlistRepo)
+	quotaService := quota.NewService(quotaRepo)
+	dashboardService := dashboard.NewService(dashboardRepo)
 
 	// Initialize handlers
 	authHandler := auth.NewHandler(authService, v)
 	jobsHandler := jobs.NewHandler(jobsService, v)
 	cvsHandler := cvs.NewHandler(cvsService, v)
 	applicationsHandler := applications.NewHandler(applicationsService, v)
+	wishlistHandler := wishlist.NewHandler(wishlistService, v)
+	quotaHandler := quota.NewHandler(quotaService, v)
+	dashboardHandler := dashboard.NewHandler(dashboardService)
 
 	// Setup router
 	r := chi.NewRouter()
@@ -93,6 +105,9 @@ func main() {
 		jobs.RegisterRoutes(r, jobsHandler, authMiddleware.Authenticate, authMiddleware.RequireCompany)
 		cvs.RegisterRoutes(r, cvsHandler, authMiddleware.Authenticate, authMiddleware.RequireJobSeeker)
 		applications.RegisterRoutes(r, applicationsHandler, authMiddleware.Authenticate, authMiddleware.RequireJobSeeker, authMiddleware.RequireCompany)
+		wishlist.RegisterRoutes(r, wishlistHandler, authMiddleware.Authenticate, authMiddleware.RequireJobSeeker)
+		quota.RegisterRoutes(r, quotaHandler, authMiddleware.Authenticate, authMiddleware.RequireCompany)
+		dashboard.RegisterRoutes(r, dashboardHandler, authMiddleware.Authenticate, authMiddleware.RequireCompany)
 	})
 
 	// 404 handler

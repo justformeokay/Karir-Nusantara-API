@@ -216,10 +216,19 @@ type CreateCVRequest struct {
 	PersonalInfo   *PersonalInfo   `json:"personal_info" validate:"required"`
 	Education      []Education     `json:"education,omitempty"`
 	Experience     []Experience    `json:"experience,omitempty"`
+	Experiences    []Experience    `json:"experiences,omitempty"` // Alias for backward compatibility
 	Skills         []Skill         `json:"skills,omitempty"`
 	Certifications []Certification `json:"certifications,omitempty"`
 	Languages      []Language      `json:"languages,omitempty"`
 	Projects       []Project       `json:"projects,omitempty"`
+}
+
+// GetExperience returns experience data, checking both Experience and Experiences fields
+func (r *CreateCVRequest) GetExperience() []Experience {
+	if len(r.Experience) > 0 {
+		return r.Experience
+	}
+	return r.Experiences
 }
 
 // UpdateCVRequest represents a partial CV update
@@ -227,10 +236,19 @@ type UpdateCVRequest struct {
 	PersonalInfo   *PersonalInfo   `json:"personal_info,omitempty"`
 	Education      []Education     `json:"education,omitempty"`
 	Experience     []Experience    `json:"experience,omitempty"`
+	Experiences    []Experience    `json:"experiences,omitempty"` // Alias for backward compatibility
 	Skills         []Skill         `json:"skills,omitempty"`
 	Certifications []Certification `json:"certifications,omitempty"`
 	Languages      []Language      `json:"languages,omitempty"`
 	Projects       []Project       `json:"projects,omitempty"`
+}
+
+// GetExperience returns experience data, checking both Experience and Experiences fields
+func (r *UpdateCVRequest) GetExperience() []Experience {
+	if len(r.Experience) > 0 {
+		return r.Experience
+	}
+	return r.Experiences
 }
 
 // Response DTOs

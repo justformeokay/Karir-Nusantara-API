@@ -24,6 +24,12 @@ func RegisterRoutes(r chi.Router, h *Handler, authenticate, requireCompany Middl
 			r.Post("/", h.Create)
 			r.Put("/{id}", h.Update)
 			r.Delete("/{id}", h.Delete)
+
+			// Job status management endpoints
+			r.Patch("/{id}/publish", h.Publish)
+			r.Patch("/{id}/close", h.Close)
+			r.Patch("/{id}/pause", h.Pause)
+			r.Patch("/{id}/reopen", h.Reopen)
 		})
 	})
 }

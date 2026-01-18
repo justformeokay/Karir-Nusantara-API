@@ -39,6 +39,11 @@ func (h *Handler) CreateOrUpdate(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	// Debug logging
+	reqJSON, _ := json.MarshalIndent(req, "", "  ")
+	println("📥 Received CV request:")
+	println(string(reqJSON))
+
 	if errors := h.validator.Validate(&req); errors != nil {
 		response.UnprocessableEntity(w, "Validation failed", errors)
 		return

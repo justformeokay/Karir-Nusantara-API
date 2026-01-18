@@ -243,3 +243,103 @@ func handleError(w http.ResponseWriter, err error) {
 	}
 	response.InternalServerError(w, "An unexpected error occurred")
 }
+
+// Publish handles publishing a draft job
+// PATCH /api/v1/jobs/{id}/publish
+func (h *Handler) Publish(w http.ResponseWriter, r *http.Request) {
+	companyID := middleware.GetUserID(r.Context())
+	if companyID == 0 {
+		response.Unauthorized(w, "Unauthorized")
+		return
+	}
+
+	idStr := chi.URLParam(r, "id")
+	id, err := strconv.ParseUint(idStr, 10, 64)
+	if err != nil {
+		response.BadRequest(w, "Invalid job ID")
+		return
+	}
+
+	job, err := h.service.UpdateStatus(r.Context(), id, companyID, JobStatusActive)
+	if err != nil {
+		handleError(w, err)
+		return
+	}
+
+	response.OK(w, "Job published successfully", job)
+}
+
+// Close handles closing an active job
+// PATCH /api/v1/jobs/{id}/close
+func (h *Handler) Close(w http.ResponseWriter, r *http.Request) {
+	companyID := middleware.GetUserID(r.Context())
+	if companyID == 0 {
+		response.Unauthorized(w, "Unauthorized")
+		return
+	}
+
+	idStr := chi.URLParam(r, "id")
+	id, err := strconv.ParseUint(idStr, 10, 64)
+	if err != nil {
+		response.BadRequest(w, "Invalid job ID")
+		return
+	}
+
+	job, err := h.service.UpdateStatus(r.Context(), id, companyID, JobStatusClosed)
+	if err != nil {
+		handleError(w, err)
+		return
+	}
+
+	response.OK(w, "Job closed successfully", job)
+}
+
+// Pause handles pausing an active job
+// PATCH /api/v1/jobs/{id}/pause
+func (h *Handler) Pause(w http.ResponseWriter, r *http.Request) {
+	companyID := middleware.GetUserID(r.Context())
+	if companyID == 0 {
+		response.Unauthorized(w, "Unauthorized")
+		return
+	}
+
+	idStr := chi.URLParam(r, "id")
+	id, err := strconv.ParseUint(idStr, 10, 64)
+	if err != nil {
+		response.BadRequest(w, "Invalid job ID")
+		return
+	}
+
+	job, err := h.service.UpdateStatus(r.Context(), id, companyID, JobStatusPaused)
+	if err != nil {
+		handleError(w, err)
+		return
+	}
+
+	response.OK(w, "Job paused successfully", job)
+}
+
+// Reopen handles reopening a closed/paused job
+// PATCH /api/v1/jobs/{id}/reopen
+func (h *Handler) Reopen(w http.ResponseWriter, r *http.Request) {
+	companyID := middleware.GetUserID(r.Context())
+	if companyID == 0 {
+		response.Unauthorized(w, "Unauthorized")
+		return
+	}
+
+	idStr := chi.URLParam(r, "id")
+	id, err := strconv.ParseUint(idStr, 10, 64)
+	if err != nil {
+		response.BadRequest(w, "Invalid job ID")
+		return
+	}
+
+	job, err := h.service.UpdateStatus(r.Context(), id, companyID, JobStatusActive)
+	if err != nil {
+		handleError(w, err)
+		return
+	}
+
+	response.OK(w, "Job reopened successfully", job)
+}
