@@ -2,12 +2,14 @@ package dashboard
 
 // DashboardStats represents company dashboard statistics
 type DashboardStats struct {
-	ActiveJobs         int `json:"active_jobs"`
-	TotalApplicants    int `json:"total_applicants"`
-	UnderReview        int `json:"under_review"`
-	AcceptedCandidates int `json:"accepted_candidates"`
-	RemainingFreeQuota int `json:"remaining_free_quota"`
-	PendingPayments    int `json:"pending_payments"`
+	ActiveJobs         int               `json:"active_jobs"`
+	TotalApplicants    int               `json:"total_applicants"`
+	UnderReview        int               `json:"under_review"`
+	AcceptedCandidates int               `json:"accepted_candidates"`
+	RemainingFreeQuota int               `json:"remaining_free_quota"`
+	PendingPayments    int               `json:"pending_payments"`
+	RecentApplicants   []RecentApplicant `json:"recent_applicants"`
+	ActiveJobsList     []ActiveJob       `json:"active_jobs_list"`
 }
 
 // RecentApplicant represents a recent application summary

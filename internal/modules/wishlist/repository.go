@@ -1,4 +1,4 @@
-xwpackage wishlist
+package wishlist
 
 import (
 	"context"

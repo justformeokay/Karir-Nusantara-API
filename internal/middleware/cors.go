@@ -2,18 +2,39 @@ package middleware
 
 import (
 	"net/http"
-
-	"github.com/go-chi/cors"
 )
 
-// NewCORS creates a new CORS middleware
+// NewCORS creates a new CORS middleware with explicit header handling
 func NewCORS(allowedOrigins []string) func(http.Handler) http.Handler {
-	return cors.Handler(cors.Options{
-		AllowedOrigins:   allowedOrigins,
-		AllowedMethods:   []string{"GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS"},
-		AllowedHeaders:   []string{"Accept", "Authorization", "Content-Type", "X-CSRF-Token", "X-Request-ID"},
-		ExposedHeaders:   []string{"Link", "X-Request-ID"},
-		AllowCredentials: true,
-		MaxAge:           300, // Maximum value not ignored by any of major browsers
-	})
+	return func(next http.Handler) http.Handler {
+		return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+			origin := r.Header.Get("Origin")
+			
+			// Check if origin is allowed
+			isAllowed := false
+			for _, allowed := range allowedOrigins {
+				if origin == allowed {
+					isAllowed = true
+					break
+				}
+			}
+			
+			if isAllowed {
+				w.Header().Set("Access-Control-Allow-Origin", origin)
+				w.Header().Set("Access-Control-Allow-Credentials", "true")
+				w.Header().Set("Access-Control-Allow-Methods", "GET, POST, PUT, PATCH, DELETE, OPTIONS")
+				w.Header().Set("Access-Control-Allow-Headers", "Accept, Authorization, Content-Type, X-CSRF-Token, X-Request-ID")
+				w.Header().Set("Access-Control-Expose-Headers", "Link, X-Request-ID")
+				w.Header().Set("Access-Control-Max-Age", "300")
+			}
+			
+			// Handle preflight requests
+			if r.Method == "OPTIONS" {
+				w.WriteHeader(http.StatusOK)
+				return
+			}
+			
+			next.ServeHTTP(w, r)
+		})
+	}
 }
