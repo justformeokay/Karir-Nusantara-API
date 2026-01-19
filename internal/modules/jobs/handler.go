@@ -343,3 +343,58 @@ func (h *Handler) Reopen(w http.ResponseWriter, r *http.Request) {
 
 	response.OK(w, "Job reopened successfully", job)
 }
+
+// ListByCompany handles listing jobs for the authenticated company
+// GET /api/v1/company/jobs
+func (h *Handler) ListByCompany(w http.ResponseWriter, r *http.Request) {
+	companyID := middleware.GetUserID(r.Context())
+	if companyID == 0 {
+		response.Unauthorized(w, "Unauthorized")
+		return
+	}
+
+	params := DefaultJobListParams()
+
+	// Parse query parameters
+	query := r.URL.Query()
+
+	if page := query.Get("page"); page != "" {
+		if p, err := strconv.Atoi(page); err == nil && p > 0 {
+			params.Page = p
+		}
+	}
+	if perPage := query.Get("per_page"); perPage != "" {
+		if pp, err := strconv.Atoi(perPage); err == nil && pp > 0 && pp <= 100 {
+			params.PerPage = pp
+		}
+	}
+	if search := query.Get("search"); search != "" {
+		params.Search = search
+	}
+	if sortBy := query.Get("sort_by"); sortBy != "" {
+		params.SortBy = sortBy
+	}
+	if sortOrder := query.Get("sort_order"); sortOrder != "" {
+		params.SortOrder = sortOrder
+	}
+
+	jobs, total, err := h.service.ListByCompany(r.Context(), companyID, params)
+	if err != nil {
+		handleError(w, err)
+		return
+	}
+
+	totalPages := int(total) / params.PerPage
+	if int(total)%params.PerPage > 0 {
+		totalPages++
+	}
+
+	meta := &response.Meta{
+		Page:       params.Page,
+		PerPage:    params.PerPage,
+		TotalItems: total,
+		TotalPages: totalPages,
+	}
+
+	response.SuccessWithMeta(w, http.StatusOK, "Jobs retrieved", jobs, meta)
+}

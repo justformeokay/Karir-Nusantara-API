@@ -20,6 +20,7 @@ type Service interface {
 	UpdateStatus(ctx context.Context, id uint64, companyID uint64, status string) (*JobResponse, error)
 	Delete(ctx context.Context, id uint64, companyID uint64) error
 	List(ctx context.Context, params JobListParams) ([]*JobResponse, int64, error)
+	ListByCompany(ctx context.Context, companyID uint64, params JobListParams) ([]*JobResponse, int64, error)
 	IncrementViewCount(ctx context.Context, id uint64) error
 }
 
@@ -264,6 +265,27 @@ func (s *service) List(ctx context.Context, params JobListParams) ([]*JobRespons
 	jobs, total, err := s.repo.List(ctx, params)
 	if err != nil {
 		return nil, 0, apperrors.NewInternalError("Failed to list jobs", err)
+	}
+
+	// Convert to response
+	responses := make([]*JobResponse, len(jobs))
+	for i, job := range jobs {
+		// Load relations for each job
+		if err := s.loadJobRelations(ctx, job); err != nil {
+			return nil, 0, err
+		}
+		responses[i] = job.ToResponse()
+	}
+
+	return responses, total, nil
+}
+
+// ListByCompany lists jobs for a specific company
+func (s *service) ListByCompany(ctx context.Context, companyID uint64, params JobListParams) ([]*JobResponse, int64, error) {
+	params.CompanyID = &companyID
+	jobs, total, err := s.repo.ListByCompany(ctx, companyID, params)
+	if err != nil {
+		return nil, 0, apperrors.NewInternalError("Failed to list company jobs", err)
 	}
 
 	// Convert to response

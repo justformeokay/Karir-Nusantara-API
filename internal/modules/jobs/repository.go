@@ -18,6 +18,7 @@ type Repository interface {
 	Update(ctx context.Context, job *Job) error
 	Delete(ctx context.Context, id uint64) error
 	List(ctx context.Context, params JobListParams) ([]*Job, int64, error)
+	ListByCompany(ctx context.Context, companyID uint64, params JobListParams) ([]*Job, int64, error)
 	IncrementViewCount(ctx context.Context, id uint64) error
 	IncrementApplicationCount(ctx context.Context, id uint64) error
 	
@@ -254,6 +255,70 @@ func (r *mysqlRepository) List(ctx context.Context, params JobListParams) ([]*Jo
 	var jobs []*Job
 	if err := r.db.SelectContext(ctx, &jobs, query, args...); err != nil {
 		return nil, 0, fmt.Errorf("failed to list jobs: %w", err)
+	}
+
+	return jobs, total, nil
+}
+
+// ListByCompany lists jobs for a specific company
+func (r *mysqlRepository) ListByCompany(ctx context.Context, companyID uint64, params JobListParams) ([]*Job, int64, error) {
+	// Build WHERE clause
+	var conditions []string
+	var args []interface{}
+
+	conditions = append(conditions, "company_id = ?")
+	args = append(args, companyID)
+	conditions = append(conditions, "deleted_at IS NULL")
+
+	// Support optional filters
+	if params.Search != "" {
+		conditions = append(conditions, "MATCH(title, description, requirements) AGAINST(? IN NATURAL LANGUAGE MODE)")
+		args = append(args, params.Search)
+	}
+
+	if params.Status != "" {
+		conditions = append(conditions, "status = ?")
+		args = append(args, params.Status)
+	}
+
+	whereClause := strings.Join(conditions, " AND ")
+
+	// Count total
+	countQuery := fmt.Sprintf("SELECT COUNT(*) FROM jobs WHERE %s", whereClause)
+	var total int64
+	if err := r.db.GetContext(ctx, &total, countQuery, args...); err != nil {
+		return nil, 0, fmt.Errorf("failed to count jobs: %w", err)
+	}
+
+	// Build ORDER BY
+	orderBy := "created_at DESC"
+	if params.SortBy != "" {
+		order := "ASC"
+		if params.SortOrder == "desc" {
+			order = "DESC"
+		}
+		orderBy = fmt.Sprintf("%s %s", params.SortBy, order)
+	}
+
+	// Build query with pagination
+	offset := (params.Page - 1) * params.PerPage
+	query := fmt.Sprintf(`
+		SELECT id, company_id, title, slug, description, requirements, responsibilities, benefits,
+			   city, province, is_remote, job_type, experience_level,
+			   salary_min, salary_max, salary_currency, is_salary_visible,
+			   application_deadline, max_applications, status, views_count, applications_count,
+			   published_at, created_at, updated_at, deleted_at
+		FROM jobs
+		WHERE %s
+		ORDER BY %s
+		LIMIT ? OFFSET ?
+	`, whereClause, orderBy)
+
+	args = append(args, params.PerPage, offset)
+
+	var jobs []*Job
+	if err := r.db.SelectContext(ctx, &jobs, query, args...); err != nil {
+		return nil, 0, fmt.Errorf("failed to list company jobs: %w", err)
 	}
 
 	return jobs, total, nil

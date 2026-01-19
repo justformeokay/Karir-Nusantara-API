@@ -16,6 +16,7 @@ import (
 	"github.com/karirnusantara/api/internal/config"
 	"github.com/karirnusantara/api/internal/database"
 	"github.com/karirnusantara/api/internal/middleware"
+	"github.com/karirnusantara/api/internal/modules/admin"
 	"github.com/karirnusantara/api/internal/modules/applications"
 	"github.com/karirnusantara/api/internal/modules/auth"
 	"github.com/karirnusantara/api/internal/modules/cvs"
@@ -108,6 +109,10 @@ func main() {
 		wishlist.RegisterRoutes(r, wishlistHandler, authMiddleware.Authenticate, authMiddleware.RequireJobSeeker)
 		quota.RegisterRoutes(r, quotaHandler, authMiddleware.Authenticate, authMiddleware.RequireCompany)
 		dashboard.RegisterRoutes(r, dashboardHandler, authMiddleware.Authenticate, authMiddleware.RequireCompany)
+
+		// Admin module routes
+		adminModule := admin.NewModule(db, cfg, authMiddleware)
+		adminModule.RegisterRoutes(r)
 	})
 
 	// 404 handler

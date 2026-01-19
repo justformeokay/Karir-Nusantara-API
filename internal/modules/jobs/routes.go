@@ -31,5 +31,12 @@ func RegisterRoutes(r chi.Router, h *Handler, authenticate, requireCompany Middl
 			r.Patch("/{id}/pause", h.Pause)
 			r.Patch("/{id}/reopen", h.Reopen)
 		})
+
+		// Company-specific list route
+		r.Group(func(r chi.Router) {
+			r.Use(authenticate)
+			r.Use(requireCompany)
+			r.Get("/company/list", h.ListByCompany)
+		})
 	})
 }

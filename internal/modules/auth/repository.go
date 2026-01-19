@@ -74,7 +74,7 @@ func (r *mysqlRepository) GetUserByID(ctx context.Context, id uint64) (*User, er
 	query := `
 		SELECT id, email, password_hash, role, full_name, phone, avatar_url,
 			   company_name, company_description, company_website, company_logo_url,
-			   is_active, is_verified, email_verified_at, created_at, updated_at, deleted_at
+			   is_active, is_verified, company_status, email_verified_at, created_at, updated_at, deleted_at
 		FROM users
 		WHERE id = ? AND deleted_at IS NULL
 	`
@@ -95,7 +95,7 @@ func (r *mysqlRepository) GetUserByEmail(ctx context.Context, email string) (*Us
 	query := `
 		SELECT id, email, password_hash, role, full_name, phone, avatar_url,
 			   company_name, company_description, company_website, company_logo_url,
-			   is_active, is_verified, email_verified_at, created_at, updated_at, deleted_at
+			   is_active, is_verified, company_status, email_verified_at, created_at, updated_at, deleted_at
 		FROM users
 		WHERE email = ? AND deleted_at IS NULL
 	`

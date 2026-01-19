@@ -140,6 +140,31 @@ func (h *Handler) Me(w http.ResponseWriter, r *http.Request) {
 	response.OK(w, "User retrieved", user)
 }
 
+// UpdateProfile updates the current user's profile
+// PUT /api/v1/auth/profile
+func (h *Handler) UpdateProfile(w http.ResponseWriter, r *http.Request) {
+	userID := getUserIDFromContext(r)
+	if userID == 0 {
+		response.Unauthorized(w, "Unauthorized")
+		return
+	}
+
+	var req UpdateProfileRequest
+	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
+		response.BadRequest(w, "Invalid request body")
+		return
+	}
+
+	// Update profile
+	user, err := h.service.UpdateProfile(r.Context(), userID, &req)
+	if err != nil {
+		handleError(w, err)
+		return
+	}
+
+	response.OK(w, "Profile updated successfully", user)
+}
+
 // handleError handles errors and sends appropriate response
 func handleError(w http.ResponseWriter, err error) {
 	appErr := apperrors.GetAppError(err)

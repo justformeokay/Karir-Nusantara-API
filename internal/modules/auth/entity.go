@@ -27,6 +27,7 @@ type User struct {
 	CompanyLogoURL    sql.NullString `db:"company_logo_url" json:"company_logo_url,omitempty"`
 	IsActive          bool           `db:"is_active" json:"is_active"`
 	IsVerified        bool           `db:"is_verified" json:"is_verified"`
+	CompanyStatus     sql.NullString `db:"company_status" json:"company_status,omitempty"`
 	EmailVerifiedAt   sql.NullTime   `db:"email_verified_at" json:"email_verified_at,omitempty"`
 	CreatedAt         time.Time      `db:"created_at" json:"created_at"`
 	UpdatedAt         time.Time      `db:"updated_at" json:"updated_at"`
@@ -35,17 +36,18 @@ type User struct {
 
 // UserResponse represents the user response (safe for public exposure)
 type UserResponse struct {
-	ID               uint64  `json:"id"`
-	Email            string  `json:"email"`
-	Role             string  `json:"role"`
-	FullName         string  `json:"full_name"`
-	Phone            string  `json:"phone,omitempty"`
-	AvatarURL        string  `json:"avatar_url,omitempty"`
-	CompanyName      string  `json:"company_name,omitempty"`
-	CompanyLogoURL   string  `json:"company_logo_url,omitempty"`
-	IsActive         bool    `json:"is_active"`
-	IsVerified       bool    `json:"is_verified"`
-	CreatedAt        string  `json:"created_at"`
+	ID            uint64 `json:"id"`
+	Email         string `json:"email"`
+	Role          string `json:"role"`
+	FullName      string `json:"full_name"`
+	Phone         string `json:"phone,omitempty"`
+	AvatarURL     string `json:"avatar_url,omitempty"`
+	CompanyName   string `json:"company_name,omitempty"`
+	CompanyLogoURL string `json:"company_logo_url,omitempty"`
+	IsActive      bool   `json:"is_active"`
+	IsVerified    bool   `json:"is_verified"`
+	CompanyStatus string `json:"company_status,omitempty"`
+	CreatedAt     string `json:"created_at"`
 }
 
 // ToResponse converts User to UserResponse
@@ -71,6 +73,9 @@ func (u *User) ToResponse() *UserResponse {
 	}
 	if u.CompanyLogoURL.Valid {
 		resp.CompanyLogoURL = u.CompanyLogoURL.String
+	}
+	if u.CompanyStatus.Valid {
+		resp.CompanyStatus = u.CompanyStatus.String
 	}
 
 	return resp
@@ -109,6 +114,18 @@ type LoginRequest struct {
 // RefreshTokenRequest represents a refresh token request
 type RefreshTokenRequest struct {
 	RefreshToken string `json:"refresh_token" validate:"required"`
+}
+
+// UpdateProfileRequest represents a profile update request
+type UpdateProfileRequest struct {
+	FullName           string `json:"full_name,omitempty" validate:"omitempty,min=2,max=255"`
+	Phone              string `json:"phone,omitempty" validate:"omitempty,phone"`
+	CompanyName        string `json:"company_name,omitempty" validate:"omitempty,min=2,max=255"`
+	CompanyDescription string `json:"company_description,omitempty" validate:"omitempty,min=50"`
+	CompanyWebsite     string `json:"company_website,omitempty" validate:"omitempty,url"`
+	CompanySize        string `json:"company_size,omitempty"`
+	CompanyLocation    string `json:"company_location,omitempty"`
+	CompanyIndustry    string `json:"company_industry,omitempty"`
 }
 
 // Response DTOs

@@ -22,6 +22,7 @@ type Service interface {
 	RefreshToken(ctx context.Context, refreshToken string) (*AuthResponse, error)
 	Logout(ctx context.Context, userID uint64, refreshToken string) error
 	GetCurrentUser(ctx context.Context, userID uint64) (*UserResponse, error)
+	UpdateProfile(ctx context.Context, userID uint64, req *UpdateProfileRequest) (*UserResponse, error)
 	ValidateAccessToken(tokenString string) (*TokenClaims, error)
 }
 
@@ -166,6 +167,44 @@ func (s *service) GetCurrentUser(ctx context.Context, userID uint64) (*UserRespo
 	}
 	if user == nil {
 		return nil, apperrors.NewNotFoundError("User")
+	}
+
+	return user.ToResponse(), nil
+}
+
+// UpdateProfile updates the current user's profile
+func (s *service) UpdateProfile(ctx context.Context, userID uint64, req *UpdateProfileRequest) (*UserResponse, error) {
+	// Get current user
+	user, err := s.repo.GetUserByID(ctx, userID)
+	if err != nil {
+		return nil, apperrors.NewInternalError("Failed to get user", err)
+	}
+	if user == nil {
+		return nil, apperrors.NewNotFoundError("User")
+	}
+
+	// Update fields if provided
+	if req.FullName != "" {
+		user.FullName = req.FullName
+	}
+	if req.Phone != "" {
+		user.Phone = sql.NullString{String: req.Phone, Valid: true}
+	}
+	if req.CompanyName != "" {
+		user.CompanyName = sql.NullString{String: req.CompanyName, Valid: true}
+	}
+	if req.CompanyDescription != "" {
+		user.CompanyDescription = sql.NullString{String: req.CompanyDescription, Valid: true}
+	}
+	if req.CompanyWebsite != "" {
+		user.CompanyWebsite = sql.NullString{String: req.CompanyWebsite, Valid: true}
+	}
+	
+	user.UpdatedAt = time.Now()
+
+	// Update user in database
+	if err := s.repo.UpdateUser(ctx, user); err != nil {
+		return nil, apperrors.NewInternalError("Failed to update user", err)
 	}
 
 	return user.ToResponse(), nil
