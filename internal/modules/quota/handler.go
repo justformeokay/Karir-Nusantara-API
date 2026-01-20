@@ -122,7 +122,18 @@ func (h *Handler) SubmitPaymentProof(w http.ResponseWriter, r *http.Request) {
 		}
 	}
 
-	payment, err := h.service.SubmitPaymentProof(companyID, jobID, proofImageURL)
+	// Parse optional package_id (for top-up packages)
+	var packageID *string
+	if pkgID := r.FormValue("package_id"); pkgID != "" {
+		// Validate package exists
+		if GetPackageByID(pkgID) == nil {
+			response.Error(w, http.StatusBadRequest, "INVALID_PACKAGE", "Invalid package ID")
+			return
+		}
+		packageID = &pkgID
+	}
+
+	payment, err := h.service.SubmitPaymentProof(companyID, jobID, packageID, proofImageURL)
 	if err != nil {
 		response.Error(w, http.StatusInternalServerError, "PAYMENT_ERROR", "Failed to submit payment proof")
 		return
@@ -191,9 +202,22 @@ func (h *Handler) GetPaymentInfo(w http.ResponseWriter, r *http.Request) {
 		"account_number": "8725164421",
 		"account_name":   "Saputra Budianto",
 		"price_per_job":  PricePerJob,
+		"packages":       GetTopUpPackages(),
 	}
 
 	response.Success(w, http.StatusOK, "Payment info retrieved", info)
+}
+
+// GetPackages returns available top-up packages
+// @Summary Get top-up packages
+// @Description Get all available top-up packages for job posting quota
+// @Tags Quota
+// @Produce json
+// @Success 200 {object} response.Response{data=[]TopUpPackage}
+// @Router /company/packages [get]
+func (h *Handler) GetPackages(w http.ResponseWriter, r *http.Request) {
+	packages := GetTopUpPackages()
+	response.Success(w, http.StatusOK, "Packages retrieved successfully", packages)
 }
 
 // parseJSON helper to parse JSON body

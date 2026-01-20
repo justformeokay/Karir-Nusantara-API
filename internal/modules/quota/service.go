@@ -76,16 +76,34 @@ func (s *Service) ConsumeQuota(companyID uint64) error {
 }
 
 // SubmitPaymentProof submits a payment proof
-func (s *Service) SubmitPaymentProof(companyID uint64, jobID *uint64, proofImageURL string) (*Payment, error) {
+func (s *Service) SubmitPaymentProof(companyID uint64, jobID *uint64, packageID *string, proofImageURL string) (*Payment, error) {
+	// Determine amount and quota based on package or single payment
+	var amount int64 = PricePerJob
+	var quotaAmount int = 1
+	
+	if packageID != nil {
+		pkg := GetPackageByID(*packageID)
+		if pkg != nil {
+			amount = pkg.Price
+			quotaAmount = pkg.TotalQuota // Include bonus quota
+		}
+	}
+	
 	payment := &Payment{
-		CompanyID: companyID,
-		Amount:    PricePerJob,
-		Status:    PaymentStatusPending,
+		CompanyID:   companyID,
+		Amount:      amount,
+		QuotaAmount: quotaAmount,
+		Status:      PaymentStatusPending,
 	}
 	
 	if jobID != nil {
 		payment.JobID.Valid = true
 		payment.JobID.Int64 = int64(*jobID)
+	}
+	
+	if packageID != nil {
+		payment.PackageID.Valid = true
+		payment.PackageID.String = *packageID
 	}
 	
 	if proofImageURL != "" {
@@ -118,8 +136,12 @@ func (s *Service) ConfirmPayment(paymentID uint64, adminID uint64, note string) 
 		return err
 	}
 	
-	// Add paid quota to company
-	return s.repo.AddPaidQuota(payment.CompanyID, 1)
+	// Add paid quota to company (use QuotaAmount from payment which includes bonus)
+	quotaToAdd := payment.QuotaAmount
+	if quotaToAdd == 0 {
+		quotaToAdd = 1 // Fallback for old payments
+	}
+	return s.repo.AddPaidQuota(payment.CompanyID, quotaToAdd)
 }
 
 // RejectPayment rejects a payment (admin only)

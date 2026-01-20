@@ -89,9 +89,9 @@ func (r *Repository) AddPaidQuota(companyID uint64, count int) error {
 // CreatePayment creates a new payment record
 func (r *Repository) CreatePayment(payment *Payment) error {
 	result, err := r.db.Exec(`
-		INSERT INTO payments (company_id, job_id, amount, proof_image_url, status, submitted_at, created_at, updated_at)
-		VALUES (?, ?, ?, ?, ?, NOW(), NOW(), NOW())
-	`, payment.CompanyID, payment.JobID, payment.Amount, payment.ProofImageURL, payment.Status)
+		INSERT INTO payments (company_id, job_id, package_id, quota_amount, amount, proof_image_url, status, submitted_at, created_at, updated_at)
+		VALUES (?, ?, ?, ?, ?, ?, ?, NOW(), NOW(), NOW())
+	`, payment.CompanyID, payment.JobID, payment.PackageID, payment.QuotaAmount, payment.Amount, payment.ProofImageURL, payment.Status)
 	
 	if err != nil {
 		return fmt.Errorf("failed to create payment: %w", err)

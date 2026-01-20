@@ -61,7 +61,7 @@ func Load() (*Config, error) {
 		App: AppConfig{
 			Name:  getEnv("APP_NAME", "karir-nusantara-api"),
 			Env:   getEnv("APP_ENV", "development"),
-			Port:  getEnv("APP_PORT", "8080"),
+			Port:  getEnv("APP_PORT", "8081"),
 			Debug: getEnvBool("APP_DEBUG", true),
 		},
 		Database: DatabaseConfig{

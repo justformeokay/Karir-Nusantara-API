@@ -17,6 +17,7 @@ func RegisterRoutes(r chi.Router, h *Handler, authenticate, requireCompany Middl
 		r.Use(requireCompany)
 
 		r.Get("/quota", h.GetQuota)
+		r.Get("/packages", h.GetPackages)
 		r.Get("/payments", h.GetPayments)
 		r.Get("/payments/info", h.GetPaymentInfo)
 		r.Post("/payments/proof", h.SubmitPaymentProof)
