@@ -21,7 +21,7 @@ type Service interface {
 	Login(ctx context.Context, req *LoginRequest) (*AuthResponse, error)
 	RefreshToken(ctx context.Context, refreshToken string) (*AuthResponse, error)
 	Logout(ctx context.Context, userID uint64, refreshToken string) error
-	GetCurrentUser(ctx context.Context, userID uint64) (*UserResponse, error)
+	GetCurrentUser(ctx context.Context, userID uint64) (*UserWithCompanyResponse, error)
 	UpdateProfile(ctx context.Context, userID uint64, req *UpdateProfileRequest) (*UserResponse, error)
 	ValidateAccessToken(tokenString string) (*TokenClaims, error)
 }
@@ -66,11 +66,6 @@ func (s *service) Register(ctx context.Context, req *RegisterRequest) (*AuthResp
 		Phone:        sql.NullString{String: req.Phone, Valid: req.Phone != ""},
 		IsActive:     true,
 		IsVerified:   false,
-	}
-
-	// Set company fields if role is company
-	if req.Role == RoleCompany {
-		user.CompanyName = sql.NullString{String: req.CompanyName, Valid: true}
 	}
 
 	if err := s.repo.CreateUser(ctx, user); err != nil {
@@ -159,8 +154,8 @@ func (s *service) Logout(ctx context.Context, userID uint64, refreshToken string
 	return nil
 }
 
-// GetCurrentUser retrieves the current user's information
-func (s *service) GetCurrentUser(ctx context.Context, userID uint64) (*UserResponse, error) {
+// GetCurrentUser retrieves the current user's information with company data if available
+func (s *service) GetCurrentUser(ctx context.Context, userID uint64) (*UserWithCompanyResponse, error) {
 	user, err := s.repo.GetUserByID(ctx, userID)
 	if err != nil {
 		return nil, apperrors.NewInternalError("Failed to get user", err)
@@ -169,7 +164,17 @@ func (s *service) GetCurrentUser(ctx context.Context, userID uint64) (*UserRespo
 		return nil, apperrors.NewNotFoundError("User")
 	}
 
-	return user.ToResponse(), nil
+	// If user is a company, get company data
+	var companyData *CompanyData
+	if user.Role == RoleCompany {
+		companyData, err = s.repo.GetCompanyByUserID(ctx, userID)
+		if err != nil {
+			// Log error but don't fail - return user data without company info
+			return user.ToResponseWithCompany(nil), nil
+		}
+	}
+
+	return user.ToResponseWithCompany(companyData), nil
 }
 
 // UpdateProfile updates the current user's profile
@@ -190,15 +195,9 @@ func (s *service) UpdateProfile(ctx context.Context, userID uint64, req *UpdateP
 	if req.Phone != "" {
 		user.Phone = sql.NullString{String: req.Phone, Valid: true}
 	}
-	if req.CompanyName != "" {
-		user.CompanyName = sql.NullString{String: req.CompanyName, Valid: true}
-	}
-	if req.CompanyDescription != "" {
-		user.CompanyDescription = sql.NullString{String: req.CompanyDescription, Valid: true}
-	}
-	if req.CompanyWebsite != "" {
-		user.CompanyWebsite = sql.NullString{String: req.CompanyWebsite, Valid: true}
-	}
+	// Note: Company information is now managed through the companies table
+	// These fields are kept in UpdateProfileRequest for API compatibility
+	// but are not stored in the users table anymore
 	
 	user.UpdatedAt = time.Now()
 
@@ -262,8 +261,17 @@ func (s *service) generateAuthResponse(ctx context.Context, user *User) (*AuthRe
 		return nil, apperrors.NewInternalError("Failed to generate refresh token", err)
 	}
 
+	// Get company data if user is a company
+	var userResp interface{} = user.ToResponse()
+	if user.Role == RoleCompany {
+		companyData, err := s.repo.GetCompanyByUserID(ctx, user.ID)
+		if err == nil && companyData != nil {
+			userResp = user.ToResponseWithCompany(companyData)
+		}
+	}
+
 	return &AuthResponse{
-		User:         user.ToResponse(),
+		User:         userResp,
 		AccessToken:  accessToken,
 		RefreshToken: refreshToken,
 		ExpiresIn:    int64(s.config.AccessExpiry.Seconds()),

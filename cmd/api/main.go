@@ -19,6 +19,7 @@ import (
 	"github.com/karirnusantara/api/internal/modules/admin"
 	"github.com/karirnusantara/api/internal/modules/applications"
 	"github.com/karirnusantara/api/internal/modules/auth"
+	"github.com/karirnusantara/api/internal/modules/company"
 	"github.com/karirnusantara/api/internal/modules/cvs"
 	"github.com/karirnusantara/api/internal/modules/dashboard"
 	"github.com/karirnusantara/api/internal/modules/jobs"
@@ -61,6 +62,7 @@ func main() {
 	wishlistRepo := wishlist.NewRepository(db)
 	quotaRepo := quota.NewRepository(db)
 	dashboardRepo := dashboard.NewRepository(db)
+	companyRepo := company.NewRepository(db)
 
 	// Initialize other services
 	jobsService := jobs.NewService(jobsRepo)
@@ -69,6 +71,7 @@ func main() {
 	wishlistService := wishlist.NewService(wishlistRepo)
 	quotaService := quota.NewService(quotaRepo)
 	dashboardService := dashboard.NewService(dashboardRepo)
+	companyService := company.NewService(companyRepo)
 
 	// Initialize handlers
 	authHandler := auth.NewHandler(authService, v)
@@ -78,6 +81,10 @@ func main() {
 	wishlistHandler := wishlist.NewHandler(wishlistService, v)
 	quotaHandler := quota.NewHandler(quotaService, v)
 	dashboardHandler := dashboard.NewHandler(dashboardService)
+	
+	// Initialize company file service
+	companyFileService := company.NewFileService("./docs/companies")
+	companyHandler := company.NewHandler(companyService, companyFileService)
 
 	// Setup router
 	r := chi.NewRouter()
@@ -99,6 +106,10 @@ func main() {
 		})
 	})
 
+	// Static files for company documents
+	fs := http.FileServer(http.Dir("./docs"))
+	r.Handle("/docs/*", http.StripPrefix("/docs/", fs))
+
 	// API routes
 	r.Route("/api/v1", func(r chi.Router) {
 		// Register module routes with middleware functions
@@ -109,6 +120,7 @@ func main() {
 		wishlist.RegisterRoutes(r, wishlistHandler, authMiddleware.Authenticate, authMiddleware.RequireJobSeeker)
 		quota.RegisterRoutes(r, quotaHandler, authMiddleware.Authenticate, authMiddleware.RequireCompany)
 		dashboard.RegisterRoutes(r, dashboardHandler, authMiddleware.Authenticate, authMiddleware.RequireCompany)
+		company.RegisterRoutes(r, companyHandler, authMiddleware.Authenticate)
 
 		// Admin module routes
 		adminModule := admin.NewModule(db, cfg, authMiddleware)

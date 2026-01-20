@@ -18,6 +18,7 @@ type Repository interface {
 	UpdateUser(ctx context.Context, user *User) error
 	DeleteUser(ctx context.Context, id uint64) error
 	EmailExists(ctx context.Context, email string) (bool, error)
+	GetCompanyByUserID(ctx context.Context, userID uint64) (*CompanyData, error)
 
 	// Refresh token operations
 	CreateRefreshToken(ctx context.Context, token *RefreshToken) error
@@ -42,18 +43,15 @@ func (r *mysqlRepository) CreateUser(ctx context.Context, user *User) error {
 	query := `
 		INSERT INTO users (
 			email, password_hash, role, full_name, phone, avatar_url,
-			company_name, company_description, company_website, company_logo_url,
 			is_active, is_verified, created_at, updated_at
 		) VALUES (
 			?, ?, ?, ?, ?, ?,
-			?, ?, ?, ?,
 			?, ?, NOW(), NOW()
 		)
 	`
 
 	result, err := r.db.ExecContext(ctx, query,
 		user.Email, user.PasswordHash, user.Role, user.FullName, user.Phone, user.AvatarURL,
-		user.CompanyName, user.CompanyDescription, user.CompanyWebsite, user.CompanyLogoURL,
 		user.IsActive, user.IsVerified,
 	)
 	if err != nil {
@@ -73,8 +71,7 @@ func (r *mysqlRepository) CreateUser(ctx context.Context, user *User) error {
 func (r *mysqlRepository) GetUserByID(ctx context.Context, id uint64) (*User, error) {
 	query := `
 		SELECT id, email, password_hash, role, full_name, phone, avatar_url,
-			   company_name, company_description, company_website, company_logo_url,
-			   is_active, is_verified, company_status, email_verified_at, created_at, updated_at, deleted_at
+			   is_active, is_verified, email_verified_at, created_at, updated_at, deleted_at
 		FROM users
 		WHERE id = ? AND deleted_at IS NULL
 	`
@@ -90,12 +87,34 @@ func (r *mysqlRepository) GetUserByID(ctx context.Context, id uint64) (*User, er
 	return &user, nil
 }
 
+// GetCompanyByUserID retrieves company data for a user
+func (r *mysqlRepository) GetCompanyByUserID(ctx context.Context, userID uint64) (*CompanyData, error) {
+	query := `
+		SELECT company_name, company_logo_url, company_description, company_website,
+		       company_industry, company_size, company_location, company_phone, company_email,
+		       company_address, company_city, company_province, company_postal_code,
+		       established_year, employee_count, company_status,
+		       ktp_founder_url, akta_pendirian_url, npwp_url, nib_url
+		FROM companies
+		WHERE user_id = ? AND deleted_at IS NULL
+	`
+
+	var company CompanyData
+	if err := r.db.GetContext(ctx, &company, query, userID); err != nil {
+		if errors.Is(err, sql.ErrNoRows) {
+			return nil, nil
+		}
+		return nil, fmt.Errorf("failed to get company by user id: %w", err)
+	}
+
+	return &company, nil
+}
+
 // GetUserByEmail retrieves a user by email
 func (r *mysqlRepository) GetUserByEmail(ctx context.Context, email string) (*User, error) {
 	query := `
 		SELECT id, email, password_hash, role, full_name, phone, avatar_url,
-			   company_name, company_description, company_website, company_logo_url,
-			   is_active, is_verified, company_status, email_verified_at, created_at, updated_at, deleted_at
+			   is_active, is_verified, email_verified_at, created_at, updated_at, deleted_at
 		FROM users
 		WHERE email = ? AND deleted_at IS NULL
 	`
@@ -118,10 +137,6 @@ func (r *mysqlRepository) UpdateUser(ctx context.Context, user *User) error {
 			full_name = ?,
 			phone = ?,
 			avatar_url = ?,
-			company_name = ?,
-			company_description = ?,
-			company_website = ?,
-			company_logo_url = ?,
 			is_active = ?,
 			is_verified = ?,
 			updated_at = NOW()
@@ -130,7 +145,6 @@ func (r *mysqlRepository) UpdateUser(ctx context.Context, user *User) error {
 
 	_, err := r.db.ExecContext(ctx, query,
 		user.FullName, user.Phone, user.AvatarURL,
-		user.CompanyName, user.CompanyDescription, user.CompanyWebsite, user.CompanyLogoURL,
 		user.IsActive, user.IsVerified, user.ID,
 	)
 	if err != nil {

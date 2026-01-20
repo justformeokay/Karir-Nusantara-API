@@ -3,7 +3,7 @@
 -- https://www.phpmyadmin.net/
 --
 -- Host: localhost
--- Generation Time: Jan 19, 2026 at 12:14 PM
+-- Generation Time: Jan 19, 2026 at 02:41 PM
 -- Server version: 10.4.28-MariaDB
 -- PHP Version: 8.0.28
 
@@ -98,6 +98,43 @@ CREATE TABLE `audit_logs` (
   `ip_address` varchar(45) DEFAULT NULL,
   `user_agent` varchar(500) DEFAULT NULL,
   `created_at` timestamp NOT NULL DEFAULT current_timestamp()
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+-- --------------------------------------------------------
+
+--
+-- Table structure for table `companies`
+--
+
+CREATE TABLE `companies` (
+  `id` bigint(20) UNSIGNED NOT NULL,
+  `user_id` bigint(20) UNSIGNED NOT NULL,
+  `company_name` varchar(255) NOT NULL,
+  `company_description` longtext DEFAULT NULL,
+  `company_website` varchar(255) DEFAULT NULL,
+  `company_logo_url` varchar(500) DEFAULT NULL,
+  `company_industry` varchar(100) DEFAULT NULL,
+  `company_size` varchar(50) DEFAULT NULL,
+  `company_location` varchar(255) DEFAULT NULL,
+  `company_phone` varchar(20) DEFAULT NULL,
+  `company_email` varchar(255) DEFAULT NULL,
+  `company_address` longtext DEFAULT NULL,
+  `company_city` varchar(100) DEFAULT NULL,
+  `company_province` varchar(100) DEFAULT NULL,
+  `company_postal_code` varchar(20) DEFAULT NULL,
+  `established_year` year(4) DEFAULT NULL,
+  `employee_count` int(11) DEFAULT NULL,
+  `company_status` enum('pending','verified','rejected','suspended') DEFAULT 'pending',
+  `ktp_founder_url` varchar(500) DEFAULT NULL,
+  `akta_pendirian_url` varchar(500) DEFAULT NULL,
+  `npwp_url` varchar(500) DEFAULT NULL,
+  `nib_url` varchar(500) DEFAULT NULL,
+  `documents_verified_at` timestamp NULL DEFAULT NULL,
+  `documents_verified_by` bigint(20) UNSIGNED DEFAULT NULL,
+  `verification_notes` longtext DEFAULT NULL,
+  `created_at` timestamp NOT NULL DEFAULT current_timestamp(),
+  `updated_at` timestamp NOT NULL DEFAULT current_timestamp() ON UPDATE current_timestamp(),
+  `deleted_at` timestamp NULL DEFAULT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
 -- --------------------------------------------------------
@@ -373,7 +410,13 @@ INSERT INTO `refresh_tokens` (`id`, `user_id`, `token_hash`, `expires_at`, `revo
 (50, 7, '030620c5e4c6e29a9c91edf548e1a8da5bb9f59200d2cbf983b2eca4aef2692b', '2026-01-26 09:32:44', NULL, '', '', '2026-01-19 09:32:44'),
 (51, 7, 'a6e1868c7414376fb9fc23b911ed8e8b5aa948820bc39ed4a3389a03e418f599', '2026-01-26 09:33:20', NULL, '', '', '2026-01-19 09:33:20'),
 (52, 7, '8313fde1d1de58c6b6ec84effd5e547e93e6e65a8536e398b953caf4e67d17e7', '2026-01-26 09:50:11', NULL, '', '', '2026-01-19 09:50:11'),
-(53, 7, '60b94d83767aeedf47e9238e9696c3fb36c18df8222ac0cf2118ca104243643d', '2026-01-26 09:52:54', NULL, '', '', '2026-01-19 09:52:54');
+(53, 7, '60b94d83767aeedf47e9238e9696c3fb36c18df8222ac0cf2118ca104243643d', '2026-01-26 09:52:54', NULL, '', '', '2026-01-19 09:52:54'),
+(54, 7, '059f7d2ef6d19ba619a43d128429e30e4296652a974422beafe5f0b68cc0d7c0', '2026-01-26 11:21:19', NULL, '', '', '2026-01-19 11:21:19'),
+(55, 7, '2a950819245b52d5645dbbe90d8b406bad4d48cab508e517ac790512b9df0f5f', '2026-01-26 11:53:25', NULL, '', '', '2026-01-19 11:53:25'),
+(56, 7, '8725208f1c198c038722c83254c7c84936a3ad018f244a6740b067fdd0a8e3fa', '2026-01-26 12:44:17', NULL, '', '', '2026-01-19 12:44:17'),
+(57, 7, '6ce5ce65b4ee76f77199c0cbb565f7bd4a05e2af01f127f7e6b18c259bd58edc', '2026-01-26 13:00:57', NULL, '', '', '2026-01-19 13:00:57'),
+(58, 7, 'd6821da179e51d9755f3a5fd45e188dccb59058e838a1967682b4e4f5af9dd9e', '2026-01-26 13:07:54', NULL, '', '', '2026-01-19 13:07:54'),
+(59, 7, '2b87fa6d775286438439d2b8e0c72ec2a15c7f61cef9a406c1bdceeefa22bad0', '2026-01-26 13:20:06', NULL, '', '', '2026-01-19 13:20:06');
 
 -- --------------------------------------------------------
 
@@ -402,13 +445,8 @@ CREATE TABLE `users` (
   `full_name` varchar(255) NOT NULL,
   `phone` varchar(20) DEFAULT NULL,
   `avatar_url` varchar(500) DEFAULT NULL,
-  `company_name` varchar(255) DEFAULT NULL,
-  `company_description` text DEFAULT NULL,
-  `company_website` varchar(500) DEFAULT NULL,
-  `company_logo_url` varchar(500) DEFAULT NULL,
   `is_active` tinyint(1) NOT NULL DEFAULT 1,
   `is_verified` tinyint(1) NOT NULL DEFAULT 0,
-  `company_status` enum('pending','verified','rejected','suspended') DEFAULT 'pending',
   `email_verified_at` timestamp NULL DEFAULT NULL,
   `created_at` timestamp NOT NULL DEFAULT current_timestamp(),
   `updated_at` timestamp NOT NULL DEFAULT current_timestamp() ON UPDATE current_timestamp(),
@@ -419,16 +457,16 @@ CREATE TABLE `users` (
 -- Dumping data for table `users`
 --
 
-INSERT INTO `users` (`id`, `email`, `password_hash`, `role`, `full_name`, `phone`, `avatar_url`, `company_name`, `company_description`, `company_website`, `company_logo_url`, `is_active`, `is_verified`, `company_status`, `email_verified_at`, `created_at`, `updated_at`, `deleted_at`) VALUES
-(1, 'admin@karirnusantara.com', '$2a$10$llmqSju0EZuHEklAzhE7jeubjam0w2DoG252O2cgb1lG73gGL0AEG', 'admin', 'Admin User', NULL, NULL, NULL, NULL, NULL, NULL, 1, 0, 'pending', NULL, '2026-01-19 08:53:05', '2026-01-19 08:53:05', NULL),
-(2, 'hr@techcorp.id', '$2a$10$weTcDM1VtUZPmsGF/olunOItpWfuD8rKJ5NcHgsn1WvUuMM0Ls.S.', 'company', 'HR TechCorp', '081234567890', NULL, 'PT TechCorp Indonesia', NULL, NULL, NULL, 1, 0, 'pending', NULL, '2026-01-17 02:44:45', '2026-01-17 02:44:45', NULL),
-(3, 'budi.kandidat@gmail.com', '$2a$10$8jpAPiQoMmKhsyKE1nZJ6u0suj/To00/xPNbx5X94ARBUpUmgJj9a', 'job_seeker', 'Budi Santoso', NULL, NULL, NULL, NULL, NULL, NULL, 1, 0, 'pending', NULL, '2026-01-17 02:50:35', '2026-01-17 02:50:35', NULL),
-(4, 'testcompany@test.com', '$2a$10$Owbnmfiz/RUlALkTaI777epAeVCCvSsZmd.bqOu.hjBX1KHGsNYhW', 'company', 'HR Manager', '081234567890', NULL, 'PT Test Company', NULL, NULL, NULL, 1, 0, 'pending', NULL, '2026-01-18 07:08:53', '2026-01-18 07:08:53', NULL),
-(5, 'company2@test.com', '$2a$10$26QNIFt3ErRbLdMEaIyu1uqBfxn72fmYYTK27e1NnK5UaAEsZiEvy', 'company', 'Test Manager', '081234567890', NULL, 'PT Test Company 2', NULL, NULL, NULL, 1, 0, 'pending', NULL, '2026-01-18 07:42:02', '2026-01-18 07:42:02', NULL),
-(6, 'company3@test.com', '$2a$10$27XxXTvPq9S.tOwT5/kY7u6E7V8ovsBq3jGQiL5txJuCzVm0t0iNa', 'company', 'Recruitment Manager', '081555555555', NULL, 'PT Digital Nusantara', NULL, NULL, NULL, 1, 0, 'pending', NULL, '2026-01-18 07:43:28', '2026-01-18 07:43:28', NULL),
-(7, 'info@karyadeveloperindonesia.com', '$2a$10$yGx97vEQaIJOEeuDHlIGQONjqgqfdFhWUbBrWWxsJNpmeEXf5reWW', 'company', 'Admin', '0881036480285', NULL, 'PT Karya Developer indonesia', NULL, NULL, NULL, 1, 0, 'verified', NULL, '2026-01-18 09:13:55', '2026-01-19 08:56:35', NULL),
-(9, 'company.testing1768808682@karirnusantara.com', '$2a$10$1RpgFQaG58KBk.Fhy8laye2yhBj.C.ogGGaqxkktzmew7TMrlLu.W', 'company', 'Budi Santoso', '081234567890', NULL, 'PT Testing Indonesia', NULL, NULL, NULL, 1, 0, 'pending', NULL, '2026-01-19 07:44:42', '2026-01-19 07:44:42', NULL),
-(10, 'company.testing1768808883@karirnusantara.com', '$2a$10$GrXGCrL6oNq.NJAJwmhAg.aQMID5txWxyP7Df/XJuVQ39zSKhioDy', 'company', 'Budi Santoso', '081234567890', NULL, 'PT Testing Indonesia', NULL, NULL, NULL, 1, 0, 'pending', NULL, '2026-01-19 07:48:03', '2026-01-19 07:48:03', NULL);
+INSERT INTO `users` (`id`, `email`, `password_hash`, `role`, `full_name`, `phone`, `avatar_url`, `is_active`, `is_verified`, `email_verified_at`, `created_at`, `updated_at`, `deleted_at`) VALUES
+(1, 'admin@karirnusantara.com', '$2a$10$llmqSju0EZuHEklAzhE7jeubjam0w2DoG252O2cgb1lG73gGL0AEG', 'admin', 'Admin User', NULL, NULL, 1, 0, NULL, '2026-01-19 08:53:05', '2026-01-19 08:53:05', NULL),
+(2, 'hr@techcorp.id', '$2a$10$weTcDM1VtUZPmsGF/olunOItpWfuD8rKJ5NcHgsn1WvUuMM0Ls.S.', 'company', 'HR TechCorp', '081234567890', NULL, 1, 0, NULL, '2026-01-17 02:44:45', '2026-01-17 02:44:45', NULL),
+(3, 'budi.kandidat@gmail.com', '$2a$10$8jpAPiQoMmKhsyKE1nZJ6u0suj/To00/xPNbx5X94ARBUpUmgJj9a', 'job_seeker', 'Budi Santoso', NULL, NULL, 1, 0, NULL, '2026-01-17 02:50:35', '2026-01-17 02:50:35', NULL),
+(4, 'testcompany@test.com', '$2a$10$Owbnmfiz/RUlALkTaI777epAeVCCvSsZmd.bqOu.hjBX1KHGsNYhW', 'company', 'HR Manager', '081234567890', NULL, 1, 0, NULL, '2026-01-18 07:08:53', '2026-01-18 07:08:53', NULL),
+(5, 'company2@test.com', '$2a$10$26QNIFt3ErRbLdMEaIyu1uqBfxn72fmYYTK27e1NnK5UaAEsZiEvy', 'company', 'Test Manager', '081234567890', NULL, 1, 0, NULL, '2026-01-18 07:42:02', '2026-01-18 07:42:02', NULL),
+(6, 'company3@test.com', '$2a$10$27XxXTvPq9S.tOwT5/kY7u6E7V8ovsBq3jGQiL5txJuCzVm0t0iNa', 'company', 'Recruitment Manager', '081555555555', NULL, 1, 0, NULL, '2026-01-18 07:43:28', '2026-01-18 07:43:28', NULL),
+(7, 'info@karyadeveloperindonesia.com', '$2a$10$yGx97vEQaIJOEeuDHlIGQONjqgqfdFhWUbBrWWxsJNpmeEXf5reWW', 'company', 'Admin', '0881036480285', NULL, 1, 0, NULL, '2026-01-18 09:13:55', '2026-01-19 13:21:21', NULL),
+(9, 'company.testing1768808682@karirnusantara.com', '$2a$10$1RpgFQaG58KBk.Fhy8laye2yhBj.C.ogGGaqxkktzmew7TMrlLu.W', 'company', 'Budi Santoso', '081234567890', NULL, 1, 0, NULL, '2026-01-19 07:44:42', '2026-01-19 07:44:42', NULL),
+(10, 'company.testing1768808883@karirnusantara.com', '$2a$10$GrXGCrL6oNq.NJAJwmhAg.aQMID5txWxyP7Df/XJuVQ39zSKhioDy', 'company', 'Budi Santoso', '081234567890', NULL, 1, 0, NULL, '2026-01-19 07:48:03', '2026-01-19 07:48:03', NULL);
 
 --
 -- Indexes for dumped tables
@@ -464,6 +502,17 @@ ALTER TABLE `audit_logs`
   ADD KEY `idx_audit_logs_entity` (`entity_type`,`entity_id`),
   ADD KEY `idx_audit_logs_action` (`action`),
   ADD KEY `idx_audit_logs_created_at` (`created_at`);
+
+--
+-- Indexes for table `companies`
+--
+ALTER TABLE `companies`
+  ADD PRIMARY KEY (`id`),
+  ADD UNIQUE KEY `user_id` (`user_id`),
+  ADD KEY `fk_companies_verified_by` (`documents_verified_by`),
+  ADD KEY `idx_company_status` (`company_status`),
+  ADD KEY `idx_deleted_at` (`deleted_at`),
+  ADD KEY `idx_created_at` (`created_at`);
 
 --
 -- Indexes for table `company_quotas`
@@ -565,7 +614,6 @@ ALTER TABLE `users`
   ADD KEY `idx_users_role` (`role`),
   ADD KEY `idx_users_is_active` (`is_active`),
   ADD KEY `idx_users_deleted_at` (`deleted_at`),
-  ADD KEY `idx_users_company_status` (`company_status`),
   ADD KEY `idx_users_role_status` (`role`,`is_active`);
 
 --
@@ -588,6 +636,12 @@ ALTER TABLE `application_timelines`
 -- AUTO_INCREMENT for table `audit_logs`
 --
 ALTER TABLE `audit_logs`
+  MODIFY `id` bigint(20) UNSIGNED NOT NULL AUTO_INCREMENT;
+
+--
+-- AUTO_INCREMENT for table `companies`
+--
+ALTER TABLE `companies`
   MODIFY `id` bigint(20) UNSIGNED NOT NULL AUTO_INCREMENT;
 
 --
@@ -636,7 +690,7 @@ ALTER TABLE `payments`
 -- AUTO_INCREMENT for table `refresh_tokens`
 --
 ALTER TABLE `refresh_tokens`
-  MODIFY `id` bigint(20) UNSIGNED NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=54;
+  MODIFY `id` bigint(20) UNSIGNED NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=60;
 
 --
 -- AUTO_INCREMENT for table `saved_jobs`
@@ -667,6 +721,13 @@ ALTER TABLE `applications`
 --
 ALTER TABLE `application_timelines`
   ADD CONSTRAINT `fk_timelines_application` FOREIGN KEY (`application_id`) REFERENCES `applications` (`id`) ON DELETE CASCADE;
+
+--
+-- Constraints for table `companies`
+--
+ALTER TABLE `companies`
+  ADD CONSTRAINT `fk_companies_user_id` FOREIGN KEY (`user_id`) REFERENCES `users` (`id`) ON DELETE CASCADE,
+  ADD CONSTRAINT `fk_companies_verified_by` FOREIGN KEY (`documents_verified_by`) REFERENCES `users` (`id`) ON DELETE SET NULL;
 
 --
 -- Constraints for table `company_quotas`

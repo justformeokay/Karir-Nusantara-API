@@ -24,6 +24,7 @@ func RegisterRoutes(r chi.Router, h *Handler, authenticate MiddlewareFunc) {
 			r.Post("/logout", h.Logout)
 			r.Get("/me", h.Me)
 			r.Put("/profile", h.UpdateProfile)
+			r.Post("/profile/logo", h.UploadLogo)
 		})
 	})
 }
