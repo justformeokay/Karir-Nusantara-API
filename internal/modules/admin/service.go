@@ -11,6 +11,7 @@ import (
 	"golang.org/x/crypto/bcrypt"
 
 	"github.com/karirnusantara/api/internal/config"
+	"github.com/karirnusantara/api/internal/modules/quota"
 )
 
 // Common errors
@@ -58,8 +59,9 @@ type Service interface {
 
 // service implements the Service interface
 type service struct {
-	repo   Repository
-	config *config.Config
+	repo         Repository
+	config       *config.Config
+	quotaService *quota.Service
 }
 
 // NewService creates a new admin service
@@ -67,6 +69,15 @@ func NewService(repo Repository, cfg *config.Config) Service {
 	return &service{
 		repo:   repo,
 		config: cfg,
+	}
+}
+
+// NewServiceWithQuota creates a new admin service with quota service
+func NewServiceWithQuota(repo Repository, cfg *config.Config, quotaSvc *quota.Service) Service {
+	return &service{
+		repo:         repo,
+		config:       cfg,
+		quotaService: quotaSvc,
 	}
 }
 
@@ -373,23 +384,36 @@ func (s *service) ProcessPayment(ctx context.Context, id uint64, req *PaymentAct
 		return ErrPaymentNotFound
 	}
 
-	var newStatus string
 	var action string
 
 	switch req.Action {
 	case "approve":
-		newStatus = PaymentStatusConfirmed
+		// Use quota service to confirm and add quota
+		if s.quotaService != nil {
+			if err := s.quotaService.ConfirmPayment(id, adminID, req.Note); err != nil {
+				return fmt.Errorf("failed to confirm payment: %w", err)
+			}
+		} else {
+			// Fallback: just update status
+			if err := s.repo.UpdatePaymentStatus(ctx, id, PaymentStatusConfirmed, req.Note, adminID); err != nil {
+				return fmt.Errorf("failed to update payment status: %w", err)
+			}
+		}
 		action = "payment_approved"
 	case "reject":
-		newStatus = PaymentStatusRejected
+		// Use quota service to reject
+		if s.quotaService != nil {
+			if err := s.quotaService.RejectPayment(id, adminID, req.Note); err != nil {
+				return fmt.Errorf("failed to reject payment: %w", err)
+			}
+		} else {
+			if err := s.repo.UpdatePaymentStatus(ctx, id, PaymentStatusRejected, req.Note, adminID); err != nil {
+				return fmt.Errorf("failed to update payment status: %w", err)
+			}
+		}
 		action = "payment_rejected"
 	default:
 		return ErrInvalidAction
-	}
-
-	// Update payment status
-	if err := s.repo.UpdatePaymentStatus(ctx, id, newStatus, req.Note, adminID); err != nil {
-		return fmt.Errorf("failed to update payment status: %w", err)
 	}
 
 	// Log admin action

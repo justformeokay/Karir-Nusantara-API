@@ -2,8 +2,13 @@ package quota
 
 import (
 	"encoding/json"
+	"fmt"
+	"io"
 	"net/http"
+	"os"
+	"path/filepath"
 	"strconv"
+	"time"
 
 	"github.com/karirnusantara/api/internal/middleware"
 	"github.com/karirnusantara/api/internal/shared/response"
@@ -80,9 +85,34 @@ func (h *Handler) SubmitPaymentProof(w http.ResponseWriter, r *http.Request) {
 	}
 	defer file.Close()
 
-	// TODO: Upload file to storage and get URL
-	// For now, we'll use a placeholder
-	proofImageURL := "/uploads/payments/" + header.Filename
+	// Create upload directory if not exists
+	uploadDir := fmt.Sprintf("./docs/payments/%d", companyID)
+	if err := os.MkdirAll(uploadDir, 0755); err != nil {
+		response.Error(w, http.StatusInternalServerError, "UPLOAD_ERROR", "Failed to create upload directory")
+		return
+	}
+
+	// Generate unique filename
+	ext := filepath.Ext(header.Filename)
+	filename := fmt.Sprintf("proof_%d%s", time.Now().Unix(), ext)
+	filePath := filepath.Join(uploadDir, filename)
+
+	// Create destination file
+	dst, err := os.Create(filePath)
+	if err != nil {
+		response.Error(w, http.StatusInternalServerError, "UPLOAD_ERROR", "Failed to save file")
+		return
+	}
+	defer dst.Close()
+
+	// Copy file content
+	if _, err := io.Copy(dst, file); err != nil {
+		response.Error(w, http.StatusInternalServerError, "UPLOAD_ERROR", "Failed to save file")
+		return
+	}
+
+	// URL path for the uploaded file
+	proofImageURL := fmt.Sprintf("/docs/payments/%d/%s", companyID, filename)
 
 	// Parse optional job_id
 	var jobID *uint64

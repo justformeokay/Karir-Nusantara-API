@@ -504,11 +504,11 @@ func (r *repository) GetPayments(ctx context.Context, filter PaymentFilter) ([]*
 	// Main query
 	query := `
 		SELECT 
-			p.id, p.company_id, u.company_name, p.job_id, j.title as job_title,
+			p.id, p.company_id, c.company_name, p.job_id, j.title as job_title,
 			p.amount, p.proof_image_url, p.status, p.note, p.confirmed_by_id,
 			p.submitted_at, p.confirmed_at, p.created_at, p.updated_at
 		FROM payments p
-		LEFT JOIN users u ON p.company_id = u.id
+		LEFT JOIN companies c ON p.company_id = c.user_id
 		LEFT JOIN jobs j ON p.job_id = j.id
 	` + whereClause + " ORDER BY p.submitted_at DESC"
 
@@ -547,11 +547,11 @@ func (r *repository) GetPayments(ctx context.Context, filter PaymentFilter) ([]*
 func (r *repository) GetPaymentByID(ctx context.Context, id uint64) (*PaymentAdmin, error) {
 	query := `
 		SELECT 
-			p.id, p.company_id, u.company_name, p.job_id, j.title as job_title,
+			p.id, p.company_id, c.company_name, p.job_id, j.title as job_title,
 			p.amount, p.proof_image_url, p.status, p.note, p.confirmed_by_id,
 			p.submitted_at, p.confirmed_at, p.created_at, p.updated_at
 		FROM payments p
-		LEFT JOIN users u ON p.company_id = u.id
+		LEFT JOIN companies c ON p.company_id = c.user_id
 		LEFT JOIN jobs j ON p.job_id = j.id
 		WHERE p.id = ?
 	`

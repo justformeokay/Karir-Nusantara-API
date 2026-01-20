@@ -65,11 +65,11 @@ func main() {
 	companyRepo := company.NewRepository(db)
 
 	// Initialize other services
-	jobsService := jobs.NewServiceWithCompanyRepo(jobsRepo, companyRepo)
+	quotaService := quota.NewService(quotaRepo)
+	jobsService := jobs.NewServiceWithQuota(jobsRepo, companyRepo, quotaService)
 	cvsService := cvs.NewService(cvsRepo)
 	applicationsService := applications.NewService(applicationsRepo, cvsService, jobsService)
 	wishlistService := wishlist.NewService(wishlistRepo)
-	quotaService := quota.NewService(quotaRepo)
 	dashboardService := dashboard.NewService(dashboardRepo)
 	companyService := company.NewService(companyRepo)
 
@@ -123,7 +123,7 @@ func main() {
 		company.RegisterRoutes(r, companyHandler, authMiddleware.Authenticate)
 
 		// Admin module routes
-		adminModule := admin.NewModule(db, cfg, authMiddleware)
+		adminModule := admin.NewModuleWithQuota(db, cfg, authMiddleware, quotaService)
 		adminModule.RegisterRoutes(r)
 	})
 

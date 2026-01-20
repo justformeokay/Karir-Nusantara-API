@@ -10,15 +10,16 @@ import (
 
 	apperrors "github.com/karirnusantara/api/internal/shared/errors"
 	"github.com/karirnusantara/api/internal/modules/company"
+	"github.com/karirnusantara/api/internal/modules/quota"
 )
 
 // Service defines the jobs service interface
 type Service interface {
-	Create(ctx context.Context, companyID uint64, req *CreateJobRequest) (*JobResponse, error)
+	Create(ctx context.Context, companyID uint64, userID uint64, req *CreateJobRequest) (*JobResponse, error)
 	GetByID(ctx context.Context, id uint64) (*JobResponse, error)
 	GetBySlug(ctx context.Context, slug string) (*JobResponse, error)
 	Update(ctx context.Context, id uint64, companyID uint64, req *UpdateJobRequest) (*JobResponse, error)
-	UpdateStatus(ctx context.Context, id uint64, companyID uint64, status string) (*JobResponse, error)
+	UpdateStatus(ctx context.Context, id uint64, companyID uint64, userID uint64, status string) (*JobResponse, error)
 	Delete(ctx context.Context, id uint64, companyID uint64) error
 	List(ctx context.Context, params JobListParams) ([]*JobResponse, int64, error)
 	ListByCompany(ctx context.Context, companyID uint64, params JobListParams) ([]*JobResponse, int64, error)
@@ -29,6 +30,7 @@ type Service interface {
 type service struct {
 	repo            Repository
 	companyRepo     company.Repository
+	quotaService    *quota.Service
 }
 
 // NewService creates a new jobs service
@@ -39,6 +41,11 @@ func NewService(repo Repository) Service {
 // NewServiceWithCompanyRepo creates a new jobs service with company repository
 func NewServiceWithCompanyRepo(repo Repository, companyRepo company.Repository) Service {
 	return &service{repo: repo, companyRepo: companyRepo}
+}
+
+// NewServiceWithQuota creates a new jobs service with company and quota repositories
+func NewServiceWithQuota(repo Repository, companyRepo company.Repository, quotaService *quota.Service) Service {
+	return &service{repo: repo, companyRepo: companyRepo, quotaService: quotaService}
 }
 
 // GetCompanyByUserID retrieves company information for a given user ID
@@ -59,7 +66,7 @@ func (s *service) GetCompanyByUserID(ctx context.Context, userID uint64) (*compa
 }
 
 // Create creates a new job posting
-func (s *service) Create(ctx context.Context, companyID uint64, req *CreateJobRequest) (*JobResponse, error) {
+func (s *service) Create(ctx context.Context, companyID uint64, userID uint64, req *CreateJobRequest) (*JobResponse, error) {
 	// Validate company eligibility to create jobs
 	if s.companyRepo != nil {
 		canCreate, validationErr, err := s.companyRepo.CanCreateJobs(ctx, companyID)
@@ -136,6 +143,24 @@ func (s *service) Create(ctx context.Context, companyID uint64, req *CreateJobRe
 
 	// Set status and published_at
 	if req.Status == JobStatusActive {
+		// Check and consume quota if publishing directly
+		if s.quotaService != nil {
+			canPublish, quotaType, err := s.quotaService.CanPublishJob(userID)
+			if err != nil {
+				return nil, apperrors.NewInternalError("Failed to check quota", err)
+			}
+			if !canPublish {
+				return nil, apperrors.NewValidationError("Kuota posting habis. Silakan beli kuota tambahan untuk melanjutkan.", map[string]string{
+					"code": "QUOTA_EXHAUSTED",
+					"details": "Kuota gratis 10 post sudah habis. Harga per posting: Rp 15.000",
+				})
+			}
+			// Consume quota
+			if err := s.quotaService.ConsumeQuota(userID); err != nil {
+				return nil, apperrors.NewInternalError("Failed to consume quota", err)
+			}
+			_ = quotaType // Log or track quota type used
+		}
 		job.Status = JobStatusActive
 		job.PublishedAt = sql.NullTime{Time: time.Now(), Valid: true}
 	}
@@ -352,7 +377,7 @@ func (s *service) IncrementViewCount(ctx context.Context, id uint64) error {
 }
 
 // UpdateStatus updates the job status (publish, close, pause, reopen)
-func (s *service) UpdateStatus(ctx context.Context, id uint64, companyID uint64, newStatus string) (*JobResponse, error) {
+func (s *service) UpdateStatus(ctx context.Context, id uint64, companyID uint64, userID uint64, newStatus string) (*JobResponse, error) {
 	// Get existing job
 	job, err := s.repo.GetByID(ctx, id)
 	if err != nil {
@@ -370,6 +395,26 @@ func (s *service) UpdateStatus(ctx context.Context, id uint64, companyID uint64,
 	// Validate status transition
 	if !isValidStatusTransition(job.Status, newStatus) {
 		return nil, apperrors.NewBadRequestError(fmt.Sprintf("Cannot change status from '%s' to '%s'", job.Status, newStatus))
+	}
+
+	// Check and consume quota when publishing (draft -> active or first time active)
+	if newStatus == JobStatusActive && !job.PublishedAt.Valid {
+		if s.quotaService != nil {
+			canPublish, _, err := s.quotaService.CanPublishJob(userID)
+			if err != nil {
+				return nil, apperrors.NewInternalError("Failed to check quota", err)
+			}
+			if !canPublish {
+				return nil, apperrors.NewValidationError("Kuota posting habis. Silakan beli kuota tambahan untuk melanjutkan.", map[string]string{
+					"code": "QUOTA_EXHAUSTED",
+					"details": "Kuota gratis 10 post sudah habis. Harga per posting: Rp 15.000",
+				})
+			}
+			// Consume quota
+			if err := s.quotaService.ConsumeQuota(userID); err != nil {
+				return nil, apperrors.NewInternalError("Failed to consume quota", err)
+			}
+		}
 	}
 
 	// Update status

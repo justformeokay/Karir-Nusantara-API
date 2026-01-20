@@ -14,8 +14,8 @@ const (
 
 // Constants
 const (
-	FreeQuotaLimit = 5          // Free job postings per company
-	PricePerJob    = 30000      // IDR 30,000 per additional job
+	FreeQuotaLimit = 10         // Free job postings per company
+	PricePerJob    = 15000      // IDR 15,000 per additional job
 )
 
 // CompanyQuota represents a company's job posting quota

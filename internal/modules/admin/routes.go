@@ -6,6 +6,7 @@ import (
 
 	"github.com/karirnusantara/api/internal/config"
 	"github.com/karirnusantara/api/internal/middleware"
+	"github.com/karirnusantara/api/internal/modules/quota"
 )
 
 // Module represents the admin module
@@ -18,6 +19,18 @@ type Module struct {
 func NewModule(db *sqlx.DB, cfg *config.Config, authMiddleware *middleware.AuthMiddleware) *Module {
 	repo := NewRepository(db)
 	service := NewService(repo, cfg)
+	handler := NewHandler(service)
+
+	return &Module{
+		handler:    handler,
+		authMiddleware: authMiddleware,
+	}
+}
+
+// NewModuleWithQuota creates a new admin module with quota service
+func NewModuleWithQuota(db *sqlx.DB, cfg *config.Config, authMiddleware *middleware.AuthMiddleware, quotaSvc *quota.Service) *Module {
+	repo := NewRepository(db)
+	service := NewServiceWithQuota(repo, cfg, quotaSvc)
 	handler := NewHandler(service)
 
 	return &Module{

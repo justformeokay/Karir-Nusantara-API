@@ -60,7 +60,7 @@ func (h *Handler) Create(w http.ResponseWriter, r *http.Request) {
 
 	companyID := company.ID
 
-	job, err := h.service.Create(r.Context(), companyID, &req)
+	job, err := h.service.Create(r.Context(), companyID, userID, &req)
 	if err != nil {
 		handleError(w, err)
 		return
@@ -310,7 +310,7 @@ func (h *Handler) Publish(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	job, err := h.service.UpdateStatus(r.Context(), id, companyID, JobStatusActive)
+	job, err := h.service.UpdateStatus(r.Context(), id, companyID, userID, JobStatusActive)
 	if err != nil {
 		handleError(w, err)
 		return
@@ -347,7 +347,7 @@ func (h *Handler) Close(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	job, err := h.service.UpdateStatus(r.Context(), id, companyID, JobStatusClosed)
+	job, err := h.service.UpdateStatus(r.Context(), id, companyID, userID, JobStatusClosed)
 	if err != nil {
 		handleError(w, err)
 		return
@@ -384,7 +384,7 @@ func (h *Handler) Pause(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	job, err := h.service.UpdateStatus(r.Context(), id, companyID, JobStatusPaused)
+	job, err := h.service.UpdateStatus(r.Context(), id, companyID, userID, JobStatusPaused)
 	if err != nil {
 		handleError(w, err)
 		return
@@ -421,7 +421,7 @@ func (h *Handler) Reopen(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	job, err := h.service.UpdateStatus(r.Context(), id, companyID, JobStatusActive)
+	job, err := h.service.UpdateStatus(r.Context(), id, companyID, userID, JobStatusActive)
 	if err != nil {
 		handleError(w, err)
 		return

@@ -3,7 +3,7 @@
 -- https://www.phpmyadmin.net/
 --
 -- Host: localhost
--- Generation Time: Jan 20, 2026 at 04:49 AM
+-- Generation Time: Jan 20, 2026 at 09:33 AM
 -- Server version: 10.4.28-MariaDB
 -- PHP Version: 8.0.28
 
@@ -142,7 +142,7 @@ CREATE TABLE `companies` (
 --
 
 INSERT INTO `companies` (`id`, `user_id`, `company_name`, `company_description`, `company_website`, `company_logo_url`, `company_industry`, `company_size`, `company_location`, `company_phone`, `company_email`, `company_address`, `company_city`, `company_province`, `company_postal_code`, `established_year`, `employee_count`, `company_status`, `ktp_founder_url`, `akta_pendirian_url`, `npwp_url`, `nib_url`, `documents_verified_at`, `documents_verified_by`, `verification_notes`, `created_at`, `updated_at`, `deleted_at`) VALUES
-(1, 7, 'PT Karya Developer indonesia', 'Perusahaan yang bergerak dibidang industri teknogi informasi', 'https://karyadeveloperindonesia.com', '/docs/companies/1/logo_1768832403.png', 'Teknologi Informasi', '1-10', 'Sidaorjo, Jawa Timur', '+62881036480285', 'info@karyadeveloperindonesia.com', 'Perumahan Griya Bhayangkara blok i5/07 Desa Masangan Kulon, Kecamatan Sukodono, Kabupaten Sidoarjo, Kode Pos 61258', 'Sidoarjo', 'Jawa Timur', '61258', '2025', 8, 'verified', '/docs/companies/1/ktp_1768832313.jpg', '/docs/companies/1/akta_1768832354.pdf', '/docs/companies/1/npwp_1768832371.jpg', '/docs/companies/1/nib_1768832386.pdf', '2026-01-20 03:42:33', NULL, NULL, '2026-01-19 13:58:37', '2026-01-20 03:42:33', NULL);
+(1, 7, 'PT Karya Developer indonesia', 'Perusahaan yang bergerak dibidang industri teknogi informasi', 'https://karyadeveloperindonesia.com', '/docs/companies/1/logo_1768832403.png', 'Teknologi Informasi', '1-10', 'Sidaorjo, Jawa Timur', '+62881036480285', 'info@karyadeveloperindonesia.com', 'Perumahan Griya Bhayangkara blok i5/07 Desa Masangan Kulon, Kecamatan Sukodono, Kabupaten Sidoarjo, Kode Pos 61258', 'Sidoarjo', 'Jawa Timur', '61258', '2025', 8, 'verified', '/docs/companies/1/ktp_1768832313.jpg', '/docs/companies/1/akta_1768832354.pdf', '/docs/companies/1/npwp_1768832371.jpg', '/docs/companies/1/nib_1768832386.pdf', '2026-01-20 04:42:11', NULL, NULL, '2026-01-19 13:58:37', '2026-01-20 04:42:11', NULL);
 
 -- --------------------------------------------------------
 
@@ -165,7 +165,8 @@ CREATE TABLE `company_quotas` (
 
 INSERT INTO `company_quotas` (`id`, `company_id`, `free_quota_used`, `paid_quota`, `created_at`, `updated_at`) VALUES
 (1, 4, 0, 0, '2026-01-18 07:15:18', '2026-01-18 07:15:18'),
-(2, 7, 0, 0, '2026-01-18 09:14:40', '2026-01-18 09:14:40');
+(2, 7, 1, 1, '2026-01-18 09:14:40', '2026-01-20 07:39:03'),
+(3, 1, 2, 0, '2026-01-20 07:33:46', '2026-01-20 07:34:26');
 
 -- --------------------------------------------------------
 
@@ -274,7 +275,16 @@ INSERT INTO `jobs` (`id`, `company_id`, `title`, `slug`, `description`, `require
 (4, 10, 'Senior Backend Engineer', 'senior-backend-engineer', 'Kami mencari Senior Backend Engineer yang berpengalaman dalam mengembangkan sistem scalable', '- Minimal 5 tahun pengalaman backend development\n- Mahir Go, Python, atau Java\n- Pengalaman dengan microservices\n- Pengalaman dengan database SQL dan NoSQL', '- Merancang dan mengimplementasi API\n- Melakukan code review\n- Mengoptimalkan performance sistem\n- Mentoring junior developers', '- Gaji kompetitif 15-25 juta/bulan\n- Asuransi kesehatan\n- Work from home flexibility\n- Training budget', 'Jakarta Selatan', 'DKI Jakarta', 1, 'full_time', 'senior', 15000000, 25000000, 'IDR', 1, NULL, NULL, 'active', NULL, NULL, NULL, 0, 0, '2026-01-19 07:48:04', '2026-01-19 07:48:03', '2026-01-19 07:48:04', NULL),
 (5, 10, 'Full Stack Developer', 'full-stack-developer', 'Bergabunglah dengan tim kami sebagai Full Stack Developer', '- Minimal 3 tahun pengalaman\n- React atau Vue.js\n- Node.js atau Python', '- Develop frontend dan backend\n- Collaborate dengan tim design', '- Gaji 8-12 juta/bulan\n- Remote friendly', 'Jakarta Pusat', 'DKI Jakarta', 1, 'full_time', 'mid', 8000000, 12000000, 'IDR', 1, NULL, NULL, 'draft', NULL, NULL, NULL, 0, 0, NULL, '2026-01-19 07:48:03', '2026-01-19 07:48:03', NULL),
 (6, 10, 'UI/UX Designer', 'uiux-designer', 'Kami mencari UI/UX Designer untuk mengembangkan product kami', '- 2+ tahun pengalaman UI/UX\n- Figma atau Adobe XD', '- Design interface\n- User research', '- Gaji 6-10 juta/bulan', 'Jakarta Selatan', 'DKI Jakarta', 1, 'full_time', 'junior', 6000000, 10000000, 'IDR', 1, NULL, NULL, 'draft', NULL, NULL, NULL, 0, 0, NULL, '2026-01-19 07:48:03', '2026-01-19 07:48:03', NULL),
-(7, 1, 'Senior Backend Developer', 'senior-backend-developer', 'We are looking for an experienced backend developer...', 'Node.js, TypeScript, Docker', 'Design and implement APIs', NULL, 'Jakarta', 'DKI Jakarta', 1, 'full_time', 'senior', NULL, NULL, 'IDR', 0, NULL, NULL, 'draft', NULL, NULL, NULL, 0, 0, NULL, '2026-01-20 03:43:14', '2026-01-20 03:43:14', NULL);
+(7, 1, 'Senior Backend Developer', 'senior-backend-developer', 'We are looking for an experienced backend developer...', 'Node.js, TypeScript, Docker', 'Design and implement APIs', NULL, 'Jakarta', 'DKI Jakarta', 1, 'full_time', 'senior', NULL, NULL, 'IDR', 0, NULL, NULL, 'active', NULL, NULL, NULL, 0, 0, '2026-01-20 07:33:46', '2026-01-20 03:43:14', '2026-01-20 07:33:46', NULL),
+(8, 1, 'Senior Frontend Developer', 'senior-frontend-developer', 'Kami mencari Senior Frontend Developer yang berpengalaman dalam React.js dan TypeScript untuk bergabung dengan tim kami. Posisi ini akan bertanggung jawab untuk mengembangkan fitur-fitur baru.', '- Minimal 3 tahun pengalaman dengan React.js\n- Menguasai TypeScript', NULL, NULL, 'Jakarta Selatan', 'DKI Jakarta', 1, 'full_time', 'senior', 15000000, 25000000, 'IDR', 1, NULL, NULL, 'active', NULL, NULL, NULL, 0, 0, '2026-01-20 05:05:33', '2026-01-20 05:05:33', '2026-01-20 06:11:28', '2026-01-20 06:11:28'),
+(9, 1, 'Senior Frontend Developer', 'senior-frontend-developer-1768885756', 'Kami mencari Senior Frontend Developer yang berpengalaman dalam React.js dan TypeScript untuk bergabung dengan tim kami. Posisi ini akan bertanggung jawab untuk mengembangkan fitur-fitur baru.', '- Minimal 3 tahun pengalaman dengan React.js\n- Menguasai TypeScript', NULL, NULL, 'Jakarta Selatan', 'DKI Jakarta', 1, 'full_time', 'senior', 15000000, 25000000, 'IDR', 1, NULL, NULL, 'active', NULL, NULL, NULL, 0, 0, '2026-01-20 05:09:16', '2026-01-20 05:09:16', '2026-01-20 06:11:08', '2026-01-20 06:11:08'),
+(10, 1, 'Senior Frontend Developer', 'senior-frontend-developer-1768886367', 'Kami mencari Senior Frontend Developer yang berpengalaman dalam React.js.', 'Minimal 3 tahun pengalaman', NULL, NULL, 'Jakarta Selatan', 'DKI Jakarta', 1, 'full_time', 'senior', 15000000, 25000000, 'IDR', 1, NULL, NULL, 'closed', NULL, NULL, NULL, 0, 0, '2026-01-20 05:19:27', '2026-01-20 05:19:27', '2026-01-20 06:10:33', NULL),
+(11, 1, 'Senior Frontend Developer', 'senior-frontend-developer-1768886376', 'Kami mencari Senior Frontend Developer yang berpengalaman dalam React.js.', 'Minimal 3 tahun pengalaman', NULL, NULL, 'Jakarta Selatan', 'DKI Jakarta', 1, 'full_time', 'senior', 15000000, 25000000, 'IDR', 1, NULL, NULL, 'active', NULL, NULL, NULL, 0, 0, '2026-01-20 05:19:36', '2026-01-20 05:19:36', '2026-01-20 06:09:48', '2026-01-20 06:09:48'),
+(12, 1, 'Mobile Apps Developer', 'mobile-apps-developer', 'Full job description\nAbout this Role\n\nWe are seeking a highly experienced Flutter Developer to join our mobile development team. In this role, you will take the lead in architecting and building advanced mobile applications, driving technical excellence, and contributing to high-impact projects. You will collaborate with top-tier cross-functional teams to deliver innovative, scalable, and high-performance solutions.\n\nJob Description\n\nAs a Senior Flutter Developer, you will be responsible for designing, developing, and maintaining sophisticated mobile applications in a fast-paced and innovation-driven environment.\n\nWhat It’s Like to Work Here as a Senior Flutter Mobile App DeveloperFull-cycle Technical Ownership\n\nLead the end-to-end development lifecycle of mobile applications using Flutter, from system design and architecture to deployment and maintenance.\nUI/UX Collaboration\n\nTransform complex UI/UX designs into intuitive and polished user experiences, ensuring pixel-perfect implementations and smooth interactions.\nAdvanced Integration Expertise\n\nArchitect and integrate mobile applications with robust backend systems, ensuring high performance, security, and real-time synchronization.\nCode Quality & Engineering Standards\n\nDrive and participate in in-depth code reviews, ensuring clean architecture, maintainability, and adherence to best practices across the team.\nPerformance & Scalability Optimization\n\nIdentify performance bottlenecks, analyze app behavior, and implement advanced optimization techniques across devices and platforms.\nInnovation & Technical Leadership\n\nContribute forward-thinking ideas, mentor junior developers, and help shape technical strategy and direction.\nCross-functional Technical Collaboration\n\nWork closely with product managers, backend developers, and UI/UX teams to deliver seamless, scalable solutions on time.\nContinuous Learning & Research\n\nStay ahead of the latest trends in Flutter, mobile technologies, and tools—recommending and driving adoption of relevant advancements.\nRobust Testing & Quality Assurance\n\nDevelop automated testing, debugging strategies, and quality assurance processes to ensure enterprise-level reliability and security.', 'Requirements\n\nBachelor\'s degree in Computer Science or related field (or equivalent experience).\n5+ years of professional mobile development experience, with 3+ years specifically in Flutter.\nA strong portfolio showcasing complex, high-quality Flutter applications.\nMastery of Flutter, Dart, state management (e.g., Bloc, Riverpod, Provider, GetX), and modular architecture patterns.\nProven experience integrating APIs, working with real-time data, and using third-party libraries efficiently.\nHands-on experience with backend technologies (Node.js, Django, Firebase) is a strong advantage.\nFamiliarity with CI/CD pipelines, automated testing, and modern mobile DevOps practices.\nExperience publishing and maintaining apps on the App Store and Google Play.', NULL, NULL, 'Sidaorjo', 'Jawa Timur', 0, 'full_time', 'junior', 5000000, 5500000, 'IDR', 1, '2026-02-20', NULL, 'closed', NULL, NULL, NULL, 1, 0, '2026-01-20 05:19:42', '2026-01-20 05:19:42', '2026-01-20 06:12:34', NULL),
+(13, 1, 'Test Job API Debug', 'test-job-api-debug', 'Testing job creation for debug purposes and verification of company_id field. This is a longer description to pass validation.', 'Testing requirements that need to be longer for validation.', NULL, NULL, 'Jakarta', 'DKI Jakarta', 0, 'full_time', 'senior', NULL, NULL, 'IDR', 0, NULL, NULL, 'active', NULL, NULL, NULL, 0, 0, '2026-01-20 05:30:01', '2026-01-20 05:30:01', '2026-01-20 06:08:42', '2026-01-20 06:08:42'),
+(14, 1, 'Mobile Apps Developer', 'mobile-apps-developer-1768890085', 'About this Role\n\nWe are seeking a highly experienced Flutter Developer to join our mobile development team. In this role, you will take the lead in architecting and building advanced mobile applications, driving technical excellence, and contributing to high-impact projects. You will collaborate with top-tier cross-functional teams to deliver innovative, scalable, and high-performance solutions.\n\nJob Description\n\nAs a Senior Flutter Developer, you will be responsible for designing, developing, and maintaining sophisticated mobile applications in a fast-paced and innovation-driven environment.\n\nWhat It’s Like to Work Here as a Senior Flutter Mobile App DeveloperFull-cycle Technical Ownership\n\nLead the end-to-end development lifecycle of mobile applications using Flutter, from system design and architecture to deployment and maintenance.\nUI/UX Collaboration\n\nTransform complex UI/UX designs into intuitive and polished user experiences, ensuring pixel-perfect implementations and smooth interactions.\nAdvanced Integration Expertise\n\nArchitect and integrate mobile applications with robust backend systems, ensuring high performance, security, and real-time synchronization.\nCode Quality & Engineering Standards\n\nDrive and participate in in-depth code reviews, ensuring clean architecture, maintainability, and adherence to best practices across the team.\nPerformance & Scalability Optimization\n\nIdentify performance bottlenecks, analyze app behavior, and implement advanced optimization techniques across devices and platforms.\nInnovation & Technical Leadership\n\nContribute forward-thinking ideas, mentor junior developers, and help shape technical strategy and direction.\nCross-functional Technical Collaboration\n\nWork closely with product managers, backend developers, and UI/UX teams to deliver seamless, scalable solutions on time.\nContinuous Learning & Research\n\nStay ahead of the latest trends in Flutter, mobile technologies, and tools—recommending and driving adoption of relevant advancements.\nRobust Testing & Quality Assurance\n\nDevelop automated testing, debugging strategies, and quality assurance processes to ensure enterprise-level reliability and security.', 'Requirements\n\nBachelor\'s degree in Computer Science or related field (or equivalent experience).\n5+ years of professional mobile development experience, with 3+ years specifically in Flutter.\nA strong portfolio showcasing complex, high-quality Flutter applications.\nMastery of Flutter, Dart, state management (e.g., Bloc, Riverpod, Provider, GetX), and modular architecture patterns.\nProven experience integrating APIs, working with real-time data, and using third-party libraries efficiently.\nHands-on experience with backend technologies (Node.js, Django, Firebase) is a strong advantage.\nFamiliarity with CI/CD pipelines, automated testing, and modern mobile DevOps practices.\nExperience publishing and maintaining apps on the App Store and Google Play.', NULL, NULL, 'Sidaorjo', 'Jawa Timur', 0, 'full_time', 'junior', 5000000, 5500000, 'IDR', 1, '2026-02-20', NULL, 'closed', NULL, NULL, NULL, 0, 0, '2026-01-20 06:21:25', '2026-01-20 06:21:25', '2026-01-20 07:02:12', '2026-01-20 07:02:12'),
+(15, 1, 'QA Engineer', 'qa-engineer', 'Looking for experienced QA Engineer to join our team. You will be responsible for testing our applications and ensuring quality standards are met. Must have experience with automated testing tools.', '3+ years experience in QA testing', NULL, NULL, 'Jakarta', 'DKI Jakarta', 0, 'full_time', 'mid', NULL, NULL, 'IDR', 0, NULL, NULL, 'active', NULL, NULL, NULL, 0, 0, '2026-01-20 07:34:26', '2026-01-20 07:34:26', '2026-01-20 07:34:26', NULL),
+(16, 1, 'DevOps Engineer', 'devops-engineer', 'Looking for experienced DevOps Engineer to manage our cloud infrastructure. You will be responsible for CI/CD pipelines and infrastructure automation.', '3+ years experience with AWS, Docker, Kubernetes', NULL, NULL, 'Surabaya', 'Jawa Timur', 1, 'full_time', 'mid', NULL, NULL, 'IDR', 0, NULL, NULL, 'active', NULL, NULL, NULL, 0, 0, '2026-01-20 07:39:03', '2026-01-20 07:39:03', '2026-01-20 07:39:03', NULL);
 
 -- --------------------------------------------------------
 
@@ -312,7 +322,17 @@ INSERT INTO `job_skills` (`id`, `job_id`, `skill_name`, `is_required`) VALUES
 (16, 6, 'Figma', 1),
 (17, 6, 'UI Design', 1),
 (18, 6, 'UX Research', 1),
-(19, 6, 'Prototyping', 1);
+(19, 6, 'Prototyping', 1),
+(20, 8, 'React', 1),
+(21, 8, 'TypeScript', 1),
+(22, 8, 'JavaScript', 1),
+(23, 9, 'React', 1),
+(24, 9, 'TypeScript', 1),
+(25, 9, 'JavaScript', 1),
+(26, 10, 'React', 1),
+(27, 10, 'TypeScript', 1),
+(28, 11, 'React', 1),
+(29, 11, 'TypeScript', 1);
 
 -- --------------------------------------------------------
 
@@ -342,7 +362,7 @@ CREATE TABLE `payments` (
   `id` bigint(20) UNSIGNED NOT NULL,
   `company_id` bigint(20) UNSIGNED NOT NULL,
   `job_id` bigint(20) UNSIGNED DEFAULT NULL,
-  `amount` bigint(20) NOT NULL DEFAULT 30000,
+  `amount` bigint(20) NOT NULL DEFAULT 15000,
   `proof_image_url` varchar(500) DEFAULT NULL,
   `status` enum('pending','confirmed','rejected') NOT NULL DEFAULT 'pending',
   `note` text DEFAULT NULL,
@@ -352,6 +372,15 @@ CREATE TABLE `payments` (
   `created_at` timestamp NOT NULL DEFAULT current_timestamp(),
   `updated_at` timestamp NOT NULL DEFAULT current_timestamp() ON UPDATE current_timestamp()
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+--
+-- Dumping data for table `payments`
+--
+
+INSERT INTO `payments` (`id`, `company_id`, `job_id`, `amount`, `proof_image_url`, `status`, `note`, `confirmed_by_id`, `submitted_at`, `confirmed_at`, `created_at`, `updated_at`) VALUES
+(1, 7, NULL, 15000, '/docs/payments/7/proof_1768893950.png', 'confirmed', 'Pembayaran telah diverifikasi', 1, '2026-01-20 07:25:50', '2026-01-20 07:29:01', '2026-01-20 07:25:50', '2026-01-20 07:29:01'),
+(2, 7, NULL, 15000, '/docs/payments/7/proof_1768894335.png', 'pending', NULL, NULL, '2026-01-20 07:32:15', NULL, '2026-01-20 07:32:15', '2026-01-20 07:32:15'),
+(3, 7, NULL, 15000, '/docs/payments/7/proof_1768894343.png', 'confirmed', 'Pembayaran diterima', 1, '2026-01-20 07:32:23', '2026-01-20 07:32:32', '2026-01-20 07:32:23', '2026-01-20 07:32:32');
 
 -- --------------------------------------------------------
 
@@ -457,7 +486,45 @@ INSERT INTO `refresh_tokens` (`id`, `user_id`, `token_hash`, `expires_at`, `revo
 (89, 1, '5f3d2a21161326c932efeda1b5791ea183ef9cc11b7fa955c7f5c6e073501ab9', '2026-01-27 03:39:29', NULL, '', '', '2026-01-20 03:39:29'),
 (90, 1, '4588c3e22ca04ff044c40dda7c5b962c7404575cf9c4e7228a6de603d1fc901e', '2026-01-27 03:42:26', NULL, '', '', '2026-01-20 03:42:26'),
 (91, 1, '82bc1046e59836de187fc60cc041b3d91c34bfaf947a2ddc93c8b66a83e7c76d', '2026-01-27 03:43:00', NULL, '', '', '2026-01-20 03:43:00'),
-(92, 7, '912696beb110543df2a2576f33042c7bec87f04203442d0ba2acec9e3056798f', '2026-01-27 03:43:14', NULL, '', '', '2026-01-20 03:43:14');
+(92, 7, '912696beb110543df2a2576f33042c7bec87f04203442d0ba2acec9e3056798f', '2026-01-27 03:43:14', NULL, '', '', '2026-01-20 03:43:14'),
+(93, 7, '52a7e5200ea85a5f23889d5f274b16653e3dc3d445dbc7a851130dbf54a61dd0', '2026-01-27 03:51:22', NULL, '', '', '2026-01-20 03:51:22'),
+(94, 12, '671b5b9f4eab05ddabd87bdbe0c996b84e45a237194325674f6c87e3e084ddad', '2026-01-27 04:39:36', NULL, '', '', '2026-01-20 04:39:36'),
+(95, 7, '41b91ae76fe38c780adfa4fec34f3fcfb682bc5006f88449353ae02e49a89340', '2026-01-27 04:45:56', NULL, '', '', '2026-01-20 04:45:56'),
+(96, 7, '078394421ada52af0f3ce1fc95284550834e730d136d50436cc7b9b1b83810aa', '2026-01-27 05:03:43', NULL, '', '', '2026-01-20 05:03:43'),
+(97, 7, 'a8ea2ad138f34e49ec75e6374d8ae61ef9af45e3eb9c6ce13b1d0bb81a91ae79', '2026-01-27 05:03:52', NULL, '', '', '2026-01-20 05:03:52'),
+(98, 7, 'f4876476ab5ed43b3d48afc3df420aa9edc00932271611fd17c78af43e89ed9f', '2026-01-27 05:09:04', NULL, '', '', '2026-01-20 05:09:04'),
+(99, 7, '38b15225b835bccb57e632f23898c7ce1a642ccf26933b08613dac149b3409d4', '2026-01-27 05:11:57', NULL, '', '', '2026-01-20 05:11:57'),
+(100, 7, 'c00c1dbd409e48265a6b1fcc816f5b60069ce028641fe2fc7ca1f681556eed4b', '2026-01-27 05:18:09', NULL, '', '', '2026-01-20 05:18:09'),
+(101, 7, '44e80ca96e11eca5e24c3f566718a2f4645cc6d7420b3d68db58f7c74ae19883', '2026-01-27 05:18:15', NULL, '', '', '2026-01-20 05:18:15'),
+(102, 7, '3e360f4c576b9d4e422ea73e34be89b628da2f3aebe609e4e9bdaaa15e043c49', '2026-01-27 05:27:36', NULL, '', '', '2026-01-20 05:27:36'),
+(103, 7, 'a483bfa3ffb8c4953ce18df9020b74647859df40a75b02dbebc7164a39c3f9cc', '2026-01-27 05:34:03', NULL, '', '', '2026-01-20 05:34:03'),
+(104, 7, '05299d6089289c5829f03cd3a16612d8f0d07f148642e564a95ffcb79194ba2f', '2026-01-27 05:54:36', NULL, '', '', '2026-01-20 05:54:36'),
+(105, 7, 'e22b19117cf558ecf5027ccfdb2a38ac5d8350b299d1d127296a8b6a06a819b9', '2026-01-27 06:09:40', NULL, '', '', '2026-01-20 06:09:40'),
+(106, 7, 'f78e739c2a6b94e91e075398b0a2e9709a9fe1d6142bfb8c8a6ba7e4b4fc3fd9', '2026-01-27 06:26:53', NULL, '', '', '2026-01-20 06:26:53'),
+(107, 7, '3c45cb8142020c1660fe4f35de367bafe6fff73c512cf25c71ea6373ecc0cee6', '2026-01-27 06:27:02', NULL, '', '', '2026-01-20 06:27:02'),
+(108, 7, '567134ad71cfab1b6396537faad83802f86ebaea5f5c10d274f03fc36c410500', '2026-01-27 06:27:09', NULL, '', '', '2026-01-20 06:27:09'),
+(109, 7, '52c742fe1d8d1d136a768fa947c7f90cb9c045e97a03ba4ef961fc8b0d585490', '2026-01-27 06:27:18', NULL, '', '', '2026-01-20 06:27:18'),
+(110, 7, '4ebb80ffa28db3ad3aca43c203ba5ddd15a297241f2eb2683f3dd2a6b978af87', '2026-01-27 06:31:58', NULL, '', '', '2026-01-20 06:31:58'),
+(111, 7, '2dac3522608bc84455a48efe8e7d794d58cf54c07a373e01d979b65365830673', '2026-01-27 06:34:17', NULL, '', '', '2026-01-20 06:34:17'),
+(112, 7, '04792a89c031d49cf3090a1f1370631150523fa1137a7d16ac2a1534e83d6f3d', '2026-01-27 06:35:17', NULL, '', '', '2026-01-20 06:35:17'),
+(113, 7, 'ebf7cfc30224915ae0e325470f1a0633056d9f4db1229224475d90213333a994', '2026-01-27 06:37:57', NULL, '', '', '2026-01-20 06:37:57'),
+(114, 7, '7092720f84b43092afe6eb57f1615b00e5e705863d0a2089d690d929e97b4a67', '2026-01-27 06:43:09', NULL, '', '', '2026-01-20 06:43:09'),
+(115, 7, '39f955f9ac80739ca001edfbfd5a961af0102e60c9db8e7d72b9fa0eb1618095', '2026-01-27 06:43:16', NULL, '', '', '2026-01-20 06:43:16'),
+(116, 7, '7830a709c10076cf406c4ffa9f3b92853f08883bc80109167e42ebc4d407689c', '2026-01-27 06:44:14', NULL, '', '', '2026-01-20 06:44:14'),
+(117, 7, '92cd1a132e95f06f8b505997a4cc4da83aee2c9647f74984bead31d0f9b52a81', '2026-01-27 07:01:11', NULL, '', '', '2026-01-20 07:01:11'),
+(118, 7, '5e830f1ec835c53822a30451f352791af5baed81dd91637735befeade7ba212b', '2026-01-27 07:14:54', NULL, '', '', '2026-01-20 07:14:54'),
+(119, 1, 'f793b289ec992152ee29fe6a67ee09755930d8f4ff140e2259b5e21c8d6da028', '2026-01-27 07:23:29', NULL, '', '', '2026-01-20 07:23:29'),
+(120, 7, '8edbedc91fd5afe59d2bf6a1713d84b7ed87d28fb1dadffc77564a11a8741e2e', '2026-01-27 07:23:49', NULL, '', '', '2026-01-20 07:23:49'),
+(121, 7, 'ddae9b2f1490b3139245b1ee15ae0b6573c28a3645caab214a823933574e92c7', '2026-01-27 07:31:40', NULL, '', '', '2026-01-20 07:31:40'),
+(122, 1, '9278c0609b57d2bdb7b54f29dc36743c2acac55a7dc08745bb01fb7ac6128069', '2026-01-27 07:31:40', NULL, '', '', '2026-01-20 07:31:40'),
+(123, 7, '6297cfd594eea06f6ccad1bc355742e217f445906b288b70c8ef1c54fb6357b5', '2026-01-27 07:31:47', NULL, '', '', '2026-01-20 07:31:47'),
+(124, 1, '33f173c2e4512119fa09a9364bac2f041d992111095c89688e98790d515c7a04', '2026-01-27 07:31:55', NULL, '', '', '2026-01-20 07:31:55'),
+(125, 7, '88d204fda219c6f34d9a99ce421e68ad9f8f66c1a9cfbf5a3015e1279842f310', '2026-01-27 07:38:23', NULL, '', '', '2026-01-20 07:38:23'),
+(126, 7, '1e1fa7e7e3855209fa2162ff1e7765e8f74aa410362ab29d72ed4f361fcf2fef', '2026-01-27 07:38:33', NULL, '', '', '2026-01-20 07:38:33'),
+(127, 1, '80c99e42686621fa56568b13ce1996d267ec936bec3c910c479be6e79da142ec', '2026-01-27 07:39:26', NULL, '', '', '2026-01-20 07:39:26'),
+(128, 7, '61fd0cd20ef183f1acec515956896bb394b1284b17fc5d5f43109ac9007483cd', '2026-01-27 07:41:36', NULL, '', '', '2026-01-20 07:41:36'),
+(129, 7, '059b253aa2a70bd13d6e23759a4cc5cbb5000b009201b4b75da94ff041997c54', '2026-01-27 07:46:42', NULL, '', '', '2026-01-20 07:46:42'),
+(130, 7, 'be538b0bc7b7cf3e00d2c60ba19e0bb7e58814c7a6c880a6ab42502643df0d7e', '2026-01-27 08:28:06', NULL, '', '', '2026-01-20 08:28:06');
 
 -- --------------------------------------------------------
 
@@ -505,9 +572,10 @@ INSERT INTO `users` (`id`, `email`, `password_hash`, `role`, `full_name`, `phone
 (4, 'testcompany@test.com', '$2a$10$Owbnmfiz/RUlALkTaI777epAeVCCvSsZmd.bqOu.hjBX1KHGsNYhW', 'company', 'HR Manager', '081234567890', NULL, 1, 0, NULL, '2026-01-18 07:08:53', '2026-01-18 07:08:53', NULL),
 (5, 'company2@test.com', '$2a$10$26QNIFt3ErRbLdMEaIyu1uqBfxn72fmYYTK27e1NnK5UaAEsZiEvy', 'company', 'Test Manager', '081234567890', NULL, 1, 0, NULL, '2026-01-18 07:42:02', '2026-01-18 07:42:02', NULL),
 (6, 'company3@test.com', '$2a$10$27XxXTvPq9S.tOwT5/kY7u6E7V8ovsBq3jGQiL5txJuCzVm0t0iNa', 'company', 'Recruitment Manager', '081555555555', NULL, 1, 0, NULL, '2026-01-18 07:43:28', '2026-01-18 07:43:28', NULL),
-(7, 'info@karyadeveloperindonesia.com', '$2a$10$yGx97vEQaIJOEeuDHlIGQONjqgqfdFhWUbBrWWxsJNpmeEXf5reWW', 'company', 'Admin', '0881036480285', NULL, 1, 0, NULL, '2026-01-18 09:13:55', '2026-01-19 14:00:32', NULL),
+(7, 'info@karyadeveloperindonesia.com', '$2a$10$yGx97vEQaIJOEeuDHlIGQONjqgqfdFhWUbBrWWxsJNpmeEXf5reWW', 'company', 'Admin', '0881036480285', NULL, 1, 1, NULL, '2026-01-18 09:13:55', '2026-01-20 04:45:49', NULL),
 (9, 'company.testing1768808682@karirnusantara.com', '$2a$10$1RpgFQaG58KBk.Fhy8laye2yhBj.C.ogGGaqxkktzmew7TMrlLu.W', 'company', 'Budi Santoso', '081234567890', NULL, 1, 0, NULL, '2026-01-19 07:44:42', '2026-01-19 07:44:42', NULL),
-(10, 'company.testing1768808883@karirnusantara.com', '$2a$10$GrXGCrL6oNq.NJAJwmhAg.aQMID5txWxyP7Df/XJuVQ39zSKhioDy', 'company', 'Budi Santoso', '081234567890', NULL, 1, 0, NULL, '2026-01-19 07:48:03', '2026-01-19 07:48:03', NULL);
+(10, 'company.testing1768808883@karirnusantara.com', '$2a$10$GrXGCrL6oNq.NJAJwmhAg.aQMID5txWxyP7Df/XJuVQ39zSKhioDy', 'company', 'Budi Santoso', '081234567890', NULL, 1, 0, NULL, '2026-01-19 07:48:03', '2026-01-19 07:48:03', NULL),
+(12, 'test.company@example.com', '$2a$10$Q7OZlZckA0Tw5RarsLHdHOctnn3n9Sh2J.SM1OwVX58DxtA8Q74le', 'company', 'Test Company Manager', '081234567890', NULL, 1, 0, NULL, '2026-01-20 04:39:36', '2026-01-20 04:39:36', NULL);
 
 --
 -- Indexes for dumped tables
@@ -689,7 +757,7 @@ ALTER TABLE `companies`
 -- AUTO_INCREMENT for table `company_quotas`
 --
 ALTER TABLE `company_quotas`
-  MODIFY `id` bigint(20) UNSIGNED NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=3;
+  MODIFY `id` bigint(20) UNSIGNED NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=4;
 
 --
 -- AUTO_INCREMENT for table `cvs`
@@ -707,13 +775,13 @@ ALTER TABLE `cv_snapshots`
 -- AUTO_INCREMENT for table `jobs`
 --
 ALTER TABLE `jobs`
-  MODIFY `id` bigint(20) UNSIGNED NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=8;
+  MODIFY `id` bigint(20) UNSIGNED NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=17;
 
 --
 -- AUTO_INCREMENT for table `job_skills`
 --
 ALTER TABLE `job_skills`
-  MODIFY `id` bigint(20) UNSIGNED NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=20;
+  MODIFY `id` bigint(20) UNSIGNED NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=30;
 
 --
 -- AUTO_INCREMENT for table `notifications`
@@ -725,13 +793,13 @@ ALTER TABLE `notifications`
 -- AUTO_INCREMENT for table `payments`
 --
 ALTER TABLE `payments`
-  MODIFY `id` bigint(20) UNSIGNED NOT NULL AUTO_INCREMENT;
+  MODIFY `id` bigint(20) UNSIGNED NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=4;
 
 --
 -- AUTO_INCREMENT for table `refresh_tokens`
 --
 ALTER TABLE `refresh_tokens`
-  MODIFY `id` bigint(20) UNSIGNED NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=93;
+  MODIFY `id` bigint(20) UNSIGNED NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=131;
 
 --
 -- AUTO_INCREMENT for table `saved_jobs`
@@ -743,7 +811,7 @@ ALTER TABLE `saved_jobs`
 -- AUTO_INCREMENT for table `users`
 --
 ALTER TABLE `users`
-  MODIFY `id` bigint(20) UNSIGNED NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=12;
+  MODIFY `id` bigint(20) UNSIGNED NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=13;
 
 --
 -- Constraints for dumped tables
