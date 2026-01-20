@@ -30,10 +30,17 @@ func NewHandler(service *Service) *Handler {
 // @Failure 500 {object} response.Response
 // @Router /company/dashboard/stats [get]
 func (h *Handler) GetStats(w http.ResponseWriter, r *http.Request) {
-	// Get company ID from context (set by auth middleware)
-	companyID := middleware.GetUserID(r.Context())
-	if companyID == 0 {
+	// Get user ID from context (set by auth middleware)
+	userID := middleware.GetUserID(r.Context())
+	if userID == 0 {
 		response.Error(w, http.StatusUnauthorized, "UNAUTHORIZED", "User not authenticated")
+		return
+	}
+
+	// Lookup company_id from user_id
+	companyID, err := h.service.GetCompanyIDByUserID(userID)
+	if err != nil {
+		response.Error(w, http.StatusNotFound, "COMPANY_NOT_FOUND", "Company not found for this user")
 		return
 	}
 
@@ -59,9 +66,16 @@ func (h *Handler) GetStats(w http.ResponseWriter, r *http.Request) {
 // @Failure 500 {object} response.Response
 // @Router /company/dashboard/recent-applicants [get]
 func (h *Handler) GetRecentApplicants(w http.ResponseWriter, r *http.Request) {
-	companyID := middleware.GetUserID(r.Context())
-	if companyID == 0 {
+	userID := middleware.GetUserID(r.Context())
+	if userID == 0 {
 		response.Error(w, http.StatusUnauthorized, "UNAUTHORIZED", "User not authenticated")
+		return
+	}
+
+	// Lookup company_id from user_id
+	companyID, err := h.service.GetCompanyIDByUserID(userID)
+	if err != nil {
+		response.Error(w, http.StatusNotFound, "COMPANY_NOT_FOUND", "Company not found for this user")
 		return
 	}
 
@@ -94,9 +108,16 @@ func (h *Handler) GetRecentApplicants(w http.ResponseWriter, r *http.Request) {
 // @Failure 500 {object} response.Response
 // @Router /company/dashboard/active-jobs [get]
 func (h *Handler) GetActiveJobs(w http.ResponseWriter, r *http.Request) {
-	companyID := middleware.GetUserID(r.Context())
-	if companyID == 0 {
+	userID := middleware.GetUserID(r.Context())
+	if userID == 0 {
 		response.Error(w, http.StatusUnauthorized, "UNAUTHORIZED", "User not authenticated")
+		return
+	}
+
+	// Lookup company_id from user_id
+	companyID, err := h.service.GetCompanyIDByUserID(userID)
+	if err != nil {
+		response.Error(w, http.StatusNotFound, "COMPANY_NOT_FOUND", "Company not found for this user")
 		return
 	}
 

@@ -29,8 +29,8 @@ func NewHandler(service Service, validator *validator.Validator) *Handler {
 // Create handles job creation
 // POST /api/v1/jobs
 func (h *Handler) Create(w http.ResponseWriter, r *http.Request) {
-	companyID := middleware.GetUserID(r.Context())
-	if companyID == 0 {
+	userID := middleware.GetUserID(r.Context())
+	if userID == 0 {
 		response.Unauthorized(w, "Unauthorized")
 		return
 	}
@@ -45,6 +45,20 @@ func (h *Handler) Create(w http.ResponseWriter, r *http.Request) {
 		response.UnprocessableEntity(w, "Validation failed", errors)
 		return
 	}
+
+	// Get company_id from companies table where user_id = userID
+	// Since we only have user_id from JWT token, we need to lookup the company
+	company, err := h.service.GetCompanyByUserID(r.Context(), userID)
+	if err != nil {
+		response.InternalServerError(w, "Gagal mendapatkan data perusahaan")
+		return
+	}
+	if company == nil {
+		response.BadRequest(w, "Data perusahaan tidak ditemukan")
+		return
+	}
+
+	companyID := company.ID
 
 	job, err := h.service.Create(r.Context(), companyID, &req)
 	if err != nil {
@@ -98,11 +112,23 @@ func (h *Handler) GetBySlug(w http.ResponseWriter, r *http.Request) {
 // Update handles job update
 // PUT /api/v1/jobs/{id}
 func (h *Handler) Update(w http.ResponseWriter, r *http.Request) {
-	companyID := middleware.GetUserID(r.Context())
-	if companyID == 0 {
+	userID := middleware.GetUserID(r.Context())
+	if userID == 0 {
 		response.Unauthorized(w, "Unauthorized")
 		return
 	}
+
+	// Get company_id from companies table where user_id = userID
+	company, err := h.service.GetCompanyByUserID(r.Context(), userID)
+	if err != nil {
+		response.InternalServerError(w, "Gagal mendapatkan data perusahaan")
+		return
+	}
+	if company == nil {
+		response.BadRequest(w, "Data perusahaan tidak ditemukan")
+		return
+	}
+	companyID := company.ID
 
 	idStr := chi.URLParam(r, "id")
 	id, err := strconv.ParseUint(idStr, 10, 64)
@@ -134,11 +160,23 @@ func (h *Handler) Update(w http.ResponseWriter, r *http.Request) {
 // Delete handles job deletion
 // DELETE /api/v1/jobs/{id}
 func (h *Handler) Delete(w http.ResponseWriter, r *http.Request) {
-	companyID := middleware.GetUserID(r.Context())
-	if companyID == 0 {
+	userID := middleware.GetUserID(r.Context())
+	if userID == 0 {
 		response.Unauthorized(w, "Unauthorized")
 		return
 	}
+
+	// Get company_id from companies table where user_id = userID
+	company, err := h.service.GetCompanyByUserID(r.Context(), userID)
+	if err != nil {
+		response.InternalServerError(w, "Gagal mendapatkan data perusahaan")
+		return
+	}
+	if company == nil {
+		response.BadRequest(w, "Data perusahaan tidak ditemukan")
+		return
+	}
+	companyID := company.ID
 
 	idStr := chi.URLParam(r, "id")
 	id, err := strconv.ParseUint(idStr, 10, 64)
@@ -247,11 +285,23 @@ func handleError(w http.ResponseWriter, err error) {
 // Publish handles publishing a draft job
 // PATCH /api/v1/jobs/{id}/publish
 func (h *Handler) Publish(w http.ResponseWriter, r *http.Request) {
-	companyID := middleware.GetUserID(r.Context())
-	if companyID == 0 {
+	userID := middleware.GetUserID(r.Context())
+	if userID == 0 {
 		response.Unauthorized(w, "Unauthorized")
 		return
 	}
+
+	// Get company_id from companies table where user_id = userID
+	company, err := h.service.GetCompanyByUserID(r.Context(), userID)
+	if err != nil {
+		response.InternalServerError(w, "Gagal mendapatkan data perusahaan")
+		return
+	}
+	if company == nil {
+		response.BadRequest(w, "Data perusahaan tidak ditemukan")
+		return
+	}
+	companyID := company.ID
 
 	idStr := chi.URLParam(r, "id")
 	id, err := strconv.ParseUint(idStr, 10, 64)
@@ -272,11 +322,23 @@ func (h *Handler) Publish(w http.ResponseWriter, r *http.Request) {
 // Close handles closing an active job
 // PATCH /api/v1/jobs/{id}/close
 func (h *Handler) Close(w http.ResponseWriter, r *http.Request) {
-	companyID := middleware.GetUserID(r.Context())
-	if companyID == 0 {
+	userID := middleware.GetUserID(r.Context())
+	if userID == 0 {
 		response.Unauthorized(w, "Unauthorized")
 		return
 	}
+
+	// Get company_id from companies table where user_id = userID
+	company, err := h.service.GetCompanyByUserID(r.Context(), userID)
+	if err != nil {
+		response.InternalServerError(w, "Gagal mendapatkan data perusahaan")
+		return
+	}
+	if company == nil {
+		response.BadRequest(w, "Data perusahaan tidak ditemukan")
+		return
+	}
+	companyID := company.ID
 
 	idStr := chi.URLParam(r, "id")
 	id, err := strconv.ParseUint(idStr, 10, 64)
@@ -297,11 +359,23 @@ func (h *Handler) Close(w http.ResponseWriter, r *http.Request) {
 // Pause handles pausing an active job
 // PATCH /api/v1/jobs/{id}/pause
 func (h *Handler) Pause(w http.ResponseWriter, r *http.Request) {
-	companyID := middleware.GetUserID(r.Context())
-	if companyID == 0 {
+	userID := middleware.GetUserID(r.Context())
+	if userID == 0 {
 		response.Unauthorized(w, "Unauthorized")
 		return
 	}
+
+	// Get company_id from companies table where user_id = userID
+	company, err := h.service.GetCompanyByUserID(r.Context(), userID)
+	if err != nil {
+		response.InternalServerError(w, "Gagal mendapatkan data perusahaan")
+		return
+	}
+	if company == nil {
+		response.BadRequest(w, "Data perusahaan tidak ditemukan")
+		return
+	}
+	companyID := company.ID
 
 	idStr := chi.URLParam(r, "id")
 	id, err := strconv.ParseUint(idStr, 10, 64)
@@ -322,11 +396,23 @@ func (h *Handler) Pause(w http.ResponseWriter, r *http.Request) {
 // Reopen handles reopening a closed/paused job
 // PATCH /api/v1/jobs/{id}/reopen
 func (h *Handler) Reopen(w http.ResponseWriter, r *http.Request) {
-	companyID := middleware.GetUserID(r.Context())
-	if companyID == 0 {
+	userID := middleware.GetUserID(r.Context())
+	if userID == 0 {
 		response.Unauthorized(w, "Unauthorized")
 		return
 	}
+
+	// Get company_id from companies table where user_id = userID
+	company, err := h.service.GetCompanyByUserID(r.Context(), userID)
+	if err != nil {
+		response.InternalServerError(w, "Gagal mendapatkan data perusahaan")
+		return
+	}
+	if company == nil {
+		response.BadRequest(w, "Data perusahaan tidak ditemukan")
+		return
+	}
+	companyID := company.ID
 
 	idStr := chi.URLParam(r, "id")
 	id, err := strconv.ParseUint(idStr, 10, 64)
@@ -347,13 +433,28 @@ func (h *Handler) Reopen(w http.ResponseWriter, r *http.Request) {
 // ListByCompany handles listing jobs for the authenticated company
 // GET /api/v1/company/jobs
 func (h *Handler) ListByCompany(w http.ResponseWriter, r *http.Request) {
-	companyID := middleware.GetUserID(r.Context())
-	if companyID == 0 {
+	userID := middleware.GetUserID(r.Context())
+	if userID == 0 {
 		response.Unauthorized(w, "Unauthorized")
 		return
 	}
 
+	// Get company_id from companies table where user_id = userID
+	company, err := h.service.GetCompanyByUserID(r.Context(), userID)
+	if err != nil {
+		response.InternalServerError(w, "Gagal mendapatkan data perusahaan")
+		return
+	}
+	if company == nil {
+		response.BadRequest(w, "Data perusahaan tidak ditemukan")
+		return
+	}
+
+	companyID := company.ID
+
 	params := DefaultJobListParams()
+	// For company listing, don't filter by status by default (show all jobs)
+	params.Status = ""
 
 	// Parse query parameters
 	query := r.URL.Query()
@@ -376,6 +477,10 @@ func (h *Handler) ListByCompany(w http.ResponseWriter, r *http.Request) {
 	}
 	if sortOrder := query.Get("sort_order"); sortOrder != "" {
 		params.SortOrder = sortOrder
+	}
+	// Parse status filter - only apply if explicitly provided
+	if status := query.Get("status"); status != "" {
+		params.Status = status
 	}
 
 	jobs, total, err := h.service.ListByCompany(r.Context(), companyID, params)

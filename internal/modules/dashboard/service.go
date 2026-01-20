@@ -54,6 +54,11 @@ func (s *Service) GetDashboardStats(companyID uint64) (*DashboardStats, error) {
 	return stats, nil
 }
 
+// GetCompanyIDByUserID retrieves company ID for a given user ID
+func (s *Service) GetCompanyIDByUserID(userID uint64) (uint64, error) {
+	return s.repo.GetCompanyIDByUserID(userID)
+}
+
 // GetRecentApplicants returns paginated recent applicants
 func (s *Service) GetRecentApplicants(companyID uint64, limit int) ([]RecentApplicant, error) {
 	if limit <= 0 {

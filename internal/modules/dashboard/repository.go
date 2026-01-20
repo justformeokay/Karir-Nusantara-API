@@ -176,3 +176,13 @@ func getStatusLabel(status string) string {
 	}
 	return status
 }
+
+// GetCompanyIDByUserID retrieves company ID from user ID
+func (r *Repository) GetCompanyIDByUserID(userID uint64) (uint64, error) {
+	var companyID uint64
+	err := r.db.Get(&companyID, `
+		SELECT id FROM companies 
+		WHERE user_id = ? AND deleted_at IS NULL
+	`, userID)
+	return companyID, err
+}

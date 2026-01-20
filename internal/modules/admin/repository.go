@@ -178,19 +178,20 @@ func (r *repository) GetDashboardStats(ctx context.Context) (*DashboardStats, er
 // ============================================
 
 func (r *repository) GetCompanies(ctx context.Context, filter CompanyFilter) ([]*CompanyAdmin, int, error) {
-	// Count query
+	// Count query - join users with companies table
 	countQuery := `
-		SELECT COUNT(*) FROM users 
-		WHERE role = 'company'
+		SELECT COUNT(*) FROM users u
+		JOIN companies c ON u.id = c.user_id
+		WHERE u.role = 'company'
 	`
 	args := []interface{}{}
 
 	if filter.Status != "" {
-		countQuery += " AND company_status = ?"
+		countQuery += " AND c.company_status = ?"
 		args = append(args, filter.Status)
 	}
 	if filter.Search != "" {
-		countQuery += " AND (company_name LIKE ? OR email LIKE ? OR full_name LIKE ?)"
+		countQuery += " AND (c.company_name LIKE ? OR u.email LIKE ? OR u.full_name LIKE ?)"
 		searchTerm := "%" + filter.Search + "%"
 		args = append(args, searchTerm, searchTerm, searchTerm)
 	}
@@ -200,31 +201,32 @@ func (r *repository) GetCompanies(ctx context.Context, filter CompanyFilter) ([]
 		return nil, 0, err
 	}
 
-	// Main query
+	// Main query - join users with companies
 	query := `
 		SELECT 
-			u.id, u.email, u.full_name, u.phone, u.company_name, u.company_description,
-			u.company_website, u.company_logo_url, u.company_status, u.is_active, u.is_verified,
-			u.email_verified_at, u.created_at, u.updated_at,
+			u.id, u.email, u.full_name, u.phone, c.company_name, c.company_description,
+			c.company_website, c.company_logo_url, c.company_status, u.is_active, u.is_verified,
+			u.email_verified_at, c.created_at, c.updated_at,
 			(SELECT COUNT(*) FROM jobs WHERE company_id = u.id) as jobs_count,
 			(SELECT COUNT(*) FROM jobs WHERE company_id = u.id AND status = 'active') as active_jobs,
 			(SELECT COUNT(*) FROM applications a JOIN jobs j ON a.job_id = j.id WHERE j.company_id = u.id) as total_applications
 		FROM users u
+		JOIN companies c ON u.id = c.user_id
 		WHERE u.role = 'company'
 	`
 
 	queryArgs := []interface{}{}
 	if filter.Status != "" {
-		query += " AND u.company_status = ?"
+		query += " AND c.company_status = ?"
 		queryArgs = append(queryArgs, filter.Status)
 	}
 	if filter.Search != "" {
-		query += " AND (u.company_name LIKE ? OR u.email LIKE ? OR u.full_name LIKE ?)"
+		query += " AND (c.company_name LIKE ? OR u.email LIKE ? OR u.full_name LIKE ?)"
 		searchTerm := "%" + filter.Search + "%"
 		queryArgs = append(queryArgs, searchTerm, searchTerm, searchTerm)
 	}
 
-	query += " ORDER BY u.created_at DESC"
+	query += " ORDER BY c.created_at DESC"
 
 	// Pagination
 	if filter.PageSize <= 0 {
@@ -262,13 +264,14 @@ func (r *repository) GetCompanies(ctx context.Context, filter CompanyFilter) ([]
 func (r *repository) GetCompanyByID(ctx context.Context, id uint64) (*CompanyAdmin, error) {
 	query := `
 		SELECT 
-			u.id, u.email, u.full_name, u.phone, u.company_name, u.company_description,
-			u.company_website, u.company_logo_url, u.company_status, u.is_active, u.is_verified,
-			u.email_verified_at, u.created_at, u.updated_at,
+			u.id, u.email, u.full_name, u.phone, c.company_name, c.company_description,
+			c.company_website, c.company_logo_url, c.company_status, u.is_active, u.is_verified,
+			u.email_verified_at, c.created_at, c.updated_at,
 			(SELECT COUNT(*) FROM jobs WHERE company_id = u.id) as jobs_count,
 			(SELECT COUNT(*) FROM jobs WHERE company_id = u.id AND status = 'active') as active_jobs,
 			(SELECT COUNT(*) FROM applications a JOIN jobs j ON a.job_id = j.id WHERE j.company_id = u.id) as total_applications
 		FROM users u
+		JOIN companies c ON u.id = c.user_id
 		WHERE u.id = ? AND u.role = 'company'
 	`
 
@@ -290,9 +293,40 @@ func (r *repository) GetCompanyByID(ctx context.Context, id uint64) (*CompanyAdm
 }
 
 func (r *repository) UpdateCompanyStatus(ctx context.Context, id uint64, status string) error {
-	query := `UPDATE users SET company_status = ?, updated_at = NOW() WHERE id = ? AND role = 'company'`
-	_, err := r.db.ExecContext(ctx, query, status, id)
-	return err
+	// id is user_id, need to update companies table where user_id = id
+	// If status is being set to "verified", also set documents_verified_at
+	var query string
+	var args []interface{}
+	
+	if status == "verified" {
+		query = `UPDATE companies SET company_status = ?, documents_verified_at = NOW() WHERE user_id = ?`
+		args = []interface{}{status, id}
+	} else {
+		query = `UPDATE companies SET company_status = ? WHERE user_id = ?`
+		args = []interface{}{status, id}
+	}
+	
+	fmt.Printf("[DEBUG] UpdateCompanyStatus: query=%s, status=%s, user_id=%d\n", query, status, id)
+	
+	result, err := r.db.ExecContext(ctx, query, args...)
+	if err != nil {
+		fmt.Printf("[DEBUG] ExecContext error: %v\n", err)
+		return fmt.Errorf("database error: %w", err)
+	}
+	
+	rowsAffected, err := result.RowsAffected()
+	if err != nil {
+		fmt.Printf("[DEBUG] RowsAffected error: %v\n", err)
+		return fmt.Errorf("rows affected error: %w", err)
+	}
+	
+	fmt.Printf("[DEBUG] Rows affected: %d\n", rowsAffected)
+	
+	if rowsAffected == 0 {
+		return fmt.Errorf("no company found with user_id %d", id)
+	}
+	
+	return nil
 }
 
 func (r *repository) UpdateCompanyActive(ctx context.Context, id uint64, isActive bool) error {

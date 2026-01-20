@@ -372,7 +372,7 @@ func (r *mysqlRepository) DeleteSkills(ctx context.Context, jobID uint64) error 
 
 // GetCompanyInfo retrieves company info for a job
 func (r *mysqlRepository) GetCompanyInfo(ctx context.Context, companyID uint64) (*CompanyInfo, error) {
-	query := `SELECT id, company_name, company_logo_url, company_website FROM users WHERE id = ?`
+	query := `SELECT id, company_name, company_logo_url, company_website FROM companies WHERE id = ? AND deleted_at IS NULL`
 	
 	var result struct {
 		ID         uint64         `db:"id"`

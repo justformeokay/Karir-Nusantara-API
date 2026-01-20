@@ -189,11 +189,15 @@ func (s *service) VerifyCompany(ctx context.Context, id uint64, req *CompanyVeri
 
 	// Update status
 	if err := s.repo.UpdateCompanyStatus(ctx, id, newStatus); err != nil {
-		return fmt.Errorf("failed to update company status: %w", err)
+		// Log the actual error for debugging
+		fmt.Printf("DEBUG: UpdateCompanyStatus failed for id=%d, status=%s, error=%v\n", id, newStatus, err)
+		return err
 	}
 
-	// Log admin action
-	s.logAction(ctx, adminID, action, "company", id, req.Reason)
+	// Log admin action (optional)
+	if req.Reason != "" {
+		s.logAction(ctx, adminID, action, "company", id, req.Reason)
+	}
 
 	return nil
 }

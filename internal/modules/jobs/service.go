@@ -23,6 +23,7 @@ type Service interface {
 	List(ctx context.Context, params JobListParams) ([]*JobResponse, int64, error)
 	ListByCompany(ctx context.Context, companyID uint64, params JobListParams) ([]*JobResponse, int64, error)
 	IncrementViewCount(ctx context.Context, id uint64) error
+	GetCompanyByUserID(ctx context.Context, userID uint64) (*company.Company, error)
 }
 
 type service struct {
@@ -38,6 +39,23 @@ func NewService(repo Repository) Service {
 // NewServiceWithCompanyRepo creates a new jobs service with company repository
 func NewServiceWithCompanyRepo(repo Repository, companyRepo company.Repository) Service {
 	return &service{repo: repo, companyRepo: companyRepo}
+}
+
+// GetCompanyByUserID retrieves company information for a given user ID
+func (s *service) GetCompanyByUserID(ctx context.Context, userID uint64) (*company.Company, error) {
+	if s.companyRepo == nil {
+		return nil, apperrors.NewInternalError("Company repository not available", nil)
+	}
+	
+	company, err := s.companyRepo.GetByUserID(ctx, userID)
+	if err != nil {
+		return nil, apperrors.NewInternalError("Failed to get company", err)
+	}
+	if company == nil {
+		return nil, nil
+	}
+	
+	return company, nil
 }
 
 // Create creates a new job posting

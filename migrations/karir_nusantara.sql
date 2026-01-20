@@ -3,7 +3,7 @@
 -- https://www.phpmyadmin.net/
 --
 -- Host: localhost
--- Generation Time: Jan 19, 2026 at 02:41 PM
+-- Generation Time: Jan 20, 2026 at 04:49 AM
 -- Server version: 10.4.28-MariaDB
 -- PHP Version: 8.0.28
 
@@ -137,6 +137,13 @@ CREATE TABLE `companies` (
   `deleted_at` timestamp NULL DEFAULT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
+--
+-- Dumping data for table `companies`
+--
+
+INSERT INTO `companies` (`id`, `user_id`, `company_name`, `company_description`, `company_website`, `company_logo_url`, `company_industry`, `company_size`, `company_location`, `company_phone`, `company_email`, `company_address`, `company_city`, `company_province`, `company_postal_code`, `established_year`, `employee_count`, `company_status`, `ktp_founder_url`, `akta_pendirian_url`, `npwp_url`, `nib_url`, `documents_verified_at`, `documents_verified_by`, `verification_notes`, `created_at`, `updated_at`, `deleted_at`) VALUES
+(1, 7, 'PT Karya Developer indonesia', 'Perusahaan yang bergerak dibidang industri teknogi informasi', 'https://karyadeveloperindonesia.com', '/docs/companies/1/logo_1768832403.png', 'Teknologi Informasi', '1-10', 'Sidaorjo, Jawa Timur', '+62881036480285', 'info@karyadeveloperindonesia.com', 'Perumahan Griya Bhayangkara blok i5/07 Desa Masangan Kulon, Kecamatan Sukodono, Kabupaten Sidoarjo, Kode Pos 61258', 'Sidoarjo', 'Jawa Timur', '61258', '2025', 8, 'verified', '/docs/companies/1/ktp_1768832313.jpg', '/docs/companies/1/akta_1768832354.pdf', '/docs/companies/1/npwp_1768832371.jpg', '/docs/companies/1/nib_1768832386.pdf', '2026-01-20 03:42:33', NULL, NULL, '2026-01-19 13:58:37', '2026-01-20 03:42:33', NULL);
+
 -- --------------------------------------------------------
 
 --
@@ -266,7 +273,8 @@ INSERT INTO `jobs` (`id`, `company_id`, `title`, `slug`, `description`, `require
 (3, 4, 'Senior Software Engineer', 'senior-software-engineer-1768720323', 'We are looking for an experienced software engineer', '5+ years experience with Go or Python', 'Build and maintain backend systems', 'Competitive salary, remote work', 'Jakarta Selatan', 'DKI Jakarta', 1, 'full_time', 'senior', 20000000, 35000000, 'IDR', 1, NULL, NULL, 'active', NULL, NULL, NULL, 0, 0, '2026-01-18 07:12:10', '2026-01-18 07:12:03', '2026-01-18 07:12:19', NULL),
 (4, 10, 'Senior Backend Engineer', 'senior-backend-engineer', 'Kami mencari Senior Backend Engineer yang berpengalaman dalam mengembangkan sistem scalable', '- Minimal 5 tahun pengalaman backend development\n- Mahir Go, Python, atau Java\n- Pengalaman dengan microservices\n- Pengalaman dengan database SQL dan NoSQL', '- Merancang dan mengimplementasi API\n- Melakukan code review\n- Mengoptimalkan performance sistem\n- Mentoring junior developers', '- Gaji kompetitif 15-25 juta/bulan\n- Asuransi kesehatan\n- Work from home flexibility\n- Training budget', 'Jakarta Selatan', 'DKI Jakarta', 1, 'full_time', 'senior', 15000000, 25000000, 'IDR', 1, NULL, NULL, 'active', NULL, NULL, NULL, 0, 0, '2026-01-19 07:48:04', '2026-01-19 07:48:03', '2026-01-19 07:48:04', NULL),
 (5, 10, 'Full Stack Developer', 'full-stack-developer', 'Bergabunglah dengan tim kami sebagai Full Stack Developer', '- Minimal 3 tahun pengalaman\n- React atau Vue.js\n- Node.js atau Python', '- Develop frontend dan backend\n- Collaborate dengan tim design', '- Gaji 8-12 juta/bulan\n- Remote friendly', 'Jakarta Pusat', 'DKI Jakarta', 1, 'full_time', 'mid', 8000000, 12000000, 'IDR', 1, NULL, NULL, 'draft', NULL, NULL, NULL, 0, 0, NULL, '2026-01-19 07:48:03', '2026-01-19 07:48:03', NULL),
-(6, 10, 'UI/UX Designer', 'uiux-designer', 'Kami mencari UI/UX Designer untuk mengembangkan product kami', '- 2+ tahun pengalaman UI/UX\n- Figma atau Adobe XD', '- Design interface\n- User research', '- Gaji 6-10 juta/bulan', 'Jakarta Selatan', 'DKI Jakarta', 1, 'full_time', 'junior', 6000000, 10000000, 'IDR', 1, NULL, NULL, 'draft', NULL, NULL, NULL, 0, 0, NULL, '2026-01-19 07:48:03', '2026-01-19 07:48:03', NULL);
+(6, 10, 'UI/UX Designer', 'uiux-designer', 'Kami mencari UI/UX Designer untuk mengembangkan product kami', '- 2+ tahun pengalaman UI/UX\n- Figma atau Adobe XD', '- Design interface\n- User research', '- Gaji 6-10 juta/bulan', 'Jakarta Selatan', 'DKI Jakarta', 1, 'full_time', 'junior', 6000000, 10000000, 'IDR', 1, NULL, NULL, 'draft', NULL, NULL, NULL, 0, 0, NULL, '2026-01-19 07:48:03', '2026-01-19 07:48:03', NULL),
+(7, 1, 'Senior Backend Developer', 'senior-backend-developer', 'We are looking for an experienced backend developer...', 'Node.js, TypeScript, Docker', 'Design and implement APIs', NULL, 'Jakarta', 'DKI Jakarta', 1, 'full_time', 'senior', NULL, NULL, 'IDR', 0, NULL, NULL, 'draft', NULL, NULL, NULL, 0, 0, NULL, '2026-01-20 03:43:14', '2026-01-20 03:43:14', NULL);
 
 -- --------------------------------------------------------
 
@@ -416,7 +424,40 @@ INSERT INTO `refresh_tokens` (`id`, `user_id`, `token_hash`, `expires_at`, `revo
 (56, 7, '8725208f1c198c038722c83254c7c84936a3ad018f244a6740b067fdd0a8e3fa', '2026-01-26 12:44:17', NULL, '', '', '2026-01-19 12:44:17'),
 (57, 7, '6ce5ce65b4ee76f77199c0cbb565f7bd4a05e2af01f127f7e6b18c259bd58edc', '2026-01-26 13:00:57', NULL, '', '', '2026-01-19 13:00:57'),
 (58, 7, 'd6821da179e51d9755f3a5fd45e188dccb59058e838a1967682b4e4f5af9dd9e', '2026-01-26 13:07:54', NULL, '', '', '2026-01-19 13:07:54'),
-(59, 7, '2b87fa6d775286438439d2b8e0c72ec2a15c7f61cef9a406c1bdceeefa22bad0', '2026-01-26 13:20:06', NULL, '', '', '2026-01-19 13:20:06');
+(59, 7, '2b87fa6d775286438439d2b8e0c72ec2a15c7f61cef9a406c1bdceeefa22bad0', '2026-01-26 13:20:06', NULL, '', '', '2026-01-19 13:20:06'),
+(60, 7, '277c6b4278d4dbc36231ed26ccacacb5212c19c79c6559231c828a09fd95d74c', '2026-01-26 13:49:57', NULL, '', '', '2026-01-19 13:49:57'),
+(61, 7, '573deb02196412717a9d372689ef4854e26e5d3684ad4542360ff3c305a9d216', '2026-01-26 13:57:45', NULL, '', '', '2026-01-19 13:57:45'),
+(62, 7, 'b712bb56482eb7aa73cbf8673eb651d039583d1ed2623e066b31354a85b209d1', '2026-01-26 14:01:13', NULL, '', '', '2026-01-19 14:01:13'),
+(63, 7, '857b6a3aead65786de0f4e3a8011ecddb3dd1e6f20ee1cf2e81f8d3aa5c98b2a', '2026-01-26 14:18:08', NULL, '', '', '2026-01-19 14:18:08'),
+(64, 7, '54eb77166f52390b05e13640b12451dd8f3c195342cba1eaf0687f93d5663ce8', '2026-01-26 14:23:15', NULL, '', '', '2026-01-19 14:23:15'),
+(65, 7, 'b212a3a0942eb61f5e6ea37fa500b908174b38ad96cbc28fcea9ce3d7badf560', '2026-01-26 14:30:53', NULL, '', '', '2026-01-19 14:30:53'),
+(66, 7, '81acc162faa4528132df14379cd4b3a78087f5603a31b307eefbfdffc365c1de', '2026-01-26 14:39:44', NULL, '', '', '2026-01-19 14:39:44'),
+(67, 7, '0644999b481f7fc85f5d314ffc2c37758b236d1dbfaf460cdbc6d11615685bed', '2026-01-26 14:40:09', NULL, '', '', '2026-01-19 14:40:09'),
+(68, 7, 'e6f46e45b9b2b6a0d62e1122c8ea393efe5c18c557065b850f5d5fd8143899c4', '2026-01-26 14:40:43', NULL, '', '', '2026-01-19 14:40:43'),
+(69, 7, 'b9c1d8f68f2909a7898f3a35b2be0120d3e3c80a9c678f9a4d16ac4a8851742f', '2026-01-27 02:08:43', NULL, '', '', '2026-01-20 02:08:43'),
+(70, 7, '606c5371d404836d3e036c80c137a27672039b3931182f1d08e4f446b8ad31d0', '2026-01-27 02:15:37', NULL, '', '', '2026-01-20 02:15:37'),
+(71, 7, '77b5db128439adb5e41fd311798251a45c8cfa68cddaef77211e34ffa097990b', '2026-01-27 02:34:42', NULL, '', '', '2026-01-20 02:34:42'),
+(72, 7, 'c66865a18e5308a3fb05a4d6dae343b14980abbb30209a83d75c3f314a136c28', '2026-01-27 02:42:06', NULL, '', '', '2026-01-20 02:42:06'),
+(73, 7, '70d498c5070965c45b71c2b2d51154e678b42357ee169a629f4a780023bea7e6', '2026-01-27 02:58:00', NULL, '', '', '2026-01-20 02:58:00'),
+(74, 7, '7692b2d788f3eeb82a8aad9726fd25fb30ca41236b8442f2e7f08d305b95bb4d', '2026-01-27 02:58:15', NULL, '', '', '2026-01-20 02:58:15'),
+(75, 7, '448713cf8a721aab434daa2b07dcef61e9451f8bc538c6206fe3df6505b8a0f0', '2026-01-27 03:07:37', NULL, '', '', '2026-01-20 03:07:37'),
+(76, 7, 'b078bae01a9c5f16236f0dda6301b4a41783c123cd767f49a42c04a1bffed631', '2026-01-27 03:08:18', NULL, '', '', '2026-01-20 03:08:18'),
+(77, 7, '45416cb7e854a0c565dc0565a6e88ae4ae27ca2739643b0f7715b5bd0ed023be', '2026-01-27 03:09:40', NULL, '', '', '2026-01-20 03:09:40'),
+(78, 7, '45875c5981930bee5d3273a54dca1d744a5016c76e4f4aa3f809990078965b14', '2026-01-27 03:09:49', NULL, '', '', '2026-01-20 03:09:49'),
+(79, 7, 'f0fd8265affdf10b594851c7689ec62ce68fbf35134d3be58ee23f6fef47b279', '2026-01-27 03:10:16', NULL, '', '', '2026-01-20 03:10:16'),
+(80, 7, 'df9c221d52f392e6267c40eef51a8ec5c3282df565b2334d74a5961b175e7ac9', '2026-01-27 03:10:29', NULL, '', '', '2026-01-20 03:10:29'),
+(81, 7, '809de13f87c8bd92ae95d2c806ddb320c8e4158a4f7ae6bf261277f9a4284ffe', '2026-01-27 03:13:00', NULL, '', '', '2026-01-20 03:13:00'),
+(82, 7, 'dede9156ce8b831a98528aa5b4554d894f3160caded91ea5e8f5c28081ee00d6', '2026-01-27 03:13:08', NULL, '', '', '2026-01-20 03:13:08'),
+(83, 7, 'ef95e3e43bfb9cf8c0d64cf9e232b7d13495e7efee2f70d93292e348bfb3103b', '2026-01-27 03:13:52', NULL, '', '', '2026-01-20 03:13:52'),
+(84, 7, '509b8d1a4b6ae911fd78899220bf183a78b5893739ffda1c2a73971d78fabbd9', '2026-01-27 03:14:23', NULL, '', '', '2026-01-20 03:14:23'),
+(85, 7, '1f280b56a341a2e87d2184feb7839c5a248ceb2aa4c268ca154b31606d626b40', '2026-01-27 03:24:30', NULL, '', '', '2026-01-20 03:24:30'),
+(86, 7, 'e49a2f7582e40c4faee703e1949dd9a7749500f685ba142c7a50a051ab345ead', '2026-01-27 03:35:55', NULL, '', '', '2026-01-20 03:35:55'),
+(87, 7, '35b89f2b1540359403d0c11c6594a3829dab3ad6427536ec65af58e28e8f8d8d', '2026-01-27 03:38:47', NULL, '', '', '2026-01-20 03:38:47'),
+(88, 1, '757f8097ca62f94e1fdede4c0daa1964c9409d075f690d8b8f2101698a1f6113', '2026-01-27 03:39:10', NULL, '', '', '2026-01-20 03:39:10'),
+(89, 1, '5f3d2a21161326c932efeda1b5791ea183ef9cc11b7fa955c7f5c6e073501ab9', '2026-01-27 03:39:29', NULL, '', '', '2026-01-20 03:39:29'),
+(90, 1, '4588c3e22ca04ff044c40dda7c5b962c7404575cf9c4e7228a6de603d1fc901e', '2026-01-27 03:42:26', NULL, '', '', '2026-01-20 03:42:26'),
+(91, 1, '82bc1046e59836de187fc60cc041b3d91c34bfaf947a2ddc93c8b66a83e7c76d', '2026-01-27 03:43:00', NULL, '', '', '2026-01-20 03:43:00'),
+(92, 7, '912696beb110543df2a2576f33042c7bec87f04203442d0ba2acec9e3056798f', '2026-01-27 03:43:14', NULL, '', '', '2026-01-20 03:43:14');
 
 -- --------------------------------------------------------
 
@@ -464,7 +505,7 @@ INSERT INTO `users` (`id`, `email`, `password_hash`, `role`, `full_name`, `phone
 (4, 'testcompany@test.com', '$2a$10$Owbnmfiz/RUlALkTaI777epAeVCCvSsZmd.bqOu.hjBX1KHGsNYhW', 'company', 'HR Manager', '081234567890', NULL, 1, 0, NULL, '2026-01-18 07:08:53', '2026-01-18 07:08:53', NULL),
 (5, 'company2@test.com', '$2a$10$26QNIFt3ErRbLdMEaIyu1uqBfxn72fmYYTK27e1NnK5UaAEsZiEvy', 'company', 'Test Manager', '081234567890', NULL, 1, 0, NULL, '2026-01-18 07:42:02', '2026-01-18 07:42:02', NULL),
 (6, 'company3@test.com', '$2a$10$27XxXTvPq9S.tOwT5/kY7u6E7V8ovsBq3jGQiL5txJuCzVm0t0iNa', 'company', 'Recruitment Manager', '081555555555', NULL, 1, 0, NULL, '2026-01-18 07:43:28', '2026-01-18 07:43:28', NULL),
-(7, 'info@karyadeveloperindonesia.com', '$2a$10$yGx97vEQaIJOEeuDHlIGQONjqgqfdFhWUbBrWWxsJNpmeEXf5reWW', 'company', 'Admin', '0881036480285', NULL, 1, 0, NULL, '2026-01-18 09:13:55', '2026-01-19 13:21:21', NULL),
+(7, 'info@karyadeveloperindonesia.com', '$2a$10$yGx97vEQaIJOEeuDHlIGQONjqgqfdFhWUbBrWWxsJNpmeEXf5reWW', 'company', 'Admin', '0881036480285', NULL, 1, 0, NULL, '2026-01-18 09:13:55', '2026-01-19 14:00:32', NULL),
 (9, 'company.testing1768808682@karirnusantara.com', '$2a$10$1RpgFQaG58KBk.Fhy8laye2yhBj.C.ogGGaqxkktzmew7TMrlLu.W', 'company', 'Budi Santoso', '081234567890', NULL, 1, 0, NULL, '2026-01-19 07:44:42', '2026-01-19 07:44:42', NULL),
 (10, 'company.testing1768808883@karirnusantara.com', '$2a$10$GrXGCrL6oNq.NJAJwmhAg.aQMID5txWxyP7Df/XJuVQ39zSKhioDy', 'company', 'Budi Santoso', '081234567890', NULL, 1, 0, NULL, '2026-01-19 07:48:03', '2026-01-19 07:48:03', NULL);
 
@@ -642,7 +683,7 @@ ALTER TABLE `audit_logs`
 -- AUTO_INCREMENT for table `companies`
 --
 ALTER TABLE `companies`
-  MODIFY `id` bigint(20) UNSIGNED NOT NULL AUTO_INCREMENT;
+  MODIFY `id` bigint(20) UNSIGNED NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=2;
 
 --
 -- AUTO_INCREMENT for table `company_quotas`
@@ -666,7 +707,7 @@ ALTER TABLE `cv_snapshots`
 -- AUTO_INCREMENT for table `jobs`
 --
 ALTER TABLE `jobs`
-  MODIFY `id` bigint(20) UNSIGNED NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=7;
+  MODIFY `id` bigint(20) UNSIGNED NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=8;
 
 --
 -- AUTO_INCREMENT for table `job_skills`
@@ -690,7 +731,7 @@ ALTER TABLE `payments`
 -- AUTO_INCREMENT for table `refresh_tokens`
 --
 ALTER TABLE `refresh_tokens`
-  MODIFY `id` bigint(20) UNSIGNED NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=60;
+  MODIFY `id` bigint(20) UNSIGNED NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=93;
 
 --
 -- AUTO_INCREMENT for table `saved_jobs`
