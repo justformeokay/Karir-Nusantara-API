@@ -15,6 +15,7 @@ type Repository interface {
 	GetByID(ctx context.Context, companyID uint64) (*Company, error)
 	Create(ctx context.Context, company *Company) error
 	Update(ctx context.Context, company *Company) error
+	CanCreateJobs(ctx context.Context, companyID uint64) (bool, *ValidationError, error)
 }
 
 // mysqlRepository implements Repository
@@ -154,4 +155,114 @@ func (r *mysqlRepository) Update(ctx context.Context, company *Company) error {
 	}
 
 	return nil
+}
+
+// CanCreateJobs checks if company is eligible to create job postings
+// Returns: (canCreate bool, validationError *ValidationError, dbError error)
+func (r *mysqlRepository) CanCreateJobs(ctx context.Context, companyID uint64) (bool, *ValidationError, error) {
+	company, err := r.GetByID(ctx, companyID)
+	if err != nil {
+		return false, nil, fmt.Errorf("failed to get company: %w", err)
+	}
+
+	if company == nil {
+		return false, &ValidationError{
+			Code:    "COMPANY_NOT_FOUND",
+			Message: "Perusahaan tidak ditemukan",
+		}, nil
+	}
+
+	// Check if profile is complete
+	if !company.CompanyName.Valid || company.CompanyName.String == "" {
+		return false, &ValidationError{
+			Code:    "INCOMPLETE_PROFILE",
+			Message: "Lengkapi profil perusahaan terlebih dahulu",
+			Details: "Nama perusahaan harus diisi",
+		}, nil
+	}
+	if !company.CompanyDescription.Valid || company.CompanyDescription.String == "" {
+		return false, &ValidationError{
+			Code:    "INCOMPLETE_PROFILE",
+			Message: "Lengkapi profil perusahaan terlebih dahulu",
+			Details: "Deskripsi perusahaan harus diisi",
+		}, nil
+	}
+	if !company.CompanyWebsite.Valid || company.CompanyWebsite.String == "" {
+		return false, &ValidationError{
+			Code:    "INCOMPLETE_PROFILE",
+			Message: "Lengkapi profil perusahaan terlebih dahulu",
+			Details: "Website perusahaan harus diisi",
+		}, nil
+	}
+	if !company.CompanyIndustry.Valid || company.CompanyIndustry.String == "" {
+		return false, &ValidationError{
+			Code:    "INCOMPLETE_PROFILE",
+			Message: "Lengkapi profil perusahaan terlebih dahulu",
+			Details: "Industri perusahaan harus dipilih",
+		}, nil
+	}
+	if !company.CompanySize.Valid || company.CompanySize.String == "" {
+		return false, &ValidationError{
+			Code:    "INCOMPLETE_PROFILE",
+			Message: "Lengkapi profil perusahaan terlebih dahulu",
+			Details: "Ukuran perusahaan harus dipilih",
+		}, nil
+	}
+	if !company.CompanyLocation.Valid || company.CompanyLocation.String == "" {
+		return false, &ValidationError{
+			Code:    "INCOMPLETE_PROFILE",
+			Message: "Lengkapi profil perusahaan terlebih dahulu",
+			Details: "Lokasi perusahaan harus diisi",
+		}, nil
+	}
+
+	// Check if all required documents are uploaded
+	if !company.KTPFounderURL.Valid || company.KTPFounderURL.String == "" {
+		return false, &ValidationError{
+			Code:    "MISSING_DOCUMENTS",
+			Message: "Unggah semua dokumen yang diperlukan",
+			Details: "KTP Pendiri harus diunggah",
+		}, nil
+	}
+	if !company.AktaPendirianURL.Valid || company.AktaPendirianURL.String == "" {
+		return false, &ValidationError{
+			Code:    "MISSING_DOCUMENTS",
+			Message: "Unggah semua dokumen yang diperlukan",
+			Details: "Akta Pendirian harus diunggah",
+		}, nil
+	}
+	if !company.NPWPURL.Valid || company.NPWPURL.String == "" {
+		return false, &ValidationError{
+			Code:    "MISSING_DOCUMENTS",
+			Message: "Unggah semua dokumen yang diperlukan",
+			Details: "NPWP harus diunggah",
+		}, nil
+	}
+	if !company.NIBURL.Valid || company.NIBURL.String == "" {
+		return false, &ValidationError{
+			Code:    "MISSING_DOCUMENTS",
+			Message: "Unggah semua dokumen yang diperlukan",
+			Details: "NIB harus diunggah",
+		}, nil
+	}
+
+	// Check if documents are verified
+	if !company.DocumentsVerifiedAt.Valid {
+		return false, &ValidationError{
+			Code:    "PENDING_VERIFICATION",
+			Message: "Admin sedang memverifikasi dokumen Anda",
+			Details: "Silakan menunggu verifikasi dokumen (1-2 hari kerja)",
+		}, nil
+	}
+
+	// Check company status
+	if company.CompanyStatus != "verified" {
+		return false, &ValidationError{
+			Code:    "NOT_VERIFIED",
+			Message: "Perusahaan belum diverifikasi oleh admin",
+			Details: "Status perusahaan: " + company.CompanyStatus,
+		}, nil
+	}
+
+	return true, nil, nil
 }

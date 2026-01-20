@@ -9,6 +9,7 @@ import (
 	"time"
 
 	apperrors "github.com/karirnusantara/api/internal/shared/errors"
+	"github.com/karirnusantara/api/internal/modules/company"
 )
 
 // Service defines the jobs service interface
@@ -25,7 +26,8 @@ type Service interface {
 }
 
 type service struct {
-	repo Repository
+	repo            Repository
+	companyRepo     company.Repository
 }
 
 // NewService creates a new jobs service
@@ -33,8 +35,33 @@ func NewService(repo Repository) Service {
 	return &service{repo: repo}
 }
 
+// NewServiceWithCompanyRepo creates a new jobs service with company repository
+func NewServiceWithCompanyRepo(repo Repository, companyRepo company.Repository) Service {
+	return &service{repo: repo, companyRepo: companyRepo}
+}
+
 // Create creates a new job posting
 func (s *service) Create(ctx context.Context, companyID uint64, req *CreateJobRequest) (*JobResponse, error) {
+	// Validate company eligibility to create jobs
+	if s.companyRepo != nil {
+		canCreate, validationErr, err := s.companyRepo.CanCreateJobs(ctx, companyID)
+		if err != nil {
+			return nil, apperrors.NewInternalError("Failed to validate company", err)
+		}
+		if validationErr != nil {
+			details := map[string]string{
+				"code": validationErr.Code,
+			}
+			if validationErr.Details != "" {
+				details["details"] = validationErr.Details
+			}
+			return nil, apperrors.NewValidationError(validationErr.Message, details)
+		}
+		if !canCreate {
+			return nil, apperrors.NewValidationError("Company not eligible for job posting", nil)
+		}
+	}
+
 	// Generate slug from title
 	slug := generateSlug(req.Title)
 

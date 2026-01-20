@@ -5,6 +5,13 @@ import (
 	"time"
 )
 
+// ValidationError represents a validation error with code and message
+type ValidationError struct {
+	Code    string `json:"code"`
+	Message string `json:"message"`
+	Details string `json:"details,omitempty"`
+}
+
 // Company represents a company entity
 type Company struct {
 	ID                    uint64         `db:"id" json:"id"`

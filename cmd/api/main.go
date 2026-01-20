@@ -65,7 +65,7 @@ func main() {
 	companyRepo := company.NewRepository(db)
 
 	// Initialize other services
-	jobsService := jobs.NewService(jobsRepo)
+	jobsService := jobs.NewServiceWithCompanyRepo(jobsRepo, companyRepo)
 	cvsService := cvs.NewService(cvsRepo)
 	applicationsService := applications.NewService(applicationsRepo, cvsService, jobsService)
 	wishlistService := wishlist.NewService(wishlistRepo)
