@@ -219,6 +219,16 @@ type RefreshToken struct {
 	CreatedAt  time.Time    `db:"created_at"`
 }
 
+// PasswordResetToken represents a password reset token entity
+type PasswordResetToken struct {
+	ID        uint64       `db:"id"`
+	Email     string       `db:"email"`
+	Token     string       `db:"token"`
+	ExpiresAt time.Time    `db:"expires_at"`
+	UsedAt    sql.NullTime `db:"used_at"`
+	CreatedAt time.Time    `db:"created_at"`
+}
+
 // Request DTOs
 
 // RegisterRequest represents a registration request
@@ -240,6 +250,17 @@ type LoginRequest struct {
 // RefreshTokenRequest represents a refresh token request
 type RefreshTokenRequest struct {
 	RefreshToken string `json:"refresh_token" validate:"required"`
+}
+
+// ForgotPasswordRequest represents a forgot password request
+type ForgotPasswordRequest struct {
+	Email string `json:"email" validate:"required,email"`
+}
+
+// ResetPasswordRequest represents a reset password request
+type ResetPasswordRequest struct {
+	Token       string `json:"token" validate:"required"`
+	NewPassword string `json:"new_password" validate:"required,min=8,password"`
 }
 
 // UpdateProfileRequest represents a profile update request

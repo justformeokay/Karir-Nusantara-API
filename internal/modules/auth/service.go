@@ -2,6 +2,7 @@ package auth
 
 import (
 	"context"
+	"crypto/rand"
 	"crypto/sha256"
 	"database/sql"
 	"encoding/hex"
@@ -24,6 +25,8 @@ type Service interface {
 	GetCurrentUser(ctx context.Context, userID uint64) (*UserWithCompanyResponse, error)
 	UpdateProfile(ctx context.Context, userID uint64, req *UpdateProfileRequest) (*UserResponse, error)
 	ValidateAccessToken(tokenString string) (*TokenClaims, error)
+	ForgotPassword(ctx context.Context, req *ForgotPasswordRequest) (*User, string, error)
+	ResetPassword(ctx context.Context, req *ResetPasswordRequest) error
 }
 
 // service implements Service
@@ -317,4 +320,95 @@ func (s *service) generateRefreshToken(ctx context.Context, userID uint64) (stri
 func hashToken(token string) string {
 	hash := sha256.Sum256([]byte(token))
 	return hex.EncodeToString(hash[:])
+}
+
+// ForgotPassword generates and stores password reset token
+func (s *service) ForgotPassword(ctx context.Context, req *ForgotPasswordRequest) (*User, string, error) {
+	// Check if user exists
+	user, err := s.repo.GetUserByEmail(ctx, req.Email)
+	if err != nil {
+		return nil, "", apperrors.NewInternalError("Failed to check user", err)
+	}
+	
+	// Don't reveal if email exists or not for security
+	if user == nil {
+		return nil, "", nil
+	}
+
+	// Generate secure random token
+	token, err := generateSecureToken(32)
+	if err != nil {
+		return nil, "", apperrors.NewInternalError("Failed to generate token", err)
+	}
+
+	// Create password reset token (expires in 1 hour)
+	resetToken := &PasswordResetToken{
+		Email:     req.Email,
+		Token:     token,
+		ExpiresAt: time.Now().Add(1 * time.Hour),
+	}
+
+	if err := s.repo.CreatePasswordResetToken(ctx, resetToken); err != nil {
+		return nil, "", apperrors.NewInternalError("Failed to create reset token", err)
+	}
+
+	// Return user and token for email sending
+	return user, token, nil
+}
+
+// ResetPassword resets user password using reset token
+func (s *service) ResetPassword(ctx context.Context, req *ResetPasswordRequest) error {
+	// Get reset token
+	resetToken, err := s.repo.GetPasswordResetToken(ctx, req.Token)
+	if err != nil {
+		return apperrors.NewInternalError("Failed to get reset token", err)
+	}
+
+	if resetToken == nil {
+		return apperrors.NewBadRequestError("Invalid or expired reset token")
+	}
+
+	// Get user by email
+	user, err := s.repo.GetUserByEmail(ctx, resetToken.Email)
+	if err != nil {
+		return apperrors.NewInternalError("Failed to get user", err)
+	}
+
+	if user == nil {
+		return apperrors.NewNotFoundError("User")
+	}
+
+	// Hash new password
+	hashedPassword, err := bcrypt.GenerateFromPassword([]byte(req.NewPassword), bcrypt.DefaultCost)
+	if err != nil {
+		return apperrors.NewInternalError("Failed to hash password", err)
+	}
+
+	// Update user password
+	user.PasswordHash = string(hashedPassword)
+	if err := s.repo.UpdateUser(ctx, user); err != nil {
+		return apperrors.NewInternalError("Failed to update password", err)
+	}
+
+	// Mark token as used
+	if err := s.repo.MarkPasswordResetTokenAsUsed(ctx, resetToken.ID); err != nil {
+		return apperrors.NewInternalError("Failed to mark token as used", err)
+	}
+
+	// Revoke all refresh tokens for security
+	if err := s.repo.RevokeAllUserTokens(ctx, user.ID); err != nil {
+		// Log error but don't fail the request
+		fmt.Printf("Warning: Failed to revoke user tokens: %v\n", err)
+	}
+
+	return nil
+}
+
+// generateSecureToken generates a cryptographically secure random token
+func generateSecureToken(length int) (string, error) {
+	bytes := make([]byte, length)
+	if _, err := rand.Read(bytes); err != nil {
+		return "", err
+	}
+	return hex.EncodeToString(bytes), nil
 }

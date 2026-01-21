@@ -17,6 +17,8 @@ func RegisterRoutes(r chi.Router, h *Handler, authenticate MiddlewareFunc) {
 		r.Post("/register", h.Register)
 		r.Post("/login", h.Login)
 		r.Post("/refresh", h.RefreshToken)
+		r.Post("/forgot-password", h.ForgotPassword)
+		r.Post("/reset-password", h.ResetPassword)
 
 		// Protected routes
 		r.Group(func(r chi.Router) {

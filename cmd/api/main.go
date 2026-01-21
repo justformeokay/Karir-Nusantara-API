@@ -25,6 +25,7 @@ import (
 	"github.com/karirnusantara/api/internal/modules/jobs"
 	"github.com/karirnusantara/api/internal/modules/quota"
 	"github.com/karirnusantara/api/internal/modules/wishlist"
+	"github.com/karirnusantara/api/internal/shared/email"
 	"github.com/karirnusantara/api/internal/shared/response"
 	"github.com/karirnusantara/api/internal/shared/validator"
 )
@@ -73,8 +74,12 @@ func main() {
 	dashboardService := dashboard.NewService(dashboardRepo)
 	companyService := company.NewService(companyRepo)
 
+	// Initialize email service
+	emailConfig := email.LoadConfigFromEnv()
+	emailService := email.NewService(emailConfig)
+
 	// Initialize handlers
-	authHandler := auth.NewHandler(authService, v)
+	authHandler := auth.NewHandler(authService, v, emailService)
 	jobsHandler := jobs.NewHandler(jobsService, v)
 	cvsHandler := cvs.NewHandler(cvsService, v)
 	applicationsHandler := applications.NewHandler(applicationsService, v)

@@ -1,6 +1,8 @@
-go run ./cmd/api/main.go
-2026/01/17 10:29:56 Connected to database successfully
-2026/01/17 10:29:56 Server starting on port 8081
-2026/01/17 10:29:56 Environment: development
-signal: killed
-make: *** [run] Error 1
+2026/01/21 22:05:26 Connected to database successfully
+2026/01/21 22:05:26 Server starting on port 8081
+2026/01/21 22:05:26 Environment: development
+2026/01/21 22:05:28 [2ac4cc76-4306-4055-82b3-d6c399333473] GET /health [::1]:51733 200 481.458µs
+2026/01/21 22:05:46 [a51b1381-65a2-4e77-bc7d-3a2bcad2dc61] POST /api/v1/auth/forgot-password [::1]:51739 200 43.494ms
+2026/01/21 22:06:03 [93557e8f-bbef-4a74-9558-356e322ed22c] POST /api/v1/auth/register [::1]:51747 201 129.211625ms
+2026/01/21 22:06:37 [9e055169-e760-4674-b91c-5dffa55566ea] POST /api/v1/auth/forgot-password [::1]:51765 200 6.00225ms
+2026/01/21 22:08:19 [e83fd716-f70d-4f60-ae94-a77228a928ec] POST /api/v1/auth/forgot-password [::1]:51783 200 8.554541ms

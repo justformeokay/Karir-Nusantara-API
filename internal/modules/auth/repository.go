@@ -26,6 +26,12 @@ type Repository interface {
 	RevokeRefreshToken(ctx context.Context, hash string) error
 	RevokeAllUserTokens(ctx context.Context, userID uint64) error
 	CleanupExpiredTokens(ctx context.Context) error
+
+	// Password reset operations
+	CreatePasswordResetToken(ctx context.Context, token *PasswordResetToken) error
+	GetPasswordResetToken(ctx context.Context, tokenStr string) (*PasswordResetToken, error)
+	MarkPasswordResetTokenAsUsed(ctx context.Context, id uint64) error
+	DeleteExpiredResetTokens(ctx context.Context) error
 }
 
 // mysqlRepository implements Repository for MySQL
@@ -134,6 +140,7 @@ func (r *mysqlRepository) GetUserByEmail(ctx context.Context, email string) (*Us
 func (r *mysqlRepository) UpdateUser(ctx context.Context, user *User) error {
 	query := `
 		UPDATE users SET
+			password_hash = ?,
 			full_name = ?,
 			phone = ?,
 			avatar_url = ?,
@@ -144,7 +151,7 @@ func (r *mysqlRepository) UpdateUser(ctx context.Context, user *User) error {
 	`
 
 	_, err := r.db.ExecContext(ctx, query,
-		user.FullName, user.Phone, user.AvatarURL,
+		user.PasswordHash, user.FullName, user.Phone, user.AvatarURL,
 		user.IsActive, user.IsVerified, user.ID,
 	)
 	if err != nil {
@@ -238,6 +245,66 @@ func (r *mysqlRepository) CleanupExpiredTokens(ctx context.Context) error {
 	_, err := r.db.ExecContext(ctx, query)
 	if err != nil {
 		return fmt.Errorf("failed to cleanup expired tokens: %w", err)
+	}
+	return nil
+}
+
+// CreatePasswordResetToken creates a new password reset token
+func (r *mysqlRepository) CreatePasswordResetToken(ctx context.Context, token *PasswordResetToken) error {
+	query := `
+		INSERT INTO password_reset_tokens (email, token, expires_at, created_at)
+		VALUES (?, ?, ?, NOW())
+	`
+
+	result, err := r.db.ExecContext(ctx, query, token.Email, token.Token, token.ExpiresAt)
+	if err != nil {
+		return fmt.Errorf("failed to create password reset token: %w", err)
+	}
+
+	id, err := result.LastInsertId()
+	if err != nil {
+		return fmt.Errorf("failed to get last insert id: %w", err)
+	}
+
+	token.ID = uint64(id)
+	return nil
+}
+
+// GetPasswordResetToken retrieves a password reset token
+func (r *mysqlRepository) GetPasswordResetToken(ctx context.Context, tokenStr string) (*PasswordResetToken, error) {
+	query := `
+		SELECT id, email, token, expires_at, used_at, created_at
+		FROM password_reset_tokens
+		WHERE token = ? AND used_at IS NULL AND expires_at > NOW()
+	`
+
+	var token PasswordResetToken
+	if err := r.db.GetContext(ctx, &token, query, tokenStr); err != nil {
+		if errors.Is(err, sql.ErrNoRows) {
+			return nil, nil
+		}
+		return nil, fmt.Errorf("failed to get password reset token: %w", err)
+	}
+
+	return &token, nil
+}
+
+// MarkPasswordResetTokenAsUsed marks a password reset token as used
+func (r *mysqlRepository) MarkPasswordResetTokenAsUsed(ctx context.Context, id uint64) error {
+	query := `UPDATE password_reset_tokens SET used_at = NOW() WHERE id = ?`
+	_, err := r.db.ExecContext(ctx, query, id)
+	if err != nil {
+		return fmt.Errorf("failed to mark password reset token as used: %w", err)
+	}
+	return nil
+}
+
+// DeleteExpiredResetTokens deletes expired password reset tokens
+func (r *mysqlRepository) DeleteExpiredResetTokens(ctx context.Context) error {
+	query := `DELETE FROM password_reset_tokens WHERE expires_at < NOW() OR used_at IS NOT NULL`
+	_, err := r.db.ExecContext(ctx, query)
+	if err != nil {
+		return fmt.Errorf("failed to delete expired reset tokens: %w", err)
 	}
 	return nil
 }

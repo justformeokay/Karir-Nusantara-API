@@ -5,21 +5,24 @@ import (
 	"net/http"
 
 	apperrors "github.com/karirnusantara/api/internal/shared/errors"
+	"github.com/karirnusantara/api/internal/shared/email"
 	"github.com/karirnusantara/api/internal/shared/response"
 	"github.com/karirnusantara/api/internal/shared/validator"
 )
 
 // Handler handles auth HTTP requests
 type Handler struct {
-	service   Service
-	validator *validator.Validator
+	service      Service
+	validator    *validator.Validator
+	emailService *email.Service
 }
 
 // NewHandler creates a new auth handler
-func NewHandler(service Service, validator *validator.Validator) *Handler {
+func NewHandler(service Service, validator *validator.Validator, emailService *email.Service) *Handler {
 	return &Handler{
-		service:   service,
-		validator: validator,
+		service:      service,
+		validator:    validator,
+		emailService: emailService,
 	}
 }
 
@@ -43,6 +46,21 @@ func (h *Handler) Register(w http.ResponseWriter, r *http.Request) {
 	if err != nil {
 		handleError(w, err)
 		return
+	}
+
+	// Send welcome email for company registration (async, don't block)
+	if req.Role == "company" && h.emailService != nil {
+		go func() {
+			companyName := req.CompanyName
+			if companyName == "" {
+				companyName = req.FullName
+			}
+			if err := h.emailService.SendWelcomeEmail(req.Email, companyName, req.FullName); err != nil {
+				// Log error but don't fail registration
+				// In production, use proper logging
+				println("Failed to send welcome email:", err.Error())
+			}
+		}()
 	}
 
 	response.Created(w, "Registration successful", authResp)
@@ -225,6 +243,67 @@ func (h *Handler) UploadLogo(w http.ResponseWriter, r *http.Request) {
 	}
 
 	response.OK(w, "Logo uploaded successfully", user)
+}
+
+// ForgotPassword handles forgot password request
+// POST /api/v1/auth/forgot-password
+func (h *Handler) ForgotPassword(w http.ResponseWriter, r *http.Request) {
+	var req ForgotPasswordRequest
+	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
+		response.BadRequest(w, "Invalid request body")
+		return
+	}
+
+	// Validate request
+	if errors := h.validator.Validate(&req); errors != nil {
+		response.UnprocessableEntity(w, "Validation failed", errors)
+		return
+	}
+
+	// Process forgot password
+	user, token, err := h.service.ForgotPassword(r.Context(), &req)
+	if err != nil {
+		handleError(w, err)
+		return
+	}
+
+	// Send password reset email (async, don't block)
+	if user != nil && token != "" && h.emailService != nil {
+		go func() {
+			if err := h.emailService.SendPasswordResetEmail(user.Email, token, user.FullName); err != nil {
+				// Log error but don't fail the request
+				// In production, use proper logging
+				println("Failed to send password reset email:", err.Error())
+			}
+		}()
+	}
+
+	// Always return success to avoid email enumeration
+	response.OK(w, "If your email is registered, you will receive password reset instructions", nil)
+}
+
+// ResetPassword handles password reset request
+// POST /api/v1/auth/reset-password
+func (h *Handler) ResetPassword(w http.ResponseWriter, r *http.Request) {
+	var req ResetPasswordRequest
+	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
+		response.BadRequest(w, "Invalid request body")
+		return
+	}
+
+	// Validate request
+	if errors := h.validator.Validate(&req); errors != nil {
+		response.UnprocessableEntity(w, "Validation failed", errors)
+		return
+	}
+
+	// Reset password
+	if err := h.service.ResetPassword(r.Context(), &req); err != nil {
+		handleError(w, err)
+		return
+	}
+
+	response.OK(w, "Password reset successful", nil)
 }
 
 // handleError handles errors and sends appropriate response
