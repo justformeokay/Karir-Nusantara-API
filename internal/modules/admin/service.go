@@ -12,6 +12,8 @@ import (
 
 	"github.com/karirnusantara/api/internal/config"
 	"github.com/karirnusantara/api/internal/modules/quota"
+	"github.com/karirnusantara/api/internal/shared/email"
+	"github.com/karirnusantara/api/internal/shared/invoice"
 )
 
 // Common errors
@@ -59,9 +61,11 @@ type Service interface {
 
 // service implements the Service interface
 type service struct {
-	repo         Repository
-	config       *config.Config
-	quotaService *quota.Service
+	repo           Repository
+	config         *config.Config
+	quotaService   *quota.Service
+	emailService   *email.Service
+	invoiceService *invoice.Service
 }
 
 // NewService creates a new admin service
@@ -78,6 +82,17 @@ func NewServiceWithQuota(repo Repository, cfg *config.Config, quotaSvc *quota.Se
 		repo:         repo,
 		config:       cfg,
 		quotaService: quotaSvc,
+	}
+}
+
+// NewServiceComplete creates a new admin service with all dependencies
+func NewServiceComplete(repo Repository, cfg *config.Config, quotaSvc *quota.Service, emailSvc *email.Service, invoiceSvc *invoice.Service) Service {
+	return &service{
+		repo:           repo,
+		config:         cfg,
+		quotaService:   quotaSvc,
+		emailService:   emailSvc,
+		invoiceService: invoiceSvc,
 	}
 }
 
@@ -400,6 +415,12 @@ func (s *service) ProcessPayment(ctx context.Context, id uint64, req *PaymentAct
 			}
 		}
 		action = "payment_approved"
+		
+		// Send confirmation email with invoice PDF (async)
+		if s.emailService != nil && s.invoiceService != nil {
+			go s.sendPaymentConfirmationWithInvoice(payment, req.Note)
+		}
+		
 	case "reject":
 		// Use quota service to reject
 		if s.quotaService != nil {
@@ -420,6 +441,64 @@ func (s *service) ProcessPayment(ctx context.Context, id uint64, req *PaymentAct
 	s.logAction(ctx, adminID, action, "payment", id, req.Note)
 
 	return nil
+}
+
+// sendPaymentConfirmationWithInvoice generates invoice PDF and sends confirmation email
+func (s *service) sendPaymentConfirmationWithInvoice(payment *PaymentAdmin, adminNote string) {
+	// Get company email - need to query the users table
+	ctx := context.Background()
+	
+	// Generate invoice number
+	invoiceNumber := fmt.Sprintf("INV/%s/%05d", 
+		time.Now().Format("2006/01"),
+		payment.ID)
+	
+	// Prepare invoice data
+	invoiceData := &invoice.PaymentInvoiceData{
+		InvoiceNumber: invoiceNumber,
+		PaymentID:     payment.ID,
+		CompanyName:   payment.CompanyName.String,
+		CompanyEmail:  "", // Will be filled from user query
+		CompanyAddress: "",
+		Amount:        payment.Amount,
+		PaymentDate:   payment.SubmittedAt,
+		ConfirmedDate: time.Now(),
+		Description:   "Pembayaran Kuota Job Posting - Karir Nusantara",
+		AdminNote:     adminNote,
+	}
+	
+	// Get company details for email
+	companyUser, err := s.repo.GetUserByID(ctx, payment.CompanyID)
+	if err != nil {
+		fmt.Printf("Error getting company user for email: %v\n", err)
+		return
+	}
+	
+	invoiceData.CompanyEmail = companyUser.Email
+	
+	// Generate PDF invoice
+	pdfPath, err := s.invoiceService.GeneratePaymentInvoice(invoiceData)
+	if err != nil {
+		fmt.Printf("Error generating invoice PDF: %v\n", err)
+		return
+	}
+	
+	// Send email with invoice attachment
+	err = s.emailService.SendPaymentConfirmationEmail(
+		companyUser.Email,
+		payment.CompanyName.String,
+		invoiceNumber,
+		payment.Amount,
+		pdfPath,
+	)
+	
+	if err != nil {
+		fmt.Printf("Error sending payment confirmation email: %v\n", err)
+		return
+	}
+	
+	fmt.Printf("Payment confirmation email sent successfully to %s with invoice %s\n", 
+		companyUser.Email, invoiceNumber)
 }
 
 // ============================================

@@ -14,6 +14,7 @@ type Repository interface {
 	// Admin user operations
 	GetAdminByEmail(ctx context.Context, email string) (*AdminUser, error)
 	GetAdminByID(ctx context.Context, id uint64) (*AdminUser, error)
+	GetUserByID(ctx context.Context, id uint64) (*SimpleUser, error)
 
 	// Dashboard
 	GetDashboardStats(ctx context.Context) (*DashboardStats, error)
@@ -112,6 +113,30 @@ func (r *repository) GetAdminByID(ctx context.Context, id uint64) (*AdminUser, e
 	}
 
 	return &admin, nil
+}
+
+func (r *repository) GetUserByID(ctx context.Context, id uint64) (*SimpleUser, error) {
+	query := `
+		SELECT id, email, full_name, role
+		FROM users
+		WHERE id = ?
+	`
+
+	var user SimpleUser
+	err := r.db.QueryRowContext(ctx, query, id).Scan(
+		&user.ID,
+		&user.Email,
+		&user.FullName,
+		&user.Role,
+	)
+	if err != nil {
+		if err == sql.ErrNoRows {
+			return nil, nil
+		}
+		return nil, err
+	}
+
+	return &user, nil
 }
 
 // ============================================

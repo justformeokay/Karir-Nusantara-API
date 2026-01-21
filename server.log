@@ -6,3 +6,29 @@
 2026/01/21 22:06:03 [93557e8f-bbef-4a74-9558-356e322ed22c] POST /api/v1/auth/register [::1]:51747 201 129.211625ms
 2026/01/21 22:06:37 [9e055169-e760-4674-b91c-5dffa55566ea] POST /api/v1/auth/forgot-password [::1]:51765 200 6.00225ms
 2026/01/21 22:08:19 [e83fd716-f70d-4f60-ae94-a77228a928ec] POST /api/v1/auth/forgot-password [::1]:51783 200 8.554541ms
+2026/01/21 22:23:54 [1b1db648-6298-4e64-8cc4-3b72b577360d] OPTIONS /api/v1/auth/login [::1]:52132 200 4.356292ms
+2026/01/21 22:23:54 [1a5c57a2-500a-431f-8d9e-d288832ed644] POST /api/v1/auth/login [::1]:52132 401 139.6995ms
+2026/01/21 22:23:55 [d2ec3905-aa4d-4e6f-bf50-949cee3897f6] POST /api/v1/auth/login [::1]:52132 401 93.171542ms
+2026/01/21 22:24:12 [a4968599-128c-4e81-861d-6b146e90aacc] POST /api/v1/auth/login [::1]:52132 401 98.345042ms
+2026/01/21 22:25:06 [328065a0-fed0-4006-a95e-2ecd515d9dfe] POST /api/v1/auth/login [::1]:52132 401 96.862459ms
+2026/01/21 22:25:43 [9df06656-c905-4080-88c1-bbfc10bd8f5d] POST /api/v1/auth/login [::1]:52132 200 122.86275ms
+2026/01/21 22:25:43 [15265c71-a805-429e-9468-3954f5821a88] OPTIONS /api/v1/company/dashboard/stats [::1]:52132 200 27.083µs
+2026/01/21 22:25:43 [15868461-dc0f-44d0-97ad-c366571e51da] OPTIONS /api/v1/company/quota [::1]:52200 200 8.834µs
+2026/01/21 22:25:43 [8bb17524-12e4-4d25-9680-2538aa201864] OPTIONS /api/v1/auth/me [::1]:52132 200 14.459µs
+2026/01/21 22:25:43 [b5b488aa-251f-480b-9054-3deedad3df01] OPTIONS /api/v1/auth/me [::1]:52201 200 4.625µs
+2026/01/21 22:25:43 [fdbf3a7c-fd8c-4096-aeef-3bb9ed8191bb] GET /api/v1/company/quota [::1]:52132 200 4.332666ms
+2026/01/21 22:25:43 [dd871300-9db6-4c8a-ba8f-a9d1724d9c75] GET /api/v1/auth/me [::1]:52200 200 24.38325ms
+2026/01/21 22:25:43 [cacdaa1e-6f22-4804-b491-8b65445eca2b] GET /api/v1/auth/me [::1]:52200 200 2.543958ms
+2026/01/21 22:25:43 [8a14fb1b-4760-41a5-9adc-b543ff295054] GET /api/v1/company/dashboard/stats [::1]:52202 200 42.488417ms
+2026/01/21 22:25:48 [aad33734-378e-40a6-9839-79df9abb0c02] OPTIONS /api/v1/jobs/company/list [::1]:52202 200 15.709µs
+2026/01/21 22:25:48 [545f585d-4ccc-47ba-9ec7-974fb94d8b1d] GET /api/v1/jobs/company/list [::1]:52202 200 11.877541ms
+2026/01/21 22:25:52 [4937a215-8d1e-4e3b-aad4-25a761c078ad] OPTIONS /api/v1/company/payments [::1]:52200 200 17.084µs
+2026/01/21 22:25:52 [35e61994-0c59-4c57-801e-282513393d52] OPTIONS /api/v1/company/payments/info [::1]:52202 200 28.833µs
+2026/01/21 22:25:52 [c5943df8-6745-49d2-956f-3973becf38e9] GET /api/v1/company/payments/info [::1]:52200 200 144.75µs
+2026/01/21 22:25:52 [53fc7652-f927-4e71-a587-ef0f95056040] GET /api/v1/company/payments [::1]:52202 200 2.640583ms
+2026/01/21 22:26:16 [9af1e00b-157d-4153-9a0f-4306663ad1c3] OPTIONS /api/v1/applications/company [::1]:52202 200 29.792µs
+2026/01/21 22:26:16 [e1a5435e-7290-4215-834b-d8a11a4a1a5f] OPTIONS /api/v1/jobs [::1]:52200 200 8.25µs
+2026/01/21 22:26:16 [c5a0a12c-17c5-422d-9714-95cc8c800ce4] GET /api/v1/applications/company [::1]:52200 200 2.090917ms
+2026/01/21 22:26:16 [30f306f3-2c1c-4fb9-b5dc-345972b6c916] GET /api/v1/jobs [::1]:52202 200 29.748834ms
+2026/01/21 22:30:34 Server is shutting down...
+2026/01/21 22:30:34 Server stopped gracefully

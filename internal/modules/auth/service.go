@@ -27,6 +27,7 @@ type Service interface {
 	ValidateAccessToken(tokenString string) (*TokenClaims, error)
 	ForgotPassword(ctx context.Context, req *ForgotPasswordRequest) (*User, string, error)
 	ResetPassword(ctx context.Context, req *ResetPasswordRequest) error
+	ChangePassword(ctx context.Context, userID uint64, req *ChangePasswordRequest) error
 }
 
 // service implements Service
@@ -396,6 +397,49 @@ func (s *service) ResetPassword(ctx context.Context, req *ResetPasswordRequest) 
 	}
 
 	// Revoke all refresh tokens for security
+	if err := s.repo.RevokeAllUserTokens(ctx, user.ID); err != nil {
+		// Log error but don't fail the request
+		fmt.Printf("Warning: Failed to revoke user tokens: %v\n", err)
+	}
+
+	return nil
+}
+
+// ChangePassword changes user password (for logged-in users)
+func (s *service) ChangePassword(ctx context.Context, userID uint64, req *ChangePasswordRequest) error {
+	// Get user by ID
+	user, err := s.repo.GetUserByID(ctx, userID)
+	if err != nil {
+		return apperrors.NewInternalError("Failed to get user", err)
+	}
+
+	if user == nil {
+		return apperrors.NewNotFoundError("User")
+	}
+
+	// Verify old password
+	if err := bcrypt.CompareHashAndPassword([]byte(user.PasswordHash), []byte(req.OldPassword)); err != nil {
+		return apperrors.NewBadRequestError("Password lama tidak sesuai")
+	}
+
+	// Check if new password is same as old password
+	if req.OldPassword == req.NewPassword {
+		return apperrors.NewBadRequestError("Password baru tidak boleh sama dengan password lama")
+	}
+
+	// Hash new password
+	hashedPassword, err := bcrypt.GenerateFromPassword([]byte(req.NewPassword), bcrypt.DefaultCost)
+	if err != nil {
+		return apperrors.NewInternalError("Failed to hash password", err)
+	}
+
+	// Update user password
+	user.PasswordHash = string(hashedPassword)
+	if err := s.repo.UpdateUser(ctx, user); err != nil {
+		return apperrors.NewInternalError("Failed to update password", err)
+	}
+
+	// Revoke all refresh tokens for security (force re-login)
 	if err := s.repo.RevokeAllUserTokens(ctx, user.ID); err != nil {
 		// Log error but don't fail the request
 		fmt.Printf("Warning: Failed to revoke user tokens: %v\n", err)

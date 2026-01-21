@@ -306,6 +306,58 @@ func (h *Handler) ResetPassword(w http.ResponseWriter, r *http.Request) {
 	response.OK(w, "Password reset successful", nil)
 }
 
+// ChangePassword handles password change for logged-in users
+// PUT /api/v1/auth/change-password
+func (h *Handler) ChangePassword(w http.ResponseWriter, r *http.Request) {
+	userID := getUserIDFromContext(r)
+	if userID == 0 {
+		response.Unauthorized(w, "Unauthorized")
+		return
+	}
+
+	var req ChangePasswordRequest
+	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
+		response.BadRequest(w, "Invalid request body")
+		return
+	}
+
+	// Validate request
+	if errors := h.validator.Validate(&req); errors != nil {
+		response.UnprocessableEntity(w, "Validation failed", errors)
+		return
+	}
+
+	// Get user for email confirmation
+	user, err := h.service.GetCurrentUser(r.Context(), userID)
+	if err != nil {
+		handleError(w, err)
+		return
+	}
+
+	// Change password
+	if err := h.service.ChangePassword(r.Context(), userID, &req); err != nil {
+		handleError(w, err)
+		return
+	}
+
+	// Send password change confirmation email (async, don't block)
+	if h.emailService != nil {
+		go func() {
+			fullName := user.FullName
+			if fullName == "" {
+				fullName = user.Email
+			}
+			if err := h.emailService.SendPasswordChangeConfirmationEmail(user.Email, fullName); err != nil {
+				// Log error but don't fail the request
+				// In production, use proper logging
+				println("Failed to send password change confirmation email:", err.Error())
+			}
+		}()
+	}
+
+	response.OK(w, "Password berhasil diubah. Silakan login kembali dengan password baru Anda.", nil)
+}
+
 // handleError handles errors and sends appropriate response
 func handleError(w http.ResponseWriter, err error) {
 	appErr := apperrors.GetAppError(err)

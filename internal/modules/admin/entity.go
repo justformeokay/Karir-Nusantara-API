@@ -21,6 +21,14 @@ type AdminUser struct {
 	UpdatedAt    time.Time `db:"updated_at" json:"updated_at"`
 }
 
+// SimpleUser represents a simple user for basic queries
+type SimpleUser struct {
+	ID       uint64 `db:"id"`
+	Email    string `db:"email"`
+	FullName string `db:"full_name"`
+	Role     string `db:"role"`
+}
+
 // AdminUserResponse represents the admin user response
 type AdminUserResponse struct {
 	ID        uint64 `json:"id"`

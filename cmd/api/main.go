@@ -26,6 +26,7 @@ import (
 	"github.com/karirnusantara/api/internal/modules/quota"
 	"github.com/karirnusantara/api/internal/modules/wishlist"
 	"github.com/karirnusantara/api/internal/shared/email"
+	"github.com/karirnusantara/api/internal/shared/invoice"
 	"github.com/karirnusantara/api/internal/shared/response"
 	"github.com/karirnusantara/api/internal/shared/validator"
 )
@@ -78,6 +79,9 @@ func main() {
 	emailConfig := email.LoadConfigFromEnv()
 	emailService := email.NewService(emailConfig)
 
+	// Initialize invoice service
+	invoiceService := invoice.NewService("./docs/invoices")
+
 	// Initialize handlers
 	authHandler := auth.NewHandler(authService, v, emailService)
 	jobsHandler := jobs.NewHandler(jobsService, v)
@@ -128,7 +132,7 @@ func main() {
 		company.RegisterRoutes(r, companyHandler, authMiddleware.Authenticate)
 
 		// Admin module routes
-		adminModule := admin.NewModuleWithQuota(db, cfg, authMiddleware, quotaService)
+		adminModule := admin.NewModuleWithQuota(db, cfg, authMiddleware, quotaService, emailService, invoiceService)
 		adminModule.RegisterRoutes(r)
 	})
 

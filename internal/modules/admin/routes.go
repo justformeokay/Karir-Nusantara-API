@@ -7,6 +7,8 @@ import (
 	"github.com/karirnusantara/api/internal/config"
 	"github.com/karirnusantara/api/internal/middleware"
 	"github.com/karirnusantara/api/internal/modules/quota"
+	"github.com/karirnusantara/api/internal/shared/email"
+	"github.com/karirnusantara/api/internal/shared/invoice"
 )
 
 // Module represents the admin module
@@ -28,9 +30,9 @@ func NewModule(db *sqlx.DB, cfg *config.Config, authMiddleware *middleware.AuthM
 }
 
 // NewModuleWithQuota creates a new admin module with quota service
-func NewModuleWithQuota(db *sqlx.DB, cfg *config.Config, authMiddleware *middleware.AuthMiddleware, quotaSvc *quota.Service) *Module {
+func NewModuleWithQuota(db *sqlx.DB, cfg *config.Config, authMiddleware *middleware.AuthMiddleware, quotaSvc *quota.Service, emailSvc *email.Service, invoiceSvc *invoice.Service) *Module {
 	repo := NewRepository(db)
-	service := NewServiceWithQuota(repo, cfg, quotaSvc)
+	service := NewServiceComplete(repo, cfg, quotaSvc, emailSvc, invoiceSvc)
 	handler := NewHandler(service)
 
 	return &Module{

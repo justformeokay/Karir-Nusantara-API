@@ -263,6 +263,12 @@ type ResetPasswordRequest struct {
 	NewPassword string `json:"new_password" validate:"required,min=8,password"`
 }
 
+// ChangePasswordRequest represents a change password request (for logged-in users)
+type ChangePasswordRequest struct {
+	OldPassword string `json:"old_password" validate:"required"`
+	NewPassword string `json:"new_password" validate:"required,min=8,password"`
+}
+
 // UpdateProfileRequest represents a profile update request
 type UpdateProfileRequest struct {
 	FullName           string `json:"full_name,omitempty" validate:"omitempty,min=2,max=255"`
