@@ -20,6 +20,7 @@ func RegisterRoutes(r chi.Router, h *Handler, authenticate, requireCompany Middl
 		r.Get("/packages", h.GetPackages)
 		r.Get("/payments", h.GetPayments)
 		r.Get("/payments/info", h.GetPaymentInfo)
+		r.Get("/payments/invoice", h.DownloadInvoice)
 		r.Post("/payments/proof", h.SubmitPaymentProof)
 	})
 }

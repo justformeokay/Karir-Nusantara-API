@@ -220,6 +220,84 @@ func (h *Handler) GetPackages(w http.ResponseWriter, r *http.Request) {
 	response.Success(w, http.StatusOK, "Packages retrieved successfully", packages)
 }
 
+// DownloadInvoice downloads the invoice PDF for a confirmed payment
+// @Summary Download payment invoice
+// @Description Download invoice PDF for a confirmed payment
+// @Tags Quota
+// @Security BearerAuth
+// @Produce application/pdf
+// @Param id path int true "Payment ID"
+// @Success 200 {file} binary
+// @Router /company/payments/{id}/invoice [get]
+func (h *Handler) DownloadInvoice(w http.ResponseWriter, r *http.Request) {
+	companyID := middleware.GetUserID(r.Context())
+	if companyID == 0 {
+		response.Error(w, http.StatusUnauthorized, "UNAUTHORIZED", "User not authenticated")
+		return
+	}
+
+	// Get payment ID from URL
+	paymentIDStr := r.URL.Query().Get("id")
+	if paymentIDStr == "" {
+		response.Error(w, http.StatusBadRequest, "INVALID_ID", "Payment ID is required")
+		return
+	}
+
+	paymentID, err := strconv.ParseUint(paymentIDStr, 10, 64)
+	if err != nil {
+		response.Error(w, http.StatusBadRequest, "INVALID_ID", "Invalid payment ID")
+		return
+	}
+
+	// Verify payment belongs to company and is confirmed
+	payment, err := h.service.GetPaymentByID(paymentID)
+	if err != nil {
+		response.Error(w, http.StatusNotFound, "PAYMENT_NOT_FOUND", "Payment not found")
+		return
+	}
+
+	if payment.CompanyID != companyID {
+		response.Error(w, http.StatusForbidden, "FORBIDDEN", "You don't have access to this payment")
+		return
+	}
+
+	if payment.Status != "confirmed" {
+		response.Error(w, http.StatusBadRequest, "PAYMENT_NOT_CONFIRMED", "Invoice only available for confirmed payments")
+		return
+	}
+
+	// Build invoice file path - use confirmed_at date or current date
+	var dateStr string
+	if payment.ConfirmedAt.Valid {
+		dateStr = payment.ConfirmedAt.Time.Format("20060102")
+	} else {
+		dateStr = time.Now().Format("20060102")
+	}
+	
+	invoicePath := fmt.Sprintf("./docs/invoices/invoice_%s_%d.pdf", dateStr, paymentID)
+
+	// Check if invoice file exists
+	if _, err := os.Stat(invoicePath); os.IsNotExist(err) {
+		response.Error(w, http.StatusNotFound, "INVOICE_NOT_FOUND", "Invoice file not found")
+		return
+	}
+
+	// Read invoice file
+	invoiceData, err := os.ReadFile(invoicePath)
+	if err != nil {
+		response.Error(w, http.StatusInternalServerError, "READ_ERROR", "Failed to read invoice file")
+		return
+	}
+
+	// Set headers for PDF download
+	w.Header().Set("Content-Type", "application/pdf")
+	w.Header().Set("Content-Disposition", fmt.Sprintf("attachment; filename=invoice_%d.pdf", paymentID))
+	w.Header().Set("Content-Length", fmt.Sprintf("%d", len(invoiceData)))
+
+	// Write PDF data
+	w.Write(invoiceData)
+}
+
 // parseJSON helper to parse JSON body
 func parseJSON(r *http.Request, v interface{}) error {
 	return json.NewDecoder(r.Body).Decode(v)

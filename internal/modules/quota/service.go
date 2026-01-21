@@ -177,3 +177,8 @@ func (s *Service) GetPayments(params PaymentListParams) ([]PaymentResponse, int,
 func (s *Service) GetPendingPaymentsCount(companyID uint64) (int, error) {
 	return s.repo.GetPendingPaymentsCount(companyID)
 }
+
+// GetPaymentByID gets a single payment by ID
+func (s *Service) GetPaymentByID(paymentID uint64) (*Payment, error) {
+	return s.repo.GetPaymentByID(paymentID)
+}
