@@ -4,6 +4,7 @@ import (
 	"context"
 	"database/sql"
 	"fmt"
+	"log"
 	"regexp"
 	"strings"
 	"time"
@@ -11,6 +12,7 @@ import (
 	apperrors "github.com/karirnusantara/api/internal/shared/errors"
 	"github.com/karirnusantara/api/internal/modules/company"
 	"github.com/karirnusantara/api/internal/modules/quota"
+	"github.com/karirnusantara/api/internal/shared/email"
 )
 
 // Service defines the jobs service interface
@@ -31,6 +33,7 @@ type service struct {
 	repo            Repository
 	companyRepo     company.Repository
 	quotaService    *quota.Service
+	emailService    *email.Service
 }
 
 // NewService creates a new jobs service
@@ -46,6 +49,16 @@ func NewServiceWithCompanyRepo(repo Repository, companyRepo company.Repository) 
 // NewServiceWithQuota creates a new jobs service with company and quota repositories
 func NewServiceWithQuota(repo Repository, companyRepo company.Repository, quotaService *quota.Service) Service {
 	return &service{repo: repo, companyRepo: companyRepo, quotaService: quotaService}
+}
+
+// NewServiceWithEmail creates a new jobs service with email notification support
+func NewServiceWithEmail(repo Repository, companyRepo company.Repository, quotaService *quota.Service, emailService *email.Service) Service {
+	return &service{
+		repo:         repo,
+		companyRepo:  companyRepo,
+		quotaService: quotaService,
+		emailService: emailService,
+	}
 }
 
 // GetCompanyByUserID retrieves company information for a given user ID
@@ -175,6 +188,12 @@ func (s *service) Create(ctx context.Context, companyID uint64, userID uint64, r
 		if err := s.repo.AddSkills(ctx, job.ID, req.Skills); err != nil {
 			return nil, apperrors.NewInternalError("Failed to add skills", err)
 		}
+	}
+
+	// Send email notification if job is published
+	if job.Status == JobStatusActive && s.emailService != nil {
+		// Use background context for goroutine since request context will be cancelled
+		go s.sendJobPostedNotification(context.Background(), job.ID, companyID, userID)
 	}
 
 	return s.GetByID(ctx, job.ID)
@@ -493,4 +512,186 @@ func generateSlug(title string) string {
 	slug = strings.Trim(slug, "-")
 
 	return slug
+}
+
+// sendJobPostedNotification sends email notification when a job is posted
+func (s *service) sendJobPostedNotification(ctx context.Context, jobID uint64, companyID uint64, userID uint64) {
+	// Get job details
+	job, err := s.GetByID(ctx, jobID)
+	if err != nil {
+		log.Printf("Failed to get job details for email notification: %v", err)
+		return
+	}
+
+	// Get company details to get email
+	company, err := s.companyRepo.GetByID(ctx, companyID)
+	if err != nil {
+		log.Printf("Failed to get company details for email notification: %v", err)
+		return
+	}
+
+	// Get company name and email safely
+	companyName := "Perusahaan Anda"
+	if company.CompanyName.Valid {
+		companyName = company.CompanyName.String
+	}
+
+	companyEmail := ""
+	if company.CompanyEmail.Valid {
+		companyEmail = company.CompanyEmail.String
+	}
+
+	if companyEmail == "" {
+		log.Printf("Company email is empty for company #%d, skipping notification", companyID)
+		return
+	}
+
+	// Format location
+	location := job.Location.City
+	if job.Location.Province != "" {
+		location = fmt.Sprintf("%s, %s", job.Location.City, job.Location.Province)
+	}
+	remoteText := ""
+	if job.Location.IsRemote {
+		remoteText = "(Remote)"
+	}
+
+	// Format job type
+	jobTypeMap := map[string]string{
+		"full-time":  "Full Time",
+		"part-time":  "Part Time",
+		"contract":   "Kontrak",
+		"internship": "Magang",
+		"freelance":  "Freelance",
+	}
+	jobTypeText := jobTypeMap[job.JobType]
+	if jobTypeText == "" {
+		jobTypeText = job.JobType
+	}
+
+	// Format experience level
+	levelMap := map[string]string{
+		"entry":    "Entry Level",
+		"junior":   "Junior",
+		"mid":      "Mid Level",
+		"senior":   "Senior",
+		"lead":     "Lead",
+		"manager":  "Manager",
+		"director": "Director",
+	}
+	levelText := levelMap[job.ExperienceLevel]
+	if levelText == "" {
+		levelText = job.ExperienceLevel
+	}
+
+	// Format published date
+	publishedDate := "Baru saja"
+	if job.PublishedAt != "" {
+		publishedDate = job.PublishedAt
+	}
+
+	// Build email content
+	subject := fmt.Sprintf("✅ Lowongan '%s' Berhasil Dipublikasikan", job.Title)
+
+	body := fmt.Sprintf(`
+<!DOCTYPE html>
+<html>
+<head>
+    <style>
+        body { font-family: Arial, sans-serif; line-height: 1.6; color: #333; }
+        .container { max-width: 600px; margin: 0 auto; padding: 20px; }
+        .header { background: linear-gradient(135deg, #2980b9 0%%, #6dd5fa 100%%); color: white; padding: 30px; text-align: center; border-radius: 8px 8px 0 0; }
+        .content { background: #f9f9f9; padding: 30px; border: 1px solid #e0e0e0; }
+        .job-details { background: white; padding: 20px; margin: 20px 0; border-left: 4px solid #2980b9; border-radius: 4px; }
+        .job-details h3 { margin-top: 0; color: #2980b9; }
+        .detail-row { margin: 10px 0; }
+        .detail-label { font-weight: bold; color: #555; }
+        .button { display: inline-block; padding: 12px 30px; background: #2980b9; color: white; text-decoration: none; border-radius: 5px; margin: 20px 0; }
+        .footer { text-align: center; padding: 20px; color: #777; font-size: 12px; }
+        .alert { background: #d4edda; border: 1px solid #c3e6cb; color: #155724; padding: 15px; border-radius: 4px; margin: 15px 0; }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>🎉 Lowongan Berhasil Dipublikasikan!</h1>
+        </div>
+        
+        <div class="content">
+            <p>Halo <strong>%s</strong>,</p>
+            
+            <p>Selamat! Lowongan pekerjaan Anda telah berhasil dipublikasikan di platform <strong>Karir Nusantara</strong> dan sekarang dapat dilihat oleh ribuan pencari kerja di seluruh Indonesia.</p>
+            
+            <div class="job-details">
+                <h3>📋 Detail Lowongan</h3>
+                <div class="detail-row">
+                    <span class="detail-label">Posisi:</span> %s
+                </div>
+                <div class="detail-row">
+                    <span class="detail-label">Lokasi:</span> %s %s
+                </div>
+                <div class="detail-row">
+                    <span class="detail-label">Tipe Pekerjaan:</span> %s
+                </div>
+                <div class="detail-row">
+                    <span class="detail-label">Level:</span> %s
+                </div>
+                <div class="detail-row">
+                    <span class="detail-label">Status:</span> <span style="color: #28a745; font-weight: bold;">AKTIF</span>
+                </div>
+                <div class="detail-row">
+                    <span class="detail-label">Tanggal Publish:</span> %s
+                </div>
+            </div>
+            
+            <div class="alert">
+                <strong>🔒 Keamanan & Privasi</strong><br>
+                Email ini dikirim untuk mengkonfirmasi aktivitas posting lowongan dari akun Anda. 
+                Jika Anda tidak melakukan posting ini, segera hubungi tim support kami melalui chat support di dashboard.
+            </div>
+            
+            <p><strong>Apa yang terjadi selanjutnya?</strong></p>
+            <ul>
+                <li>Lowongan Anda kini dapat dilihat oleh pencari kerja</li>
+                <li>Anda akan menerima notifikasi saat ada lamaran masuk</li>
+                <li>Anda dapat mengelola lowongan di menu Dashboard > Lowongan</li>
+                <li>Statistik viewing akan diupdate secara real-time</li>
+            </ul>
+            
+            <div style="text-align: center;">
+                <a href="http://localhost:5174/dashboard/jobs" class="button">Kelola Lowongan Saya</a>
+            </div>
+            
+            <p style="margin-top: 30px; padding-top: 20px; border-top: 1px solid #ddd;">
+                <strong>Butuh bantuan?</strong><br>
+                Hubungi kami melalui fitur Chat Support di dashboard atau email ke support@karirnusantara.com
+            </p>
+        </div>
+        
+        <div class="footer">
+            <p>Karir Nusantara - Platform Pencarian Kerja Terpercaya Indonesia</p>
+            <p>Email ini dikirim otomatis oleh sistem. Mohon tidak membalas email ini.</p>
+            <p>&copy; 2024 Karir Nusantara. All rights reserved.</p>
+        </div>
+    </div>
+</body>
+</html>
+	`,
+		companyName,
+		job.Title,
+		location,
+		remoteText,
+		jobTypeText,
+		levelText,
+		publishedDate,
+	)
+
+	// Send email
+	err = s.emailService.SendEmail(companyEmail, subject, body)
+	if err != nil {
+		log.Printf("Failed to send job posted notification email: %v", err)
+		// Don't fail the job creation if email fails
+	} else {
+		log.Printf("Job posted notification email sent to %s for job #%d", companyEmail, jobID)
+	}
 }

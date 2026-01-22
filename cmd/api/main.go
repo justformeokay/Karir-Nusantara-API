@@ -24,6 +24,7 @@ import (
 	"github.com/karirnusantara/api/internal/modules/cvs"
 	"github.com/karirnusantara/api/internal/modules/dashboard"
 	"github.com/karirnusantara/api/internal/modules/jobs"
+	"github.com/karirnusantara/api/internal/modules/policies"
 	"github.com/karirnusantara/api/internal/modules/quota"
 	"github.com/karirnusantara/api/internal/modules/wishlist"
 	"github.com/karirnusantara/api/internal/shared/email"
@@ -68,19 +69,19 @@ func main() {
 	companyRepo := company.NewRepository(db)
 	chatRepo := chat.NewRepository(db)
 
+	// Initialize email service (needed by other services)
+	emailConfig := email.LoadConfigFromEnv()
+	emailService := email.NewService(emailConfig)
+
 	// Initialize other services
 	quotaService := quota.NewService(quotaRepo)
-	jobsService := jobs.NewServiceWithQuota(jobsRepo, companyRepo, quotaService)
+	jobsService := jobs.NewServiceWithEmail(jobsRepo, companyRepo, quotaService, emailService)
 	cvsService := cvs.NewService(cvsRepo)
 	applicationsService := applications.NewService(applicationsRepo, cvsService, jobsService)
 	wishlistService := wishlist.NewService(wishlistRepo)
 	dashboardService := dashboard.NewService(dashboardRepo)
 	companyService := company.NewService(companyRepo)
 	chatService := chat.NewService(chatRepo)
-
-	// Initialize email service
-	emailConfig := email.LoadConfigFromEnv()
-	emailService := email.NewService(emailConfig)
 
 	// Initialize invoice service
 	invoiceService := invoice.NewService("./docs/invoices")
@@ -135,6 +136,7 @@ func main() {
 		dashboard.RegisterRoutes(r, dashboardHandler, authMiddleware.Authenticate, authMiddleware.RequireCompany)
 		company.RegisterRoutes(r, companyHandler, authMiddleware.Authenticate)
 		chat.RegisterRoutes(r, chatHandler, authMiddleware)
+		policies.RegisterRoutes(r)
 
 		// Admin module routes
 		adminModule := admin.NewModuleWithQuota(db, cfg, authMiddleware, quotaService, emailService, invoiceService)
