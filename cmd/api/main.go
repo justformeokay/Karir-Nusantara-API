@@ -93,7 +93,7 @@ func main() {
 	wishlistHandler := wishlist.NewHandler(wishlistService, v)
 	quotaHandler := quota.NewHandler(quotaService, v)
 	dashboardHandler := dashboard.NewHandler(dashboardService)
-	chatHandler := chat.NewHandler(chatService, v)
+	chatHandler := chat.NewHandler(chatService, v, "./docs")
 	
 	// Initialize company file service
 	companyFileService := company.NewFileService("./docs/companies")

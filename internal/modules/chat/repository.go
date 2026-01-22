@@ -16,6 +16,7 @@ type Repository interface {
 	ListConversationsByCompany(ctx context.Context, companyID uint64) ([]*ConversationWithDetails, error)
 	ListAllConversations(ctx context.Context) ([]*ConversationWithDetails, error)
 	UpdateConversationStatus(ctx context.Context, id uint64, status string) error
+	HasActiveConversation(ctx context.Context, companyID uint64) (bool, error)
 	
 	// Messages
 	CreateMessage(ctx context.Context, msg *ChatMessage) error
@@ -193,8 +194,8 @@ func (r *repository) UpdateConversationStatus(ctx context.Context, id uint64, st
 // CreateMessage creates a new message
 func (r *repository) CreateMessage(ctx context.Context, msg *ChatMessage) error {
 	query := `
-		INSERT INTO chat_messages (conversation_id, sender_id, sender_type, message, is_read)
-		VALUES (?, ?, ?, ?, ?)
+		INSERT INTO chat_messages (conversation_id, sender_id, sender_type, message, attachment_url, attachment_type, attachment_filename, is_read)
+		VALUES (?, ?, ?, ?, ?, ?, ?, ?)
 	`
 	
 	result, err := r.db.ExecContext(ctx, query,
@@ -202,6 +203,9 @@ func (r *repository) CreateMessage(ctx context.Context, msg *ChatMessage) error 
 		msg.SenderID,
 		msg.SenderType,
 		msg.Message,
+		msg.AttachmentURL,
+		msg.AttachmentType,
+		msg.AttachmentFilename,
 		msg.IsRead,
 	)
 	
@@ -278,4 +282,22 @@ func (r *repository) GetUnreadCount(ctx context.Context, conversationID uint64, 
 	}
 	
 	return count, nil
+}
+
+// HasActiveConversation checks if company has any active (open/in_progress) conversation
+func (r *repository) HasActiveConversation(ctx context.Context, companyID uint64) (bool, error) {
+	query := `
+		SELECT COUNT(*) 
+		FROM conversations 
+		WHERE company_id = ? 
+		  AND status IN ('open', 'in_progress')
+	`
+	
+	var count int
+	err := r.db.GetContext(ctx, &count, query, companyID)
+	if err != nil {
+		return false, fmt.Errorf("failed to check active conversation: %w", err)
+	}
+	
+	return count > 0, nil
 }

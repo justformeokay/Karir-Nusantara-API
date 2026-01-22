@@ -29,13 +29,16 @@ type ConversationWithDetails struct {
 
 // ChatMessage represents a message in a conversation
 type ChatMessage struct {
-	ID             uint64    `json:"id" db:"id"`
-	ConversationID uint64    `json:"conversation_id" db:"conversation_id"`
-	SenderID       uint64    `json:"sender_id" db:"sender_id"`
-	SenderType     string    `json:"sender_type" db:"sender_type"`
-	Message        string    `json:"message" db:"message"`
-	IsRead         bool      `json:"is_read" db:"is_read"`
-	CreatedAt      time.Time `json:"created_at" db:"created_at"`
+	ID                 uint64         `json:"id" db:"id"`
+	ConversationID     uint64         `json:"conversation_id" db:"conversation_id"`
+	SenderID           uint64         `json:"sender_id" db:"sender_id"`
+	SenderType         string         `json:"sender_type" db:"sender_type"`
+	Message            string         `json:"message" db:"message"`
+	AttachmentURL      sql.NullString `json:"attachment_url,omitempty" db:"attachment_url"`
+	AttachmentType     sql.NullString `json:"attachment_type,omitempty" db:"attachment_type"`
+	AttachmentFilename sql.NullString `json:"attachment_filename,omitempty" db:"attachment_filename"`
+	IsRead             bool           `json:"is_read" db:"is_read"`
+	CreatedAt          time.Time      `json:"created_at" db:"created_at"`
 }
 
 // ChatMessageWithSender includes sender information
@@ -53,7 +56,10 @@ type CreateConversationRequest struct {
 
 // SendMessageRequest represents request to send a message
 type SendMessageRequest struct {
-	Message string `json:"message" validate:"required,min=1,max=2000"`
+	Message            string `json:"message"`
+	AttachmentURL      string `json:"attachment_url,omitempty"`
+	AttachmentType     string `json:"attachment_type,omitempty"`
+	AttachmentFilename string `json:"attachment_filename,omitempty"`
 }
 
 // UpdateConversationStatusRequest represents request to update conversation status

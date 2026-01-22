@@ -16,6 +16,7 @@ func RegisterRoutes(r chi.Router, h *Handler, authMiddleware *middleware.AuthMid
 		r.Get("/company/chat/conversations", h.GetMyConversations)
 		r.Get("/company/chat/conversations/{id}", h.GetConversation)
 		r.Post("/company/chat/conversations/{id}/messages", h.SendMessage)
+		r.Post("/company/chat/upload", h.UploadAttachment)
 	})
 	
 	// Admin routes - require admin authentication
@@ -27,5 +28,6 @@ func RegisterRoutes(r chi.Router, h *Handler, authMiddleware *middleware.AuthMid
 		r.Get("/admin/chat/conversations/{id}", h.GetConversation)
 		r.Post("/admin/chat/conversations/{id}/messages", h.SendMessage)
 		r.Patch("/admin/chat/conversations/{id}/status", h.UpdateConversationStatus)
+		r.Post("/admin/chat/upload", h.UploadAttachment)
 	})
 }

@@ -2,8 +2,14 @@ package chat
 
 import (
 	"encoding/json"
+	"fmt"
+	"io"
 	"net/http"
+	"os"
+	"path/filepath"
 	"strconv"
+	"strings"
+	"time"
 
 	"github.com/go-chi/chi/v5"
 	"github.com/karirnusantara/api/internal/middleware"
@@ -13,15 +19,17 @@ import (
 
 // Handler handles chat HTTP requests
 type Handler struct {
-	service   Service
-	validator *validator.Validator
+	service      Service
+	validator    *validator.Validator
+	uploadFolder string
 }
 
 // NewHandler creates a new chat handler
-func NewHandler(service Service, v *validator.Validator) *Handler {
+func NewHandler(service Service, v *validator.Validator, uploadFolder string) *Handler {
 	return &Handler{
-		service:   service,
-		validator: v,
+		service:      service,
+		validator:    v,
+		uploadFolder: uploadFolder,
 	}
 }
 
@@ -188,4 +196,100 @@ func (h *Handler) UpdateConversationStatus(w http.ResponseWriter, r *http.Reques
 	}
 	
 	response.Success(w, http.StatusOK, "Conversation status updated successfully", nil)
+}
+
+// UploadAttachment handles file upload for chat attachments
+// POST /company/chat/upload or /admin/chat/upload
+func (h *Handler) UploadAttachment(w http.ResponseWriter, r *http.Request) {
+	userID := middleware.GetUserID(r.Context())
+	if userID == 0 {
+		response.Error(w, http.StatusUnauthorized, "UNAUTHORIZED", "User not authenticated")
+		return
+	}
+
+	// Parse multipart form (max 10MB)
+	if err := r.ParseMultipartForm(10 * 1024 * 1024); err != nil {
+		response.Error(w, http.StatusBadRequest, "FILE_TOO_LARGE", "File too large. Maximum 10MB")
+		return
+	}
+
+	file, fileHeader, err := r.FormFile("file")
+	if err != nil {
+		response.Error(w, http.StatusBadRequest, "NO_FILE", "No file uploaded")
+		return
+	}
+	defer file.Close()
+
+	// Get attachment type from form
+	attachmentType := r.FormValue("type") // "image" or "audio"
+	if attachmentType != "image" && attachmentType != "audio" {
+		response.Error(w, http.StatusBadRequest, "INVALID_TYPE", "Type must be 'image' or 'audio'")
+		return
+	}
+
+	// Validate file type
+	ext := strings.ToLower(filepath.Ext(fileHeader.Filename))
+	if attachmentType == "image" {
+		validExts := []string{".jpg", ".jpeg", ".png", ".gif"}
+		if !contains(validExts, ext) {
+			response.Error(w, http.StatusBadRequest, "INVALID_FILE", "Invalid image file. Only JPG, PNG, GIF allowed")
+			return
+		}
+	} else if attachmentType == "audio" {
+		validExts := []string{".mp3", ".wav", ".ogg", ".m4a", ".webm"}
+		if !contains(validExts, ext) {
+			response.Error(w, http.StatusBadRequest, "INVALID_FILE", "Invalid audio file. Only MP3, WAV, OGG, M4A, WEBM allowed")
+			return
+		}
+	}
+
+	// Validate file size (10MB)
+	if fileHeader.Size > 10*1024*1024 {
+		response.Error(w, http.StatusBadRequest, "FILE_TOO_LARGE", "File too large. Maximum 10MB")
+		return
+	}
+
+	// Create chat uploads directory
+	uploadDir := filepath.Join(h.uploadFolder, "chat")
+	if err := os.MkdirAll(uploadDir, 0755); err != nil {
+		response.Error(w, http.StatusInternalServerError, "UPLOAD_ERROR", "Failed to create upload directory")
+		return
+	}
+
+	// Generate unique filename
+	timestamp := time.Now().Unix()
+	filename := fmt.Sprintf("%d_%d%s", userID, timestamp, ext)
+	filePath := filepath.Join(uploadDir, filename)
+
+	// Save file
+	dst, err := os.Create(filePath)
+	if err != nil {
+		response.Error(w, http.StatusInternalServerError, "UPLOAD_ERROR", "Failed to save file")
+		return
+	}
+	defer dst.Close()
+
+	if _, err := io.Copy(dst, file); err != nil {
+		response.Error(w, http.StatusInternalServerError, "UPLOAD_ERROR", "Failed to write file")
+		return
+	}
+
+	// Return file URL (relative path)
+	fileURL := fmt.Sprintf("/docs/chat/%s", filename)
+	
+	response.Success(w, http.StatusOK, "File uploaded successfully", map[string]interface{}{
+		"url":      fileURL,
+		"type":     attachmentType,
+		"filename": fileHeader.Filename,
+	})
+}
+
+// Helper function to check if slice contains string
+func contains(slice []string, item string) bool {
+	for _, s := range slice {
+		if s == item {
+			return true
+		}
+	}
+	return false
 }

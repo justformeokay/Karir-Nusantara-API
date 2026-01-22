@@ -29,6 +29,16 @@ func NewService(repo Repository) Service {
 
 // CreateConversation creates a new conversation
 func (s *service) CreateConversation(ctx context.Context, companyID uint64, req *CreateConversationRequest) (*ConversationWithDetails, error) {
+	// Check if company has active conversation (ticketing mode)
+	hasActive, err := s.repo.HasActiveConversation(ctx, companyID)
+	if err != nil {
+		return nil, err
+	}
+	
+	if hasActive {
+		return nil, fmt.Errorf("Anda masih memiliki percakapan aktif. Silakan tutup percakapan tersebut terlebih dahulu sebelum membuat percakapan baru")
+	}
+	
 	// Generate title from category and subject
 	categoryLabels := map[string]string{
 		"complaint": "Komplain",
@@ -55,7 +65,7 @@ func (s *service) CreateConversation(ctx context.Context, companyID uint64, req 
 		Status:    "open",
 	}
 	
-	err := s.repo.CreateConversation(ctx, conv)
+	err = s.repo.CreateConversation(ctx, conv)
 	if err != nil {
 		return nil, err
 	}
@@ -110,6 +120,11 @@ func (s *service) SendMessage(ctx context.Context, conversationID uint64, userID
 		return nil, fmt.Errorf("conversation is closed")
 	}
 	
+	// Validate: message or attachment required
+	if req.Message == "" && req.AttachmentURL == "" {
+		return nil, fmt.Errorf("message or attachment required")
+	}
+	
 	// Create message
 	msg := &ChatMessage{
 		ConversationID: conversationID,
@@ -117,6 +132,16 @@ func (s *service) SendMessage(ctx context.Context, conversationID uint64, userID
 		SenderType:     senderType,
 		Message:        req.Message,
 		IsRead:         false,
+	}
+	
+	// Add attachment if provided
+	if req.AttachmentURL != "" {
+		msg.AttachmentURL.String = req.AttachmentURL
+		msg.AttachmentURL.Valid = true
+		msg.AttachmentType.String = req.AttachmentType
+		msg.AttachmentType.Valid = true
+		msg.AttachmentFilename.String = req.AttachmentFilename
+		msg.AttachmentFilename.Valid = true
 	}
 	
 	err = s.repo.CreateMessage(ctx, msg)
