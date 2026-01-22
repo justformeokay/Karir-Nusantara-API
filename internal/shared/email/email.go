@@ -7,6 +7,7 @@ import (
 	"fmt"
 	"html/template"
 	"io"
+	"log"
 	"net"
 	"net/smtp"
 	"os"
@@ -56,9 +57,11 @@ func (s *Service) SendEmail(to string, subject string, body string) error {
 	headers := make(map[string]string)
 	headers["From"] = from
 	headers["To"] = to
+	headers["Reply-To"] = s.config.FromEmail
 	headers["Subject"] = subject
 	headers["MIME-Version"] = "1.0"
 	headers["Content-Type"] = "text/html; charset=\"UTF-8\""
+	headers["X-Mailer"] = "Karir Nusantara Mailer"
 
 	// Build message
 	message := ""
@@ -70,13 +73,16 @@ func (s *Service) SendEmail(to string, subject string, body string) error {
 	// Connect to SMTP server
 	host := s.config.SMTPHost
 	addr := fmt.Sprintf("%s:%s", host, s.config.SMTPPort)
+	log.Printf("[EMAIL] Connecting to SMTP server: %s", addr)
 	
 	// Establish connection
 	conn, err := net.Dial("tcp", addr)
 	if err != nil {
+		log.Printf("[EMAIL ERROR] Failed to connect to SMTP server %s: %v", addr, err)
 		return fmt.Errorf("failed to connect to SMTP server: %w", err)
 	}
 	defer conn.Close()
+	log.Printf("[EMAIL] Successfully connected to SMTP server")
 
 	// Create SMTP client
 	client, err := smtp.NewClient(conn, host)
@@ -114,21 +120,26 @@ func (s *Service) SendEmail(to string, subject string, body string) error {
 	}
 
 	// Send message
+	log.Printf("[EMAIL] Sending email with subject: %s", subject)
 	w, err := client.Data()
 	if err != nil {
+		log.Printf("[EMAIL ERROR] Failed to get data writer: %v", err)
 		return fmt.Errorf("failed to get data writer: %w", err)
 	}
 
 	_, err = w.Write([]byte(message))
 	if err != nil {
+		log.Printf("[EMAIL ERROR] Failed to write message: %v", err)
 		return fmt.Errorf("failed to write message: %w", err)
 	}
 
 	err = w.Close()
 	if err != nil {
+		log.Printf("[EMAIL ERROR] Failed to close data writer: %v", err)
 		return fmt.Errorf("failed to close data writer: %w", err)
 	}
 
+	log.Printf("[EMAIL] Email sent successfully to: %s", to)
 	client.Quit()
 
 	return nil

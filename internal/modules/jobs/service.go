@@ -687,11 +687,12 @@ func (s *service) sendJobPostedNotification(ctx context.Context, jobID uint64, c
 	)
 
 	// Send email
+	log.Printf("[JOB NOTIFICATION] Attempting to send email to: %s for job #%d (%s)", companyEmail, jobID, job.Title)
 	err = s.emailService.SendEmail(companyEmail, subject, body)
 	if err != nil {
-		log.Printf("Failed to send job posted notification email: %v", err)
+		log.Printf("[JOB NOTIFICATION ERROR] Failed to send job posted notification email to %s: %v", companyEmail, err)
 		// Don't fail the job creation if email fails
 	} else {
-		log.Printf("Job posted notification email sent to %s for job #%d", companyEmail, jobID)
+		log.Printf("[JOB NOTIFICATION SUCCESS] Job posted notification email sent to %s for job #%d", companyEmail, jobID)
 	}
 }

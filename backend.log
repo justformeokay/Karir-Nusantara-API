@@ -1,23 +1,30 @@
-2026/01/22 11:14:51 Connected to database successfully
-2026/01/22 11:14:51 Server starting on port 8081
-2026/01/22 11:14:51 Environment: development
-2026/01/22 11:15:23 [3f8f1cef-67c8-4da9-90f0-03dcdc089167] GET /health [::1]:62130 200 375.667µs
-2026/01/22 11:15:33 [e6368db5-41d7-4b86-a246-1b39cef6759d] OPTIONS /api/v1/auth/me [::1]:62140 200 44.25µs
-2026/01/22 11:15:33 [1dde231b-9aa5-4f0f-8fe6-4de534f664a6] OPTIONS /api/v1/auth/me [::1]:62139 200 49.625µs
-2026/01/22 11:15:33 [11e61680-b73b-4f07-bef4-6eff2d153b91] OPTIONS /api/v1/jobs/company/list [::1]:62138 200 112.875µs
-2026/01/22 11:15:33 [917adcd9-2c3a-4fcf-bad4-a42b81d2380b] GET /api/v1/jobs/company/list [::1]:62139 401 264.542µs
-2026/01/22 11:15:33 [3ee082dd-3e04-4616-8180-e6681651556b] GET /api/v1/auth/me [::1]:62138 401 363.916µs
-2026/01/22 11:15:33 [425f14dc-cee7-4f7b-bc22-b966d1614c32] GET /api/v1/auth/me [::1]:62138 401 276.625µs
-2026/01/22 11:15:35 [35958fad-e6dd-4300-ba20-2dff728da5eb] OPTIONS /api/v1/auth/login [::1]:62138 200 11.834µs
-2026/01/22 11:15:35 [3b39d2b0-7399-4556-8075-46b9a157b42e] POST /api/v1/auth/login [::1]:62138 200 145.531375ms
-2026/01/22 11:15:35 [e1339369-cc11-40e5-8fb7-f71bbf5c849f] OPTIONS /api/v1/company/quota [::1]:62139 200 27.666µs
-2026/01/22 11:15:35 [d261c003-2c95-42bd-954b-dbfc8c51ec62] OPTIONS /api/v1/company/dashboard/stats [::1]:62138 200 33.25µs
-2026/01/22 11:15:35 [d3555461-4cb5-4fb5-9677-c798438161e0] GET /api/v1/auth/me [::1]:62140 200 1.722458ms
-2026/01/22 11:15:35 [cdf7d145-2533-4510-86cf-51b180a4471b] GET /api/v1/company/quota [::1]:62139 200 2.354083ms
-2026/01/22 11:15:35 [9166b2ef-cd34-4dc7-baf6-39aa9cb1990b] GET /api/v1/auth/me [::1]:62140 200 1.093792ms
-2026/01/22 11:15:35 [8d2e5bcb-ea63-45da-b6c7-4aa3ebfd907c] GET /api/v1/company/dashboard/stats [::1]:62138 200 26.980042ms
-2026/01/22 11:15:37 [d330fe7b-71f9-4d5a-b377-378d7aaa21d6] OPTIONS /api/v1/company/chat/conversations [::1]:62138 200 16.917µs
-2026/01/22 11:15:37 [c66868e2-7ad0-4244-98a8-3ae6bf504270] GET /api/v1/company/chat/conversations [::1]:62138 200 7.497792ms
-2026/01/22 11:15:40 [4ec783f7-1c4b-49a6-8041-af510cf5592f] GET /api/v1/jobs/company/list [::1]:62138 200 29.339292ms
-2026/01/22 11:15:45 [3202234f-a06d-49d6-bd9b-4c5e7285b23b] OPTIONS /api/v1/jobs/53 [::1]:62138 200 17.375µs
-2026/01/22 11:15:45 [1dde2c00-9804-4d30-b3dc-aa5f5e98f0d1] GET /api/v1/jobs/53 [::1]:62138 200 2.803375ms
+2026/01/22 13:15:32 Connected to database successfully
+2026/01/22 13:15:32 Server starting on port 8081
+2026/01/22 13:15:32 Environment: development
+2026/01/22 13:15:44 [ce31c895-379d-4c12-afe2-31ab29906cee] GET /health [::1]:63748 200 143.958µs
+2026/01/22 13:17:15 [514387e6-420b-42a6-8f65-21e4dd79db35] POST /api/v1/auth/login [::1]:63895 200 211.501958ms
+2026/01/22 13:17:15 [58d5f12e-3ec8-47cc-be15-073cf4df57d3] POST /api/v1/jobs [::1]:63897 400 129µs
+2026/01/22 13:17:20 [2f5dc35d-7d01-488f-8543-ae87116965ea] POST /api/v1/auth/login [::1]:63900 200 70.521333ms
+2026/01/22 13:17:36 [37d0f469-3e2b-44b1-949f-94195a8d395d] POST /api/v1/jobs [::1]:63906 401 188.208µs
+2026/01/22 13:17:51 [d35ff2dc-5e39-42c1-8dd6-73b372ec16c9] POST /api/v1/auth/login [::1]:63916 200 71.156708ms
+2026/01/22 13:17:52 [6a926ed4-7ec6-4c45-8090-3cde9ea81fa0] POST /api/v1/jobs [::1]:63917 201 28.847709ms
+2026/01/22 13:17:52 [JOB NOTIFICATION] Attempting to send email to: info@karyadeveloperindonesia.com for job #55 (Full Stack Developer - Email Test dengan Logging Detail)
+2026/01/22 13:17:52 [EMAIL] Connecting to SMTP server: mail.karyadeveloperindonesia.com:587
+2026/01/22 13:17:52 [EMAIL] Successfully connected to SMTP server
+2026/01/22 13:17:53 [EMAIL] Email sent successfully to: info@karyadeveloperindonesia.com
+2026/01/22 13:17:53 [JOB NOTIFICATION SUCCESS] Job posted notification email sent to info@karyadeveloperindonesia.com for job #55
+2026/01/22 13:18:05 [d2e1b010-1021-4a8f-b757-be47187bef65] OPTIONS /api/v1/auth/me [::1]:63938 200 12.041µs
+2026/01/22 13:18:05 [970f8cf7-3f0f-4b41-9a11-0b44d3f67e64] OPTIONS /api/v1/jobs/company/list [::1]:63936 200 42.917µs
+2026/01/22 13:18:05 [34fa68d3-d9a4-48a8-9f61-8c3fba038a41] OPTIONS /api/v1/auth/me [::1]:63937 200 11.833µs
+2026/01/22 13:18:05 [591f53f7-e2cc-4e1d-9285-3ab9ebb46bd8] GET /api/v1/auth/me [::1]:63937 401 224.625µs
+2026/01/22 13:18:05 [1af10b31-4045-4f4e-a20f-6701bf48216a] GET /api/v1/jobs/company/list [::1]:63936 401 67.417µs
+2026/01/22 13:18:05 [eaccffc8-bc2f-4a17-bc95-50624d95568c] GET /api/v1/auth/me [::1]:63938 401 395.667µs
+2026/01/22 13:18:07 [4931a04a-eb22-4956-8d23-08bc1b147b2b] OPTIONS /api/v1/auth/login [::1]:63938 200 9.458µs
+2026/01/22 13:18:07 [4ad6f3d7-7e79-48f0-a106-f4c78a53d7f9] POST /api/v1/auth/login [::1]:63938 200 94.605583ms
+2026/01/22 13:18:07 [9a603fc0-08f1-463e-a813-148ae9ebe13a] OPTIONS /api/v1/company/quota [::1]:63936 200 13.083µs
+2026/01/22 13:18:07 [ef68c5eb-0348-43b0-a835-e8624e880cd2] OPTIONS /api/v1/company/dashboard/stats [::1]:63938 200 31.333µs
+2026/01/22 13:18:07 [649f6cea-3c76-433c-9899-287acb7f618c] GET /api/v1/company/quota [::1]:63936 200 1.141084ms
+2026/01/22 13:18:07 [8b179539-3e6f-41d6-aee2-145e58d9a5f2] GET /api/v1/auth/me [::1]:63937 200 2.103084ms
+2026/01/22 13:18:07 [45ddfe6c-f196-4496-971b-67267210746a] GET /api/v1/auth/me [::1]:63937 200 1.470333ms
+2026/01/22 13:18:07 [3f2336d7-4596-4e90-826d-cdd2f598a2c4] GET /api/v1/company/dashboard/stats [::1]:63938 200 16.093ms
+2026/01/22 13:18:09 [936b89b9-3556-4a01-8182-a80c32f7d59e] GET /api/v1/jobs/company/list [::1]:63938 200 19.331125ms
