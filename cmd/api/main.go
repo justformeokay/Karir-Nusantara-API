@@ -25,6 +25,7 @@ import (
 	"github.com/karirnusantara/api/internal/modules/dashboard"
 	"github.com/karirnusantara/api/internal/modules/jobs"
 	"github.com/karirnusantara/api/internal/modules/policies"
+	"github.com/karirnusantara/api/internal/modules/profile"
 	"github.com/karirnusantara/api/internal/modules/quota"
 	"github.com/karirnusantara/api/internal/modules/wishlist"
 	"github.com/karirnusantara/api/internal/shared/email"
@@ -68,6 +69,7 @@ func main() {
 	dashboardRepo := dashboard.NewRepository(db)
 	companyRepo := company.NewRepository(db)
 	chatRepo := chat.NewRepository(db)
+	profileRepo := profile.NewRepository(db)
 
 	// Initialize email service (needed by other services)
 	emailConfig := email.LoadConfigFromEnv()
@@ -82,6 +84,7 @@ func main() {
 	dashboardService := dashboard.NewService(dashboardRepo)
 	companyService := company.NewService(companyRepo)
 	chatService := chat.NewService(chatRepo)
+	profileService := profile.NewService(profileRepo)
 
 	// Initialize invoice service
 	invoiceService := invoice.NewService("./docs/invoices")
@@ -95,6 +98,7 @@ func main() {
 	quotaHandler := quota.NewHandler(quotaService, v)
 	dashboardHandler := dashboard.NewHandler(dashboardService)
 	chatHandler := chat.NewHandler(chatService, v, "./docs")
+	profileHandler := profile.NewHandler(profileService, v, "./docs")
 	
 	// Initialize company file service
 	companyFileService := company.NewFileService("./docs/companies")
@@ -130,6 +134,7 @@ func main() {
 		auth.RegisterRoutes(r, authHandler, authMiddleware.Authenticate)
 		jobs.RegisterRoutes(r, jobsHandler, authMiddleware.Authenticate, authMiddleware.RequireCompany)
 		cvs.RegisterRoutes(r, cvsHandler, authMiddleware.Authenticate, authMiddleware.RequireJobSeeker)
+		profile.RegisterRoutes(r, profileHandler, authMiddleware.Authenticate, authMiddleware.RequireJobSeeker)
 		applications.RegisterRoutes(r, applicationsHandler, authMiddleware.Authenticate, authMiddleware.RequireJobSeeker, authMiddleware.RequireCompany)
 		wishlist.RegisterRoutes(r, wishlistHandler, authMiddleware.Authenticate, authMiddleware.RequireJobSeeker)
 		quota.RegisterRoutes(r, quotaHandler, authMiddleware.Authenticate, authMiddleware.RequireCompany)
