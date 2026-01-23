@@ -521,3 +521,103 @@ func (h *Handler) ListByCompany(w http.ResponseWriter, r *http.Request) {
 
 	response.SuccessWithMeta(w, http.StatusOK, "Jobs retrieved", jobs, meta)
 }
+
+// TrackView handles tracking a view for a job
+// POST /api/v1/jobs/{id}/view
+// Requires authenticated job seeker
+func (h *Handler) TrackView(w http.ResponseWriter, r *http.Request) {
+	userID := middleware.GetUserID(r.Context())
+	if userID == 0 {
+		response.Unauthorized(w, "Authentication required to track views")
+		return
+	}
+
+	idStr := chi.URLParam(r, "id")
+	id, err := parseID(idStr)
+	if err != nil {
+		response.BadRequest(w, "Invalid job ID")
+		return
+	}
+
+	isNewView, err := h.service.TrackView(r.Context(), id, userID)
+	if err != nil {
+		handleError(w, err)
+		return
+	}
+
+	result := map[string]interface{}{
+		"is_new_view": isNewView,
+		"message":     "View tracked successfully",
+	}
+
+	response.OK(w, "View tracked", result)
+}
+
+// TrackShare handles tracking a share for a job
+// POST /api/v1/jobs/{id}/share
+// Requires authenticated job seeker (optional user context)
+func (h *Handler) TrackShare(w http.ResponseWriter, r *http.Request) {
+	idStr := chi.URLParam(r, "id")
+	id, err := parseID(idStr)
+	if err != nil {
+		response.BadRequest(w, "Invalid job ID")
+		return
+	}
+
+	var req TrackShareRequest
+	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
+		// Empty body is acceptable
+		req = TrackShareRequest{}
+	}
+
+	// User ID is optional for shares (can track anonymous shares)
+	var userID *uint64
+	if uid := middleware.GetUserID(r.Context()); uid > 0 {
+		userID = &uid
+	}
+
+	if err := h.service.TrackShare(r.Context(), id, userID, req.Platform); err != nil {
+		handleError(w, err)
+		return
+	}
+
+	response.OK(w, "Share tracked successfully", nil)
+}
+
+// GetJobStats handles getting job statistics
+// GET /api/v1/jobs/{id}/stats
+// Requires authenticated company owner
+func (h *Handler) GetJobStats(w http.ResponseWriter, r *http.Request) {
+	userID := middleware.GetUserID(r.Context())
+	if userID == 0 {
+		response.Unauthorized(w, "Unauthorized")
+		return
+	}
+
+	// Get company_id from companies table where user_id = userID
+	company, err := h.service.GetCompanyByUserID(r.Context(), userID)
+	if err != nil {
+		response.InternalServerError(w, "Gagal mendapatkan data perusahaan")
+		return
+	}
+	if company == nil {
+		response.BadRequest(w, "Data perusahaan tidak ditemukan")
+		return
+	}
+	companyID := company.ID
+
+	idStr := chi.URLParam(r, "id")
+	id, err := parseID(idStr)
+	if err != nil {
+		response.BadRequest(w, "Invalid job ID")
+		return
+	}
+
+	stats, err := h.service.GetJobStats(r.Context(), id, companyID)
+	if err != nil {
+		handleError(w, err)
+		return
+	}
+
+	response.OK(w, "Job statistics retrieved", stats)
+}

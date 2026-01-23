@@ -10,33 +10,56 @@ import (
 type MiddlewareFunc func(http.Handler) http.Handler
 
 // RegisterRoutes registers job routes
-func RegisterRoutes(r chi.Router, h *Handler, authenticate, requireCompany MiddlewareFunc) {
+func RegisterRoutes(r chi.Router, h *Handler, authenticate, requireCompany, requireJobSeeker MiddlewareFunc) {
 	r.Route("/jobs", func(r chi.Router) {
-		// Public routes
+		// Public routes (must list specific paths first to avoid conflicts)
 		r.Get("/", h.List)
-		r.Get("/{id}", h.GetByID)
 		r.Get("/slug/{slug}", h.GetBySlug)
 
-		// Company-only routes
-		r.Group(func(r chi.Router) {
-			r.Use(authenticate)
-			r.Use(requireCompany)
-			r.Post("/", h.Create)
-			r.Put("/{id}", h.Update)
-			r.Delete("/{id}", h.Delete)
-
-			// Job status management endpoints
-			r.Patch("/{id}/publish", h.Publish)
-			r.Patch("/{id}/close", h.Close)
-			r.Patch("/{id}/pause", h.Pause)
-			r.Patch("/{id}/reopen", h.Reopen)
-		})
-
-		// Company-specific list route
+		// Company-specific list route (specific path before {id})
 		r.Group(func(r chi.Router) {
 			r.Use(authenticate)
 			r.Use(requireCompany)
 			r.Get("/company/list", h.ListByCompany)
+		})
+
+		// Routes with {id} parameter
+		r.Route("/{id}", func(r chi.Router) {
+			// Public route
+			r.Get("/", h.GetByID)
+
+			// Job seeker tracking routes
+			r.Group(func(r chi.Router) {
+				r.Use(authenticate)
+				r.Use(requireJobSeeker)
+				r.Post("/view", h.TrackView)
+			})
+
+			// Share tracking - authenticated users
+			r.Group(func(r chi.Router) {
+				r.Use(authenticate)
+				r.Post("/share", h.TrackShare)
+			})
+
+			// Company-only routes
+			r.Group(func(r chi.Router) {
+				r.Use(authenticate)
+				r.Use(requireCompany)
+				r.Put("/", h.Update)
+				r.Delete("/", h.Delete)
+				r.Patch("/publish", h.Publish)
+				r.Patch("/close", h.Close)
+				r.Patch("/pause", h.Pause)
+				r.Patch("/reopen", h.Reopen)
+				r.Get("/stats", h.GetJobStats)
+			})
+		})
+
+		// Company create route
+		r.Group(func(r chi.Router) {
+			r.Use(authenticate)
+			r.Use(requireCompany)
+			r.Post("/", h.Create)
 		})
 	})
 }

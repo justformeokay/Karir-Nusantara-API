@@ -7,12 +7,14 @@ import (
 	"database/sql"
 	"encoding/hex"
 	"fmt"
+	"log"
 	"time"
 
 	"github.com/golang-jwt/jwt/v5"
 	"github.com/google/uuid"
 	"github.com/karirnusantara/api/internal/config"
 	apperrors "github.com/karirnusantara/api/internal/shared/errors"
+	"github.com/karirnusantara/api/internal/shared/email"
 	"golang.org/x/crypto/bcrypt"
 )
 
@@ -32,8 +34,9 @@ type Service interface {
 
 // service implements Service
 type service struct {
-	repo   Repository
-	config *config.JWTConfig
+	repo         Repository
+	config       *config.JWTConfig
+	emailService *email.Service
 }
 
 // NewService creates a new auth service
@@ -41,6 +44,15 @@ func NewService(repo Repository, cfg *config.JWTConfig) Service {
 	return &service{
 		repo:   repo,
 		config: cfg,
+	}
+}
+
+// NewServiceWithEmail creates a new auth service with email support
+func NewServiceWithEmail(repo Repository, cfg *config.JWTConfig, emailSvc *email.Service) Service {
+	return &service{
+		repo:         repo,
+		config:       cfg,
+		emailService: emailSvc,
 	}
 }
 
@@ -74,6 +86,17 @@ func (s *service) Register(ctx context.Context, req *RegisterRequest) (*AuthResp
 
 	if err := s.repo.CreateUser(ctx, user); err != nil {
 		return nil, apperrors.NewInternalError("Failed to create user", err)
+	}
+
+	// Send welcome email for job seekers (in background to not block response)
+	if s.emailService != nil && req.Role == "job_seeker" {
+		go func() {
+			if err := s.emailService.SendJobSeekerWelcomeEmail(req.Email, req.FullName); err != nil {
+				log.Printf("[EMAIL ERROR] Failed to send welcome email to %s: %v", req.Email, err)
+			} else {
+				log.Printf("[EMAIL] Welcome email sent successfully to %s", req.Email)
+			}
+		}()
 	}
 
 	// Generate tokens

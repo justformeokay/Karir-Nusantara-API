@@ -59,6 +59,7 @@ type Job struct {
 	Status              string         `db:"status" json:"status"`
 	ViewsCount          uint64         `db:"views_count" json:"views_count"`
 	ApplicationsCount   uint64         `db:"applications_count" json:"applications_count"`
+	SharesCount         uint64         `db:"shares_count" json:"shares_count"`
 	PublishedAt         sql.NullTime   `db:"published_at" json:"published_at,omitempty"`
 	CreatedAt           time.Time      `db:"created_at" json:"created_at"`
 	UpdatedAt           time.Time      `db:"updated_at" json:"updated_at"`
@@ -114,6 +115,7 @@ type JobResponse struct {
 	Status              string       `json:"status"`
 	ViewsCount          uint64       `json:"views_count"`
 	ApplicationsCount   uint64       `json:"applications_count"`
+	SharesCount         uint64       `json:"shares_count"`
 	PublishedAt         string       `json:"published_at,omitempty"`
 	CreatedAt           string       `json:"created_at"`
 	Company             *CompanyInfo `json:"company,omitempty"`
@@ -152,6 +154,7 @@ func (j *Job) ToResponse() *JobResponse {
 		Status:            j.Status,
 		ViewsCount:        j.ViewsCount,
 		ApplicationsCount: j.ApplicationsCount,
+		SharesCount:       j.SharesCount,
 		CreatedAt:         j.CreatedAt.Format(time.RFC3339),
 		Company:           j.Company.WithHashID(),
 	}
@@ -267,4 +270,36 @@ func DefaultJobListParams() JobListParams {
 		SortBy:    "published_at",
 		SortOrder: "desc",
 	}
+}
+
+// JobView represents a unique job view record
+type JobView struct {
+	ID       uint64    `db:"id" json:"id"`
+	JobID    uint64    `db:"job_id" json:"job_id"`
+	UserID   uint64    `db:"user_id" json:"user_id"`
+	ViewedAt time.Time `db:"viewed_at" json:"viewed_at"`
+}
+
+// JobShare represents a job share record
+type JobShare struct {
+	ID       uint64    `db:"id" json:"id"`
+	JobID    uint64    `db:"job_id" json:"job_id"`
+	UserID   uint64    `db:"user_id" json:"user_id,omitempty"`
+	Platform string    `db:"platform" json:"platform,omitempty"`
+	SharedAt time.Time `db:"shared_at" json:"shared_at"`
+}
+
+// TrackShareRequest represents a share tracking request
+type TrackShareRequest struct {
+	Platform string `json:"platform,omitempty"` // whatsapp, telegram, facebook, twitter, copy_link, etc
+}
+
+// JobStatsResponse represents job statistics
+type JobStatsResponse struct {
+	JobID             uint64 `json:"job_id"`
+	HashID            string `json:"hash_id"`
+	Title             string `json:"title"`
+	ViewsCount        uint64 `json:"views_count"`
+	ApplicationsCount uint64 `json:"applications_count"`
+	SharesCount       uint64 `json:"shares_count"`
 }

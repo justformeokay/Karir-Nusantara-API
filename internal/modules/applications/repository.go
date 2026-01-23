@@ -18,7 +18,7 @@ type Repository interface {
 	GetByUserAndJob(ctx context.Context, userID, jobID uint64) (*Application, error)
 	Update(ctx context.Context, app *Application) error
 	List(ctx context.Context, params ApplicationListParams) ([]*Application, int64, error)
-	
+
 	// Timeline
 	AddTimelineEvent(ctx context.Context, event *TimelineEvent) error
 	GetTimeline(ctx context.Context, applicationID uint64) ([]TimelineEvent, error)
@@ -266,21 +266,21 @@ func (r *mysqlRepository) GetTimelineForApplicant(ctx context.Context, applicati
 func (r *mysqlRepository) GetJobInfo(ctx context.Context, jobID uint64) (*JobInfo, error) {
 	query := `
 		SELECT j.id, j.title, j.city, j.province, j.status,
-			   u.id as company_id, u.company_name, u.company_logo_url
+			   c.id as company_id, c.company_name, c.company_logo_url
 		FROM jobs j
-		JOIN users u ON j.company_id = u.id
-		WHERE j.id = ?
+		JOIN companies c ON j.company_id = c.id
+		WHERE j.id = ? AND j.deleted_at IS NULL
 	`
 
 	var result struct {
-		ID           uint64         `db:"id"`
-		Title        string         `db:"title"`
-		City         string         `db:"city"`
-		Province     string         `db:"province"`
-		Status       string         `db:"status"`
-		CompanyID    uint64         `db:"company_id"`
-		CompanyName  sql.NullString `db:"company_name"`
-		CompanyLogo  sql.NullString `db:"company_logo_url"`
+		ID          uint64         `db:"id"`
+		Title       string         `db:"title"`
+		City        string         `db:"city"`
+		Province    string         `db:"province"`
+		Status      string         `db:"status"`
+		CompanyID   uint64         `db:"company_id"`
+		CompanyName sql.NullString `db:"company_name"`
+		CompanyLogo sql.NullString `db:"company_logo_url"`
 	}
 
 	if err := r.db.GetContext(ctx, &result, query, jobID); err != nil {

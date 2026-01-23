@@ -3,7 +3,7 @@
 -- https://www.phpmyadmin.net/
 --
 -- Host: localhost
--- Generation Time: Jan 22, 2026 at 07:30 AM
+-- Generation Time: Jan 23, 2026 at 02:49 PM
 -- Server version: 10.4.28-MariaDB
 -- PHP Version: 8.0.28
 
@@ -20,6 +20,77 @@ SET time_zone = "+00:00";
 --
 -- Database: `karir_nusantara`
 --
+
+-- --------------------------------------------------------
+
+--
+-- Table structure for table `applicant_documents`
+--
+
+CREATE TABLE `applicant_documents` (
+  `id` bigint(20) UNSIGNED NOT NULL,
+  `user_id` bigint(20) UNSIGNED NOT NULL,
+  `document_type` enum('cv_uploaded','cv_generated','certificate','transcript','portfolio','ktp','other') NOT NULL,
+  `document_name` varchar(255) NOT NULL COMMENT 'Original filename',
+  `document_url` varchar(500) NOT NULL COMMENT 'Path to file',
+  `file_size` int(10) UNSIGNED DEFAULT NULL COMMENT 'Size in bytes',
+  `mime_type` varchar(100) DEFAULT NULL COMMENT 'e.g., application/pdf',
+  `is_primary` tinyint(1) DEFAULT 0 COMMENT 'Is this the primary CV?',
+  `description` text DEFAULT NULL COMMENT 'Optional description of the document',
+  `uploaded_at` timestamp NOT NULL DEFAULT current_timestamp(),
+  `expires_at` timestamp NULL DEFAULT NULL
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+--
+-- Dumping data for table `applicant_documents`
+--
+
+INSERT INTO `applicant_documents` (`id`, `user_id`, `document_type`, `document_name`, `document_url`, `file_size`, `mime_type`, `is_primary`, `description`, `uploaded_at`, `expires_at`) VALUES
+(1, 21, 'cv_uploaded', 'CV Saputra Budianto.pdf', '/docs/applicants/21/cv_uploaded_1769149689.pdf', 41120, 'application/pdf', 1, NULL, '2026-01-23 06:28:09', NULL);
+
+-- --------------------------------------------------------
+
+--
+-- Table structure for table `applicant_profiles`
+--
+
+CREATE TABLE `applicant_profiles` (
+  `id` bigint(20) UNSIGNED NOT NULL,
+  `user_id` bigint(20) UNSIGNED NOT NULL,
+  `date_of_birth` date DEFAULT NULL,
+  `gender` enum('male','female','other','prefer_not_to_say') DEFAULT NULL,
+  `nationality` varchar(100) DEFAULT 'Indonesia',
+  `marital_status` enum('single','married','divorced','widowed') DEFAULT NULL,
+  `nik` varchar(20) DEFAULT NULL COMMENT 'Nomor KTP',
+  `address` text DEFAULT NULL,
+  `city` varchar(100) DEFAULT NULL,
+  `province` varchar(100) DEFAULT NULL,
+  `postal_code` varchar(10) DEFAULT NULL,
+  `country` varchar(100) DEFAULT 'Indonesia',
+  `linkedin_url` varchar(500) DEFAULT NULL,
+  `github_url` varchar(500) DEFAULT NULL,
+  `portfolio_url` varchar(500) DEFAULT NULL,
+  `personal_website` varchar(500) DEFAULT NULL,
+  `professional_summary` text DEFAULT NULL,
+  `headline` varchar(255) DEFAULT NULL COMMENT 'e.g., Senior Software Engineer',
+  `expected_salary_min` bigint(20) UNSIGNED DEFAULT NULL,
+  `expected_salary_max` bigint(20) UNSIGNED DEFAULT NULL,
+  `preferred_job_types` longtext DEFAULT NULL COMMENT 'JSON array: ["full_time","remote"]',
+  `preferred_locations` longtext DEFAULT NULL COMMENT 'JSON array of cities',
+  `available_from` date DEFAULT NULL,
+  `willing_to_relocate` tinyint(1) DEFAULT 0,
+  `profile_completeness` int(10) UNSIGNED DEFAULT 0,
+  `created_at` timestamp NOT NULL DEFAULT current_timestamp(),
+  `updated_at` timestamp NOT NULL DEFAULT current_timestamp() ON UPDATE current_timestamp()
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+--
+-- Dumping data for table `applicant_profiles`
+--
+
+INSERT INTO `applicant_profiles` (`id`, `user_id`, `date_of_birth`, `gender`, `nationality`, `marital_status`, `nik`, `address`, `city`, `province`, `postal_code`, `country`, `linkedin_url`, `github_url`, `portfolio_url`, `personal_website`, `professional_summary`, `headline`, `expected_salary_min`, `expected_salary_max`, `preferred_job_types`, `preferred_locations`, `available_from`, `willing_to_relocate`, `profile_completeness`, `created_at`, `updated_at`) VALUES
+(1, 21, '1999-11-23', 'male', 'Indonesia', 'single', NULL, 'Perumahan Griya Bhayangkara blok i5/07 Desa Masangan Kulon, Kecamatan Sukodono, Kabupaten Sidoarjo, Kode Pos 61258', 'Sidoarjo', 'Jawa Timur', '61258', 'Indonesia', 'https://www.linkedin.com/in/saputra-budianto23/', 'https://github.com/justformeokay23@', NULL, NULL, 'Saya adalah seorang profesional yang berdedikasi di bidang Mobile Apps Developer dengan pengalaman selama 3 tahun dalam mengembangkan cross platform mobile apps. Saya merupakan lulusan dari Universitas Muhammdiyah Sidoarjo, di mana saya mengasah kemampuan analitis dan teknis yang menjadi fondasi karier saya saat ini.\n\nSepanjang perjalanan profesional saya, saya telah berhasil mengembangkan dan mendistribusikan beberapa aplikasi ke marketplace dan web publik. Saya dikenal sebagai pribadi yang adaptif, komunikatif, dan memiliki orientasi kuat terhadap hasil. Saya selalu antusias untuk mempelajari teknologi baru dan berkontribusi dalam proyek-proyek inovatif yang memberikan dampak positif bagi organisasi.', 'Mobile Apps Developer', 5000000, 6000000, '[\"full_time\"]', NULL, NULL, 0, 80, '2026-01-23 06:13:35', '2026-01-23 06:29:06'),
+(2, 20, '2003-06-06', 'female', 'Indonesia', 'single', NULL, 'Dusun Sumber Pandan, Desa Bulusari, Kecamatan Gempol, Kabupaten Pasuruan, Provinsi Jawa Timur', 'Pasuruan', 'Jawa Timur', '61832', 'Indonesia', NULL, NULL, NULL, NULL, 'Saya memiliki pengalaman dibidang Sales Marketing Jasa pada salah satu perusahaan asuransi terkenal di Indonesia dan memiliki pengalaman kurang lebih 5 tahun.', 'Marketing Sales', 4500000, 6000000, '[\"full_time\",\"part_time\"]', NULL, '2026-02-23', 1, 75, '2026-01-23 11:34:28', '2026-01-23 11:35:10');
 
 -- --------------------------------------------------------
 
@@ -45,7 +116,8 @@ CREATE TABLE `applications` (
 --
 
 INSERT INTO `applications` (`id`, `user_id`, `job_id`, `cv_snapshot_id`, `cover_letter`, `current_status`, `applied_at`, `last_status_update`, `created_at`, `updated_at`) VALUES
-(1, 3, 1, 1, 'Dengan pengalaman 4 tahun sebagai Backend Developer, saya yakin dapat memberikan kontribusi signifikan di PT TechCorp Indonesia.', 'hired', '2026-01-17 02:51:28', '2026-01-17 02:55:46', '2026-01-17 02:51:28', '2026-01-17 02:55:46');
+(1, 3, 1, 1, 'Dengan pengalaman 4 tahun sebagai Backend Developer, saya yakin dapat memberikan kontribusi signifikan di PT TechCorp Indonesia.', 'hired', '2026-01-17 02:51:28', '2026-01-17 02:55:46', '2026-01-17 02:51:28', '2026-01-17 02:55:46'),
+(3, 20, 54, 3, NULL, 'submitted', '2026-01-23 13:48:42', '2026-01-23 13:48:42', '2026-01-23 13:48:42', '2026-01-23 13:48:42');
 
 -- --------------------------------------------------------
 
@@ -79,7 +151,8 @@ INSERT INTO `application_timelines` (`id`, `application_id`, `status`, `note`, `
 (5, 1, 'interview_completed', 'Interview berhasil', 1, 'company', 2, NULL, NULL, NULL, '2026-01-17 02:54:09'),
 (6, 1, 'offer_sent', 'Surat penawaran dikirim', 1, 'company', 2, NULL, NULL, NULL, '2026-01-17 02:54:58'),
 (7, 1, 'offer_accepted', 'Kandidat menerima penawaran', 1, 'company', 2, NULL, NULL, NULL, '2026-01-17 02:55:35'),
-(8, 1, 'hired', 'Selamat bergabung di PT TechCorp Indonesia!', 1, 'company', 2, NULL, NULL, NULL, '2026-01-17 02:55:46');
+(8, 1, 'hired', 'Selamat bergabung di PT TechCorp Indonesia!', 1, 'company', 2, NULL, NULL, NULL, '2026-01-17 02:55:46'),
+(10, 3, 'submitted', 'Lamaran berhasil dikirim', 1, 'system', NULL, NULL, NULL, NULL, '2026-01-23 13:48:42');
 
 -- --------------------------------------------------------
 
@@ -200,7 +273,7 @@ CREATE TABLE `company_quotas` (
 
 INSERT INTO `company_quotas` (`id`, `company_id`, `free_quota_used`, `paid_quota`, `created_at`, `updated_at`) VALUES
 (1, 4, 0, 0, '2026-01-18 07:15:18', '2026-01-18 07:15:18'),
-(2, 7, 10, 10, '2026-01-18 09:14:40', '2026-01-22 06:17:52'),
+(2, 7, 10, 9, '2026-01-18 09:14:40', '2026-01-22 06:45:16'),
 (3, 1, 2, 0, '2026-01-20 07:33:46', '2026-01-20 07:34:26');
 
 -- --------------------------------------------------------
@@ -258,7 +331,9 @@ CREATE TABLE `cvs` (
 --
 
 INSERT INTO `cvs` (`id`, `user_id`, `personal_info`, `education`, `experience`, `skills`, `certifications`, `languages`, `projects`, `last_updated_at`, `completeness_score`, `created_at`, `updated_at`) VALUES
-(2, 3, '{\"full_name\":\"Budi Santoso\",\"email\":\"budi@gmail.com\",\"phone\":\"+6281234567890\"}', 'null', '[{\"company\":\"PT Software House\",\"position\":\"Backend Developer\",\"start_date\":\"2019-08-01\",\"is_current\":true,\"description\":\"Developing REST APIs\"}]', '[{\"name\":\"Go\",\"level\":\"advanced\"}]', 'null', 'null', 'null', '2026-01-17 03:12:22', 45, '2026-01-17 02:51:16', '2026-01-17 03:12:22');
+(2, 3, '{\"full_name\":\"Budi Santoso\",\"email\":\"budi@gmail.com\",\"phone\":\"+6281234567890\"}', 'null', '[{\"company\":\"PT Software House\",\"position\":\"Backend Developer\",\"start_date\":\"2019-08-01\",\"is_current\":true,\"description\":\"Developing REST APIs\"}]', '[{\"name\":\"Go\",\"level\":\"advanced\"}]', 'null', 'null', 'null', '2026-01-17 03:12:22', 45, '2026-01-17 02:51:16', '2026-01-17 03:12:22'),
+(3, 20, '{\"full_name\":\"Jastiska Dwi Wanda Sari\",\"email\":\"jastiska14@gmail.com\",\"phone\":\"08893011438\",\"address\":\"Dusun Sumber Pandan, Desa Bulusari, Kecamatan Gempol, Kabupaten Pasuruan, Provinsi Jawa Timur\",\"summary\":\"Saya memiliki pengalaman dibidang Sales Marketing Jasa pada salah satu perusahaan asuransi terkenal di Indonesia dan memiliki pengalaman kurang lebih 5 tahun.\"}', '[{\"institution\":\"Universitas Islam Malang\",\"degree\":\"S1\",\"field_of_study\":\"PGSD\",\"start_date\":\"2025-01-01\",\"end_date\":\"2026-12-31\"}]', '[{\"company\":\"PT Bank Nasional Indonesia Life\",\"position\":\"Product Marketing\",\"start_date\":\"2025-11-13\",\"is_current\":true,\"description\":\"Melakukan pemasaran produk kepada calon nasabah atau nasabah BNI\"}]', '[{\"name\":\"SQL\",\"level\":\"intermediate\"},{\"name\":\"Node.js\",\"level\":\"intermediate\"},{\"name\":\"React\",\"level\":\"intermediate\"},{\"name\":\"Python\",\"level\":\"intermediate\"},{\"name\":\"Leadership\",\"level\":\"intermediate\"},{\"name\":\"Teamwork\",\"level\":\"intermediate\"},{\"name\":\"Problem Solving\",\"level\":\"intermediate\"}]', '[]', '[]', 'null', '2026-01-23 13:48:27', 80, '2026-01-23 03:55:55', '2026-01-23 13:48:27'),
+(4, 21, '{\"full_name\":\"Saputra Budianto\",\"email\":\"craftgirlsssshopping@gmail.com\",\"phone\":\"0881036480285\",\"address\":\"Perumahan Griya Bhayangkara blok i5/07 Desa Masangan Kulon, Kecamatan Sukodono, Kabupaten Sidoarjo, Kode Pos 61258\",\"summary\":\"Saya adalah seorang profesional yang berdedikasi di bidang Mobile Apps Developer dengan pengalaman selama 3 tahun dalam mengembangkan cross platform mobile apps. Saya merupakan lulusan dari Universitas Muhammdiyah Sidoarjo, di mana saya mengasah kemampuan analitis dan teknis yang menjadi fondasi karier saya saat ini.\\n\\nSepanjang perjalanan profesional saya, saya telah berhasil mengembangkan dan mendistribusikan beberapa aplikasi ke marketplace dan web publik. Saya dikenal sebagai pribadi yang adaptif, komunikatif, dan memiliki orientasi kuat terhadap hasil. Saya selalu antusias untuk mempelajari teknologi baru dan berkontribusi dalam proyek-proyek inovatif yang memberikan dampak positif bagi organisasi.\",\"linkedin\":\"https://www.linkedin.com/in/saputra-budianto23/\"}', '[]', '[{\"company\":\"PT Adi Karya Media\",\"position\":\"Mobile Apps Developer\",\"start_date\":\"2023-03-23\",\"end_date\":\"2023-09-30\",\"is_current\":false,\"description\":\"Membuat aplikasi berbasis moble app menggunakan framework flutter dan integrasi API menggunakan Supabase dan Firebase\"},{\"company\":\"PT. All Media Indo\",\"position\":\"Mobile Apps Developer\",\"start_date\":\"2023-11-23\",\"is_current\":true,\"description\":\"Membuat aplikasi berbasis moble app menggunakan framework flutter dan integrasi API menggunakan Supabase dan Firebase, serta membuat API\"}]', '[{\"name\":\"JavaScript\",\"level\":\"intermediate\"},{\"name\":\"React\",\"level\":\"intermediate\"},{\"name\":\"SQL\",\"level\":\"intermediate\"},{\"name\":\"Marketing\",\"level\":\"intermediate\"}]', '[{\"name\":\"AWS Certificate\",\"issuer\":\"Amazon Web Server\",\"issue_date\":\"2025-01-01\",\"credential_id\":\"XWXIS23AO\"}]', '[]', 'null', '2026-01-23 11:30:38', 70, '2026-01-23 03:57:04', '2026-01-23 11:30:38');
 
 -- --------------------------------------------------------
 
@@ -287,7 +362,8 @@ CREATE TABLE `cv_snapshots` (
 --
 
 INSERT INTO `cv_snapshots` (`id`, `cv_id`, `user_id`, `personal_info`, `education`, `experience`, `skills`, `certifications`, `languages`, `projects`, `snapshot_hash`, `completeness_score`, `created_at`) VALUES
-(1, 2, 3, '{\"full_name\":\"Budi Santoso\",\"email\":\"budi.kandidat@gmail.com\",\"phone\":\"+6281234567890\"}', '[{\"institution\":\"UI\",\"degree\":\"S1\",\"field_of_study\":\"Informatika\",\"start_date\":\"2015-08-01\",\"end_date\":\"2019-07-01\"}]', 'null', '[{\"name\":\"Go\",\"level\":\"advanced\"}]', 'null', 'null', 'null', 'ff53fa4b736225a2f2cecb569e9455e38fb7a4de93409f39dcf6b96c7d489c74', 50, '2026-01-17 02:51:28');
+(1, 2, 3, '{\"full_name\":\"Budi Santoso\",\"email\":\"budi.kandidat@gmail.com\",\"phone\":\"+6281234567890\"}', '[{\"institution\":\"UI\",\"degree\":\"S1\",\"field_of_study\":\"Informatika\",\"start_date\":\"2015-08-01\",\"end_date\":\"2019-07-01\"}]', 'null', '[{\"name\":\"Go\",\"level\":\"advanced\"}]', 'null', 'null', 'null', 'ff53fa4b736225a2f2cecb569e9455e38fb7a4de93409f39dcf6b96c7d489c74', 50, '2026-01-17 02:51:28'),
+(3, 3, 20, '{\"full_name\":\"Jastiska Dwi Wanda Sari\",\"email\":\"jastiska14@gmail.com\",\"phone\":\"08893011438\",\"address\":\"Dusun Sumber Pandan, Desa Bulusari, Kecamatan Gempol, Kabupaten Pasuruan, Provinsi Jawa Timur\",\"summary\":\"Saya memiliki pengalaman dibidang Sales Marketing Jasa pada salah satu perusahaan asuransi terkenal di Indonesia dan memiliki pengalaman kurang lebih 5 tahun.\"}', '[{\"institution\":\"Universitas Islam Malang\",\"degree\":\"S1\",\"field_of_study\":\"PGSD\",\"start_date\":\"2025-01-01\",\"end_date\":\"2026-12-31\"}]', '[{\"company\":\"PT Bank Nasional Indonesia Life\",\"position\":\"Product Marketing\",\"start_date\":\"2025-11-13\",\"is_current\":true,\"description\":\"Melakukan pemasaran produk kepada calon nasabah atau nasabah BNI\"}]', '[{\"name\":\"SQL\",\"level\":\"intermediate\"},{\"name\":\"Node.js\",\"level\":\"intermediate\"},{\"name\":\"React\",\"level\":\"intermediate\"},{\"name\":\"Python\",\"level\":\"intermediate\"},{\"name\":\"Leadership\",\"level\":\"intermediate\"},{\"name\":\"Teamwork\",\"level\":\"intermediate\"},{\"name\":\"Problem Solving\",\"level\":\"intermediate\"}]', '[]', '[]', 'null', 'a370fce1c6f49dc80fe4c9510a0d964e00719940f7f64e81a4db01d60a1b52ce', 80, '2026-01-23 13:48:42');
 
 -- --------------------------------------------------------
 
@@ -386,7 +462,8 @@ INSERT INTO `jobs` (`id`, `company_id`, `title`, `slug`, `description`, `require
 (52, 1, 'QA Engineer - Email Test With Correct Binary', 'qa-engineer-email-test-with-correct-binary', 'Testing email notification feature dengan binary yang sudah terupdate untuk memastikan email terkirim dengan sempurna', NULL, NULL, NULL, 'Surabaya', 'Jawa Timur', 0, 'full_time', 'mid', NULL, NULL, 'IDR', 0, NULL, NULL, 'active', NULL, NULL, NULL, 0, 0, '2026-01-22 04:02:07', '2026-01-22 04:02:07', '2026-01-22 04:02:07', NULL),
 (53, 1, 'DevOps Engineer - Final Email Notification Test', 'devops-engineer-final-email-notification-test', 'Testing email notification dengan background context agar tidak ter-cancel saat request selesai dan email dapat terkirim dengan sempurna', NULL, NULL, NULL, 'Yogyakarta', 'DI Yogyakarta', 0, 'full_time', 'senior', NULL, NULL, 'IDR', 0, NULL, NULL, 'active', NULL, NULL, NULL, 0, 0, '2026-01-22 04:08:45', '2026-01-22 04:08:45', '2026-01-22 04:08:45', NULL),
 (54, 1, 'Accounting', 'accounting', 'Tentang Kami Twister Communications adalah creative agency yang fokus pada brand activation, event management, dan design services untuk brand multinasional dan lokal di Indonesia.\n\nDeskripsi Pekerjaan Kami mencari Accounting Staff yang teliti untuk mendukung Divisi Finance, Accounting and Tax dalam mengelola tugas Accounting secara keseluruhan sesuai dengan standar operasional Perusahaan.\n\nTugas & Tanggungjawab\n\nMelakukan pencatatan transaksi keuangan harian secara akurat dan tepat waktu\n\nMenyusun dan menginput jurnal akuntansi ke dalam sistem\n\nMelakukan rekonsiliasi bank serta memastikan kesesuaian saldo kas dan bank\n\nMembantu proses closing laporan keuangan bulanan dan tahunan\n\nMenyusun dan memeriksa laporan keuangan (Laba Rugi, Neraca, Arus Kas)\n\nMenyiapkan data pendukung untuk kebutuhan audit internal maupun eksternal\n\nMembantu pengelolaan dan pelaporan perpajakan (PPN, PPh 21, PPh 23, dll)\n\nMengarsipkan dokumen keuangan dan perpajakan secara rapi dan sistematis\n\nMengoperasikan dan memastikan data pada software akuntansi selalu update\n\nMemastikan seluruh proses akuntansi berjalan sesuai SOP dan kebijakan perusahaan\n\nTugas terkait lainnya sesuai yang diberikan', 'Pendidikan minimal S1 Akuntansi\n\nMempunyai pengalaman 1 tahun sebagai Accounting Staff lebih diutamakan\n\nMengetahui program Accounting (contoh: Accurate, ERP)\n\nMahir rumus excel seperti vlookup & pivot\n\nMenguasai Ms Office\n\nTeliti, Jujur, Cekatan dan bertanggung jawab\n\nMampu bekerja dalam lingkungan yang dinamis\n\nMampu bekerja dalam team\n\nDiutamakan berpengalaman pada bidang Jasa\n\nFresh Graduate are Welcome', NULL, NULL, 'Sidaorjo', 'Jawa Timur', 0, 'full_time', 'junior', NULL, NULL, 'IDR', 1, '2026-02-22', NULL, 'active', NULL, NULL, NULL, 0, 0, '2026-01-22 05:52:04', '2026-01-22 05:52:04', '2026-01-22 05:52:04', NULL),
-(55, 1, 'Full Stack Developer - Email Test dengan Logging Detail', 'full-stack-developer-email-test-dengan-logging-detail', 'Kami mencari Full Stack Developer yang berpengalaman untuk bergabung dengan tim kami. Posisi ini akan fokus pada pengembangan aplikasi web modern menggunakan teknologi terkini.', 'Minimal 2 tahun pengalaman, menguasai React, Node.js, dan database', NULL, NULL, 'Jakarta', 'DKI Jakarta', 0, 'full_time', 'mid', NULL, NULL, 'IDR', 0, NULL, NULL, 'active', NULL, NULL, NULL, 0, 0, '2026-01-22 06:17:52', '2026-01-22 06:17:52', '2026-01-22 06:17:52', NULL);
+(55, 1, 'Full Stack Developer - Email Test dengan Logging Detail', 'full-stack-developer-email-test-dengan-logging-detail', 'Kami mencari Full Stack Developer yang berpengalaman untuk bergabung dengan tim kami. Posisi ini akan fokus pada pengembangan aplikasi web modern menggunakan teknologi terkini.', 'Minimal 2 tahun pengalaman, menguasai React, Node.js, dan database', NULL, NULL, 'Jakarta', 'DKI Jakarta', 0, 'full_time', 'mid', NULL, NULL, 'IDR', 0, NULL, NULL, 'active', NULL, NULL, NULL, 0, 0, '2026-01-22 06:17:52', '2026-01-22 06:17:52', '2026-01-22 06:17:52', NULL),
+(56, 1, 'Software Engineer SALARY TEST', 'software-engineer-salary-test', 'This is a test job to verify salary display works correctly on the frontend. We are looking for a talented software engineer.', '3 years experience with Go or TypeScript', 'Develop and maintain backend services', 'Health insurance, remote work', 'Jakarta', 'DKI Jakarta', 1, 'full_time', 'mid', 15000000, 25000000, 'IDR', 1, NULL, NULL, 'active', NULL, NULL, NULL, 0, 0, '2026-01-22 06:45:16', '2026-01-22 06:45:16', '2026-01-22 06:45:16', NULL);
 
 -- --------------------------------------------------------
 
@@ -488,7 +565,9 @@ INSERT INTO `job_skills` (`id`, `job_id`, `skill_name`, `is_required`) VALUES
 (80, 55, 'React', 1),
 (81, 55, 'Node.js', 1),
 (82, 55, 'PostgreSQL', 1),
-(83, 55, 'Docker', 1);
+(83, 55, 'Docker', 1),
+(84, 56, 'Go', 1),
+(85, 56, 'TypeScript', 1);
 
 -- --------------------------------------------------------
 
@@ -812,7 +891,42 @@ INSERT INTO `refresh_tokens` (`id`, `user_id`, `token_hash`, `expires_at`, `revo
 (227, 7, 'f3dc71bb619d23bcac83db9602a21fea5041533d7190d53bfd49f761b4f923ea', '2026-01-29 06:17:15', NULL, '', '', '2026-01-22 06:17:15'),
 (228, 7, '5fe0f41c4a0f2826d79626bd21b3cb9c4de2782aa404c9349789904cdd50c044', '2026-01-29 06:17:20', NULL, '', '', '2026-01-22 06:17:20'),
 (229, 7, 'a21e7b461c6ab444b1f67cc4d6dd5023c388b4e9876616c8ea2802e821dfa100', '2026-01-29 06:17:51', NULL, '', '', '2026-01-22 06:17:51'),
-(230, 7, 'de905dde15c990dad3e1d969968a5c194580d19be65afb03dc05c7e60ff6f317', '2026-01-29 06:18:07', NULL, '', '', '2026-01-22 06:18:07');
+(230, 7, 'de905dde15c990dad3e1d969968a5c194580d19be65afb03dc05c7e60ff6f317', '2026-01-29 06:18:07', NULL, '', '', '2026-01-22 06:18:07'),
+(231, 7, '2f76b6c1549955c7e69c56880e6b2357a4aee9c4608084d328927cdeef5a0222', '2026-01-29 06:40:39', NULL, '', '', '2026-01-22 06:40:39'),
+(232, 7, '84fa9c952a2e23378803a72d4763af7b328da18c07e4f1deaf7befddec2d5418', '2026-01-29 06:41:03', NULL, '', '', '2026-01-22 06:41:03'),
+(233, 7, '28ad48d5664740257e8d2d31d6285d69ad1115066f5cb2d2039bc142a753c08d', '2026-01-29 06:42:46', NULL, '', '', '2026-01-22 06:42:46'),
+(234, 7, '07ea1b56ab19a257faf6cb117ff09a90eb7cba7b598a6e4701626d5c90bad29f', '2026-01-29 06:44:23', NULL, '', '', '2026-01-22 06:44:23'),
+(235, 7, 'a97f40a1720c1ad30ce973e3e5b4124544002835a200cb5032c172e57c10fd69', '2026-01-29 06:45:08', NULL, '', '', '2026-01-22 06:45:08'),
+(236, 7, '188fe2372d2615ff9f87585b5f3f1b04f7ed52b0db1181f1b66d76dc319ebeaf', '2026-01-29 09:21:32', NULL, '', '', '2026-01-22 09:21:32'),
+(237, 7, '2acdf223f70ab0a5195b5a00d47ca00035f5cf7ea6b022a57f0ff0da3bcebd89', '2026-01-30 01:39:17', NULL, '', '', '2026-01-23 01:39:17'),
+(238, 7, 'b1f272d8819345afe9a862d5bf7864b23b5ce41454b6d62bfad3c612dadfb51f', '2026-01-30 01:59:53', NULL, '', '', '2026-01-23 01:59:53'),
+(239, 7, '8bacf4ebe9e23702c5ef3d81a42e6db7e011e4a98da3b21901d620cdcd534386', '2026-01-30 02:18:03', NULL, '', '', '2026-01-23 02:18:03'),
+(240, 16, '33d9c933b3aa3d9c65b156d3233adea4324eb66580bfeb59b7230e34bfae2297', '2026-01-30 03:16:19', NULL, '', '', '2026-01-23 03:16:19'),
+(241, 17, '14c70a7b1c6b95964f61fe2f4a7355e46c0181ca59735b90a7a5d12b6b84173f', '2026-01-30 03:16:30', NULL, '', '', '2026-01-23 03:16:30'),
+(242, 17, 'f1cabc10d06be21cc68cb227d5319743014d250b12fb1ac2ab31c2e6e79a5e70', '2026-01-30 03:16:45', NULL, '', '', '2026-01-23 03:16:45'),
+(243, 18, 'c6514490a9aab0e3246a05a05323de1c94217380485b3bdac41fde7d6c14f69d', '2026-01-30 03:22:05', NULL, '', '', '2026-01-23 03:22:05'),
+(244, 19, '1882ea5da7eeab1e91ae7cd7a148488ef3561e56b07946f648ae662850cc3e08', '2026-01-30 03:25:21', NULL, '', '', '2026-01-23 03:25:21'),
+(245, 20, '5f10450d93618c6c9a6370f22d294049f6316afca8a01def6dec62ee65315f5e', '2026-01-30 03:55:52', NULL, '', '', '2026-01-23 03:55:52'),
+(246, 21, '73911e29c3bb4a63038b004bf43013d0e94b5cc7fd64016e09bf5aa16918dbd3', '2026-01-30 03:57:01', NULL, '', '', '2026-01-23 03:57:01'),
+(247, 21, '9bfdbcae8acfa2a3f72f8ee3a13a255db527480ffa375f728a56eb05fc8158e9', '2026-01-30 06:12:17', NULL, '', '', '2026-01-23 06:12:17'),
+(248, 21, '8e0e0245062a9c6216f29ba1acf6060d518ee91095eec4ff790ab8458c928445', '2026-01-30 06:27:54', NULL, '', '', '2026-01-23 06:27:54'),
+(249, 21, '69f8f9534e58882c3b0dc8cfe0e3135fabddb2a249b4998e865d1cf8bcc2e1fc', '2026-01-30 07:08:18', NULL, '', '', '2026-01-23 07:08:18'),
+(250, 21, '83f86411c0ce4091f81ed9a8d08ccdbec47f0b71553fba1a20ab005ecd4df937', '2026-01-30 07:36:41', NULL, '', '', '2026-01-23 07:36:41'),
+(251, 21, '861766e692c693d9fc900bc7045f3e8c288d62859565285380d2bc26fae5773b', '2026-01-30 07:53:58', NULL, '', '', '2026-01-23 07:53:58'),
+(252, 21, 'f917e55380b1a36aeb304a8d892772efe4c330c434d94a5f6987bd6b75fc3fed', '2026-01-30 08:24:27', NULL, '', '', '2026-01-23 08:24:27'),
+(253, 21, 'f73bff41d1d74ef74d2ab37e8af0147fee97cd5b03677be2172db35a42e0be9b', '2026-01-30 08:57:31', NULL, '', '', '2026-01-23 08:57:31'),
+(254, 21, '5524fcd331bc97301272b043b6d67fb507c1fb17d85b09f34501d57a03b33598', '2026-01-30 08:59:54', NULL, '', '', '2026-01-23 08:59:54'),
+(255, 21, '6a01efdf5f6f28e6fe64dbe1af49031437f9ebe38ad92ca2016f0a99e9723038', '2026-01-30 09:16:42', NULL, '', '', '2026-01-23 09:16:42'),
+(256, 21, 'bee82da4e07deed65c0bde5480f9d28af5c1a1a25be4917b8f0f62d2cec5ad12', '2026-01-30 09:21:32', NULL, '', '', '2026-01-23 09:21:32'),
+(257, 21, '944aa02ccf3813c27f115ce280efef90d6cf6729f2f2aa3dbf27515e9a7db0c9', '2026-01-30 09:38:27', NULL, '', '', '2026-01-23 09:38:27'),
+(258, 21, 'b273ebbaa8181d2fbb495d2acedd863c53614a995c2b050c9f67f09cb854d717', '2026-01-30 11:28:45', NULL, '', '', '2026-01-23 11:28:45'),
+(259, 20, 'fa2f5f6045222d7224cc176af9d36cdd2cc104fbe7b2b8526ac522f96c78b6b4', '2026-01-30 11:31:15', NULL, '', '', '2026-01-23 11:31:15'),
+(260, 20, '57de748240f983b0eec9d6da80fb3aa836cfbb532fc9d20d77145f0d7cf590d8', '2026-01-30 11:45:13', NULL, '', '', '2026-01-23 11:45:13'),
+(261, 20, '0787a7a4b05c094527cdcb441a105449d3fba6fe4dfcdd78caf78e04325db02b', '2026-01-30 11:50:23', NULL, '', '', '2026-01-23 11:50:23'),
+(262, 20, '44e9decfa5261618ba2faaa7f58e3338a47f4795ef93156929b601296b25cf48', '2026-01-30 11:59:54', NULL, '', '', '2026-01-23 11:59:54'),
+(263, 20, '0247724f6eb228f5598759bbc72b449a70bb6aba284b966bd83115e0e9bbe730', '2026-01-30 12:05:44', NULL, '', '', '2026-01-23 12:05:44'),
+(264, 20, '13880ac0a4d01947e7f344778b0f9eaefe37d49491d70fe64b1842102c75c4bc', '2026-01-30 13:28:54', NULL, '', '', '2026-01-23 13:28:54'),
+(265, 20, 'fc1e3f3a81952c35e691ac207b3b2782205bf74569d2710f4d644834e584267e', '2026-01-30 13:48:24', NULL, '', '', '2026-01-23 13:48:24');
 
 -- --------------------------------------------------------
 
@@ -866,11 +980,38 @@ INSERT INTO `users` (`id`, `email`, `password_hash`, `role`, `full_name`, `phone
 (12, 'test.company@example.com', '$2a$10$Q7OZlZckA0Tw5RarsLHdHOctnn3n9Sh2J.SM1OwVX58DxtA8Q74le', 'company', 'Test Company Manager', '081234567890', NULL, 1, 0, NULL, '2026-01-20 04:39:36', '2026-01-20 04:39:36', NULL),
 (13, 'test@example.com', '$2a$10$PoRfDCFO106yVLpJxqDK.uNcETZcse0VoG.m7efDEvi.KmUzD003y', 'company', 'Test User', NULL, NULL, 1, 0, NULL, '2026-01-21 15:06:03', '2026-01-21 15:06:03', NULL),
 (14, 'testchangepass@example.com', '$2a$10$1NXdnUsjN3EENJb4PnSiYuQFANGpmFUEQVB/CR6/aexVSHdlDoDUu', 'company', 'Test Change Password', NULL, NULL, 1, 0, NULL, '2026-01-21 15:31:15', '2026-01-21 15:31:30', NULL),
-(15, 'changepass_1769009652@example.com', '$2a$10$AanEN8CC9DSYdlh/2hWjFu4DZXTFFrLtD7N89kpJ5B6R1kkp7YuH6', 'company', 'Change Password Test User', NULL, NULL, 1, 0, NULL, '2026-01-21 15:34:13', '2026-01-21 15:34:13', NULL);
+(15, 'changepass_1769009652@example.com', '$2a$10$AanEN8CC9DSYdlh/2hWjFu4DZXTFFrLtD7N89kpJ5B6R1kkp7YuH6', 'company', 'Change Password Test User', NULL, NULL, 1, 0, NULL, '2026-01-21 15:34:13', '2026-01-21 15:34:13', NULL),
+(16, 'test.register@example.com', '$2a$10$JEWbMAD3Vbzv4vkt0PGM1OgGAhkhIINOLSgjoCWSjGOiQ2ZYVmtfK', 'job_seeker', 'Test User', '0881036480285', NULL, 1, 0, NULL, '2026-01-23 03:16:19', '2026-01-23 03:16:19', NULL),
+(17, 'test.register123@example.com', '$2a$10$wxnxA3HbaDZSz0Y4gjKYdebDsc5PIghMTWl3BtlkavoqL81VD3H/K', 'job_seeker', 'Test User', '0881036480285', NULL, 1, 0, NULL, '2026-01-23 03:16:30', '2026-01-23 03:16:30', NULL),
+(18, 'debug.test@example.com', '$2a$10$GUhOXJgQDIqJxRw.irMOa.D1NLbxjIe9aNgUDacALSB1mCzNBgwoe', 'job_seeker', 'Debug Test', NULL, NULL, 1, 0, NULL, '2026-01-23 03:22:05', '2026-01-23 03:22:05', NULL),
+(19, 'emailtest123@example.com', '$2a$10$uCnPcKmTLE2C5nyPUMWmReEUr0o.D1eJKke5iAn7ArvyLeWL1THoW', 'job_seeker', 'Email Test User', NULL, NULL, 1, 0, NULL, '2026-01-23 03:25:21', '2026-01-23 03:25:21', NULL),
+(20, 'jastiska14@gmail.com', '$2a$10$aIiXz6C49XHFpRSS9pILOeqIycow/uRlAaeLp6WtXFPF6P7PAgXui', 'job_seeker', 'Jastiska Dwi Wanda Sari', '08893011438', '/docs/avatars/avatar_20_1769167905.png', 1, 0, NULL, '2026-01-23 03:55:52', '2026-01-23 11:31:45', NULL),
+(21, 'craftgirlsssshopping@gmail.com', '$2a$10$3NfsAYR/Sm5lhYYnXSCRC.ZG1DIaLC2sD3FBdtioJqqDrLYjEAFES', 'job_seeker', 'Saputra Budianto', '0881036480285', '/docs/avatars/avatar_21_1769148776.jpg', 1, 0, NULL, '2026-01-23 03:57:01', '2026-01-23 06:12:56', NULL);
 
 --
 -- Indexes for dumped tables
 --
+
+--
+-- Indexes for table `applicant_documents`
+--
+ALTER TABLE `applicant_documents`
+  ADD PRIMARY KEY (`id`),
+  ADD KEY `idx_user_id` (`user_id`),
+  ADD KEY `idx_document_type` (`document_type`),
+  ADD KEY `idx_is_primary` (`is_primary`);
+
+--
+-- Indexes for table `applicant_profiles`
+--
+ALTER TABLE `applicant_profiles`
+  ADD PRIMARY KEY (`id`),
+  ADD UNIQUE KEY `uk_user_id` (`user_id`),
+  ADD KEY `idx_city` (`city`),
+  ADD KEY `idx_province` (`province`),
+  ADD KEY `idx_profile_completeness` (`profile_completeness`),
+  ADD KEY `idx_location` (`city`,`province`),
+  ADD KEY `idx_salary_range` (`expected_salary_min`,`expected_salary_max`);
 
 --
 -- Indexes for table `applications`
@@ -1052,16 +1193,28 @@ ALTER TABLE `users`
 --
 
 --
+-- AUTO_INCREMENT for table `applicant_documents`
+--
+ALTER TABLE `applicant_documents`
+  MODIFY `id` bigint(20) UNSIGNED NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=2;
+
+--
+-- AUTO_INCREMENT for table `applicant_profiles`
+--
+ALTER TABLE `applicant_profiles`
+  MODIFY `id` bigint(20) UNSIGNED NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=3;
+
+--
 -- AUTO_INCREMENT for table `applications`
 --
 ALTER TABLE `applications`
-  MODIFY `id` bigint(20) UNSIGNED NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=3;
+  MODIFY `id` bigint(20) UNSIGNED NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=4;
 
 --
 -- AUTO_INCREMENT for table `application_timelines`
 --
 ALTER TABLE `application_timelines`
-  MODIFY `id` bigint(20) UNSIGNED NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=10;
+  MODIFY `id` bigint(20) UNSIGNED NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=11;
 
 --
 -- AUTO_INCREMENT for table `audit_logs`
@@ -1097,25 +1250,25 @@ ALTER TABLE `conversations`
 -- AUTO_INCREMENT for table `cvs`
 --
 ALTER TABLE `cvs`
-  MODIFY `id` bigint(20) UNSIGNED NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=3;
+  MODIFY `id` bigint(20) UNSIGNED NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=5;
 
 --
 -- AUTO_INCREMENT for table `cv_snapshots`
 --
 ALTER TABLE `cv_snapshots`
-  MODIFY `id` bigint(20) UNSIGNED NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=3;
+  MODIFY `id` bigint(20) UNSIGNED NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=4;
 
 --
 -- AUTO_INCREMENT for table `jobs`
 --
 ALTER TABLE `jobs`
-  MODIFY `id` bigint(20) UNSIGNED NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=56;
+  MODIFY `id` bigint(20) UNSIGNED NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=57;
 
 --
 -- AUTO_INCREMENT for table `job_skills`
 --
 ALTER TABLE `job_skills`
-  MODIFY `id` bigint(20) UNSIGNED NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=84;
+  MODIFY `id` bigint(20) UNSIGNED NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=86;
 
 --
 -- AUTO_INCREMENT for table `notifications`
@@ -1139,7 +1292,7 @@ ALTER TABLE `payments`
 -- AUTO_INCREMENT for table `refresh_tokens`
 --
 ALTER TABLE `refresh_tokens`
-  MODIFY `id` bigint(20) UNSIGNED NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=231;
+  MODIFY `id` bigint(20) UNSIGNED NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=266;
 
 --
 -- AUTO_INCREMENT for table `saved_jobs`
@@ -1151,11 +1304,23 @@ ALTER TABLE `saved_jobs`
 -- AUTO_INCREMENT for table `users`
 --
 ALTER TABLE `users`
-  MODIFY `id` bigint(20) UNSIGNED NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=16;
+  MODIFY `id` bigint(20) UNSIGNED NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=22;
 
 --
 -- Constraints for dumped tables
 --
+
+--
+-- Constraints for table `applicant_documents`
+--
+ALTER TABLE `applicant_documents`
+  ADD CONSTRAINT `fk_applicant_documents_user` FOREIGN KEY (`user_id`) REFERENCES `users` (`id`) ON DELETE CASCADE;
+
+--
+-- Constraints for table `applicant_profiles`
+--
+ALTER TABLE `applicant_profiles`
+  ADD CONSTRAINT `fk_applicant_profiles_user` FOREIGN KEY (`user_id`) REFERENCES `users` (`id`) ON DELETE CASCADE;
 
 --
 -- Constraints for table `applications`

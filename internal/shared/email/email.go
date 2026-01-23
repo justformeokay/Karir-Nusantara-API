@@ -205,6 +205,122 @@ func (s *Service) SendWelcomeEmail(to string, companyName string, fullName strin
 	return s.SendEmail(to, subject, body.String())
 }
 
+// SendJobSeekerWelcomeEmail sends welcome email to new job seeker
+func (s *Service) SendJobSeekerWelcomeEmail(to string, fullName string) error {
+	subject := "Selamat Datang di Karir Nusantara!"
+	
+	tmpl := `
+<!DOCTYPE html>
+<html>
+<head>
+	<style>
+		body { font-family: Arial, sans-serif; line-height: 1.6; color: #333; margin: 0; padding: 0; }
+		.container { max-width: 600px; margin: 0 auto; padding: 20px; }
+		.header { background: linear-gradient(135deg, #2563eb 0%, #1d4ed8 100%); color: white; padding: 30px 20px; text-align: center; border-radius: 10px 10px 0 0; }
+		.header h1 { margin: 0; font-size: 24px; }
+		.content { padding: 30px 20px; background-color: #f9fafb; }
+		.welcome-box { background-color: #dbeafe; padding: 20px; border-radius: 10px; text-align: center; margin: 20px 0; }
+		.welcome-icon { font-size: 48px; margin-bottom: 10px; }
+		.feature-list { background-color: #fff; padding: 20px; border-radius: 10px; margin: 20px 0; }
+		.feature-item { display: flex; align-items: center; padding: 12px 0; border-bottom: 1px solid #e5e7eb; }
+		.feature-item:last-child { border-bottom: none; }
+		.feature-icon { font-size: 24px; margin-right: 15px; }
+		.button { display: inline-block; padding: 14px 28px; background-color: #2563eb; color: white; text-decoration: none; border-radius: 8px; margin: 20px 0; font-weight: bold; }
+		.button:hover { background-color: #1d4ed8; }
+		.tips { background-color: #fef3c7; padding: 15px; border-left: 4px solid #f59e0b; margin: 20px 0; border-radius: 0 8px 8px 0; }
+		.footer { padding: 20px; text-align: center; font-size: 12px; color: #666; background-color: #f3f4f6; border-radius: 0 0 10px 10px; }
+		.social-links { margin: 15px 0; }
+		.social-links a { margin: 0 10px; color: #2563eb; text-decoration: none; }
+	</style>
+</head>
+<body>
+	<div class="container">
+		<div class="header">
+			<h1>🎉 Selamat Datang di Karir Nusantara!</h1>
+		</div>
+		<div class="content">
+			<div class="welcome-box">
+				<div class="welcome-icon">👋</div>
+				<h2>Halo, {{.FullName}}!</h2>
+				<p>Akun Anda telah berhasil dibuat. Selamat bergabung di platform pencari kerja terpercaya di Indonesia!</p>
+			</div>
+			
+			<h3>🚀 Yang Bisa Anda Lakukan:</h3>
+			<div class="feature-list">
+				<div class="feature-item">
+					<span class="feature-icon">📄</span>
+					<div>
+						<strong>Buat CV Profesional</strong>
+						<p style="margin: 5px 0 0 0; font-size: 14px; color: #666;">Buat CV yang menarik dan profesional dengan mudah</p>
+					</div>
+				</div>
+				<div class="feature-item">
+					<span class="feature-icon">🔍</span>
+					<div>
+						<strong>Cari Lowongan Kerja</strong>
+						<p style="margin: 5px 0 0 0; font-size: 14px; color: #666;">Temukan ribuan lowongan dari perusahaan terkemuka</p>
+					</div>
+				</div>
+				<div class="feature-item">
+					<span class="feature-icon">📨</span>
+					<div>
+						<strong>Lamar Pekerjaan</strong>
+						<p style="margin: 5px 0 0 0; font-size: 14px; color: #666;">Kirim lamaran dengan sekali klik dan pantau statusnya</p>
+					</div>
+				</div>
+				<div class="feature-item">
+					<span class="feature-icon">🎯</span>
+					<div>
+						<strong>Rekomendasi Personal</strong>
+						<p style="margin: 5px 0 0 0; font-size: 14px; color: #666;">Dapatkan rekomendasi pekerjaan sesuai profil Anda</p>
+					</div>
+				</div>
+			</div>
+			
+			<div class="tips">
+				<strong>💡 Tips:</strong> Lengkapi profil dan CV Anda untuk meningkatkan peluang dilihat oleh recruiter!
+			</div>
+			
+			<div style="text-align: center;">
+				<a href="https://karirnusantara.com" class="button">Mulai Cari Kerja Sekarang →</a>
+			</div>
+			
+			<p style="margin-top: 30px; padding-top: 20px; border-top: 1px solid #e5e7eb;">
+				Jika Anda memiliki pertanyaan, jangan ragu untuk menghubungi tim support kami di <a href="mailto:support@karirnusantara.com">support@karirnusantara.com</a>
+			</p>
+		</div>
+		<div class="footer">
+			<p>Ikuti kami di social media:</p>
+			<div class="social-links">
+				<a href="#">Instagram</a> | <a href="#">LinkedIn</a> | <a href="#">Twitter</a>
+			</div>
+			<p>&copy; 2026 Karir Nusantara. All rights reserved.</p>
+			<p>Email ini dikirim secara otomatis karena Anda mendaftar di Karir Nusantara.</p>
+		</div>
+	</div>
+</body>
+</html>
+`
+
+	t, err := template.New("jobseekerwelcome").Parse(tmpl)
+	if err != nil {
+		return fmt.Errorf("failed to parse template: %w", err)
+	}
+
+	data := struct {
+		FullName string
+	}{
+		FullName: fullName,
+	}
+
+	var body bytes.Buffer
+	if err := t.Execute(&body, data); err != nil {
+		return fmt.Errorf("failed to execute template: %w", err)
+	}
+
+	return s.SendEmail(to, subject, body.String())
+}
+
 // SendPasswordResetEmail sends password reset email
 func (s *Service) SendPasswordResetEmail(to string, resetToken string, fullName string) error {
 	subject := "Reset Password - Karir Nusantara"

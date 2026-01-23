@@ -9,10 +9,11 @@ import (
 	"strings"
 	"time"
 
-	apperrors "github.com/karirnusantara/api/internal/shared/errors"
 	"github.com/karirnusantara/api/internal/modules/company"
 	"github.com/karirnusantara/api/internal/modules/quota"
 	"github.com/karirnusantara/api/internal/shared/email"
+	apperrors "github.com/karirnusantara/api/internal/shared/errors"
+	"github.com/karirnusantara/api/internal/shared/hashid"
 )
 
 // Service defines the jobs service interface
@@ -26,14 +27,20 @@ type Service interface {
 	List(ctx context.Context, params JobListParams) ([]*JobResponse, int64, error)
 	ListByCompany(ctx context.Context, companyID uint64, params JobListParams) ([]*JobResponse, int64, error)
 	IncrementViewCount(ctx context.Context, id uint64) error
+	IncrementApplicationCount(ctx context.Context, id uint64) error
 	GetCompanyByUserID(ctx context.Context, userID uint64) (*company.Company, error)
+
+	// Tracking
+	TrackView(ctx context.Context, jobID, userID uint64) (bool, error) // Returns true if new view
+	TrackShare(ctx context.Context, jobID uint64, userID *uint64, platform string) error
+	GetJobStats(ctx context.Context, jobID, companyID uint64) (*JobStatsResponse, error)
 }
 
 type service struct {
-	repo            Repository
-	companyRepo     company.Repository
-	quotaService    *quota.Service
-	emailService    *email.Service
+	repo         Repository
+	companyRepo  company.Repository
+	quotaService *quota.Service
+	emailService *email.Service
 }
 
 // NewService creates a new jobs service
@@ -66,7 +73,7 @@ func (s *service) GetCompanyByUserID(ctx context.Context, userID uint64) (*compa
 	if s.companyRepo == nil {
 		return nil, apperrors.NewInternalError("Company repository not available", nil)
 	}
-	
+
 	company, err := s.companyRepo.GetByUserID(ctx, userID)
 	if err != nil {
 		return nil, apperrors.NewInternalError("Failed to get company", err)
@@ -74,7 +81,7 @@ func (s *service) GetCompanyByUserID(ctx context.Context, userID uint64) (*compa
 	if company == nil {
 		return nil, nil
 	}
-	
+
 	return company, nil
 }
 
@@ -164,7 +171,7 @@ func (s *service) Create(ctx context.Context, companyID uint64, userID uint64, r
 			}
 			if !canPublish {
 				return nil, apperrors.NewValidationError("Kuota posting habis. Silakan beli kuota tambahan untuk melanjutkan.", map[string]string{
-					"code": "QUOTA_EXHAUSTED",
+					"code":    "QUOTA_EXHAUSTED",
 					"details": "Kuota gratis 10 post sudah habis. Harga per posting: Rp 15.000",
 				})
 			}
@@ -395,6 +402,11 @@ func (s *service) IncrementViewCount(ctx context.Context, id uint64) error {
 	return s.repo.IncrementViewCount(ctx, id)
 }
 
+// IncrementApplicationCount increments the application count for a job
+func (s *service) IncrementApplicationCount(ctx context.Context, id uint64) error {
+	return s.repo.IncrementApplicationCount(ctx, id)
+}
+
 // UpdateStatus updates the job status (publish, close, pause, reopen)
 func (s *service) UpdateStatus(ctx context.Context, id uint64, companyID uint64, userID uint64, newStatus string) (*JobResponse, error) {
 	// Get existing job
@@ -425,7 +437,7 @@ func (s *service) UpdateStatus(ctx context.Context, id uint64, companyID uint64,
 			}
 			if !canPublish {
 				return nil, apperrors.NewValidationError("Kuota posting habis. Silakan beli kuota tambahan untuk melanjutkan.", map[string]string{
-					"code": "QUOTA_EXHAUSTED",
+					"code":    "QUOTA_EXHAUSTED",
 					"details": "Kuota gratis 10 post sudah habis. Harga per posting: Rp 15.000",
 				})
 			}
@@ -454,10 +466,10 @@ func (s *service) UpdateStatus(ctx context.Context, id uint64, companyID uint64,
 // isValidStatusTransition checks if the status transition is allowed
 func isValidStatusTransition(from, to string) bool {
 	validTransitions := map[string][]string{
-		JobStatusDraft:  {JobStatusActive},                          // draft -> active (publish)
-		JobStatusActive: {JobStatusPaused, JobStatusClosed},         // active -> paused/closed
-		JobStatusPaused: {JobStatusActive, JobStatusClosed},         // paused -> active (reopen) or closed
-		JobStatusClosed: {JobStatusActive},                          // closed -> active (reopen)
+		JobStatusDraft:  {JobStatusActive},                  // draft -> active (publish)
+		JobStatusActive: {JobStatusPaused, JobStatusClosed}, // active -> paused/closed
+		JobStatusPaused: {JobStatusActive, JobStatusClosed}, // paused -> active (reopen) or closed
+		JobStatusClosed: {JobStatusActive},                  // closed -> active (reopen)
 	}
 
 	allowed, ok := validTransitions[from]
@@ -695,4 +707,85 @@ func (s *service) sendJobPostedNotification(ctx context.Context, jobID uint64, c
 	} else {
 		log.Printf("[JOB NOTIFICATION SUCCESS] Job posted notification email sent to %s for job #%d", companyEmail, jobID)
 	}
+}
+
+// TrackView tracks a unique view of a job by a logged-in applicant
+// Returns true if this is a new view, false if user already viewed this job
+func (s *service) TrackView(ctx context.Context, jobID, userID uint64) (bool, error) {
+	// Verify job exists
+	job, err := s.repo.GetByID(ctx, jobID)
+	if err != nil {
+		return false, apperrors.NewInternalError("Failed to get job", err)
+	}
+	if job == nil {
+		return false, apperrors.NewNotFoundError("Job")
+	}
+
+	// Record the view (unique per user per job)
+	isNewView, err := s.repo.RecordView(ctx, jobID, userID)
+	if err != nil {
+		return false, apperrors.NewInternalError("Failed to record view", err)
+	}
+
+	// If this is a new view, increment the counter
+	if isNewView {
+		if err := s.repo.IncrementViewCount(ctx, jobID); err != nil {
+			log.Printf("[VIEW TRACKING] Failed to increment view count for job %d: %v", jobID, err)
+			// Don't fail the request, just log the error
+		}
+	}
+
+	return isNewView, nil
+}
+
+// TrackShare tracks a share of a job posting
+func (s *service) TrackShare(ctx context.Context, jobID uint64, userID *uint64, platform string) error {
+	// Verify job exists
+	job, err := s.repo.GetByID(ctx, jobID)
+	if err != nil {
+		return apperrors.NewInternalError("Failed to get job", err)
+	}
+	if job == nil {
+		return apperrors.NewNotFoundError("Job")
+	}
+
+	// Record the share
+	if err := s.repo.RecordShare(ctx, jobID, userID, platform); err != nil {
+		return apperrors.NewInternalError("Failed to record share", err)
+	}
+
+	// Increment share count
+	if err := s.repo.IncrementShareCount(ctx, jobID); err != nil {
+		log.Printf("[SHARE TRACKING] Failed to increment share count for job %d: %v", jobID, err)
+		// Don't fail the request
+	}
+
+	return nil
+}
+
+// GetJobStats retrieves job statistics (for company dashboard)
+func (s *service) GetJobStats(ctx context.Context, jobID, companyID uint64) (*JobStatsResponse, error) {
+	// Verify job exists and belongs to the company
+	job, err := s.repo.GetByID(ctx, jobID)
+	if err != nil {
+		return nil, apperrors.NewInternalError("Failed to get job", err)
+	}
+	if job == nil {
+		return nil, apperrors.NewNotFoundError("Job")
+	}
+
+	// Verify ownership
+	if job.CompanyID != companyID {
+		return nil, apperrors.NewForbiddenError("Access denied")
+	}
+
+	stats, err := s.repo.GetJobStats(ctx, jobID)
+	if err != nil {
+		return nil, apperrors.NewInternalError("Failed to get job stats", err)
+	}
+
+	// Add hash ID
+	stats.HashID = hashid.Encode(stats.JobID)
+
+	return stats, nil
 }

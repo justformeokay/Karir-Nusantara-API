@@ -27,6 +27,7 @@ import (
 	"github.com/karirnusantara/api/internal/modules/policies"
 	"github.com/karirnusantara/api/internal/modules/profile"
 	"github.com/karirnusantara/api/internal/modules/quota"
+	"github.com/karirnusantara/api/internal/modules/recommendations"
 	"github.com/karirnusantara/api/internal/modules/wishlist"
 	"github.com/karirnusantara/api/internal/shared/email"
 	"github.com/karirnusantara/api/internal/shared/invoice"
@@ -53,10 +54,14 @@ func main() {
 	// Initialize validator
 	v := validator.New()
 
+	// Initialize email service first (needed by auth service)
+	emailConfig := email.LoadConfigFromEnv()
+	emailService := email.NewService(emailConfig)
+
 	// Initialize middleware - need authService for auth middleware
 	// Create auth service first for middleware initialization
 	authRepo := auth.NewRepository(db)
-	authService := auth.NewService(authRepo, &cfg.JWT)
+	authService := auth.NewServiceWithEmail(authRepo, &cfg.JWT, emailService)
 
 	authMiddleware := middleware.NewAuthMiddleware(authService)
 
@@ -70,10 +75,6 @@ func main() {
 	companyRepo := company.NewRepository(db)
 	chatRepo := chat.NewRepository(db)
 	profileRepo := profile.NewRepository(db)
-
-	// Initialize email service (needed by other services)
-	emailConfig := email.LoadConfigFromEnv()
-	emailService := email.NewService(emailConfig)
 
 	// Initialize other services
 	quotaService := quota.NewService(quotaRepo)
@@ -99,7 +100,11 @@ func main() {
 	dashboardHandler := dashboard.NewHandler(dashboardService)
 	chatHandler := chat.NewHandler(chatService, v, "./docs")
 	profileHandler := profile.NewHandler(profileService, v, "./docs")
-	
+
+	// Initialize recommendations module
+	recommendationsService := recommendations.NewService()
+	recommendationsHandler := recommendations.NewHandler(recommendationsService, jobsService, cvsService, profileService)
+
 	// Initialize company file service
 	companyFileService := company.NewFileService("./docs/companies")
 	companyHandler := company.NewHandler(companyService, companyFileService)
@@ -132,7 +137,7 @@ func main() {
 	r.Route("/api/v1", func(r chi.Router) {
 		// Register module routes with middleware functions
 		auth.RegisterRoutes(r, authHandler, authMiddleware.Authenticate)
-		jobs.RegisterRoutes(r, jobsHandler, authMiddleware.Authenticate, authMiddleware.RequireCompany)
+		jobs.RegisterRoutes(r, jobsHandler, authMiddleware.Authenticate, authMiddleware.RequireCompany, authMiddleware.RequireJobSeeker)
 		cvs.RegisterRoutes(r, cvsHandler, authMiddleware.Authenticate, authMiddleware.RequireJobSeeker)
 		profile.RegisterRoutes(r, profileHandler, authMiddleware.Authenticate, authMiddleware.RequireJobSeeker)
 		applications.RegisterRoutes(r, applicationsHandler, authMiddleware.Authenticate, authMiddleware.RequireJobSeeker, authMiddleware.RequireCompany)
@@ -142,6 +147,7 @@ func main() {
 		company.RegisterRoutes(r, companyHandler, authMiddleware.Authenticate)
 		chat.RegisterRoutes(r, chatHandler, authMiddleware)
 		policies.RegisterRoutes(r)
+		recommendations.RegisterRoutes(r, recommendationsHandler, authMiddleware.Authenticate)
 
 		// Admin module routes
 		adminModule := admin.NewModuleWithQuota(db, cfg, authMiddleware, quotaService, emailService, invoiceService)

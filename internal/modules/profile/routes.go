@@ -22,6 +22,9 @@ func RegisterRoutes(r chi.Router, h *Handler, authenticate, requireJobSeeker Mid
 		r.Put("/", h.UpdateProfile)
 		r.Delete("/", h.DeleteProfile)
 
+		// Avatar endpoint
+		r.Post("/avatar", h.UploadAvatar)
+
 		// Document endpoints
 		r.Route("/documents", func(r chi.Router) {
 			r.Get("/", h.GetDocuments)

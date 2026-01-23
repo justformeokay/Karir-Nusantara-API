@@ -18,6 +18,9 @@ type Repository interface {
 	UpdateProfile(ctx context.Context, profile *ApplicantProfile) error
 	DeleteProfile(ctx context.Context, userID uint64) error
 
+	// Avatar operations
+	UpdateUserAvatar(ctx context.Context, userID uint64, avatarURL string) error
+
 	// Document operations
 	CreateDocument(ctx context.Context, doc *ApplicantDocument) error
 	GetDocumentByID(ctx context.Context, id uint64) (*ApplicantDocument, error)
@@ -170,6 +173,16 @@ func (r *mysqlRepository) DeleteProfile(ctx context.Context, userID uint64) erro
 	_, err := r.db.ExecContext(ctx, query, userID)
 	if err != nil {
 		return fmt.Errorf("failed to delete profile: %w", err)
+	}
+	return nil
+}
+
+// UpdateUserAvatar updates user's avatar URL
+func (r *mysqlRepository) UpdateUserAvatar(ctx context.Context, userID uint64, avatarURL string) error {
+	query := `UPDATE users SET avatar_url = ?, updated_at = NOW() WHERE id = ? AND deleted_at IS NULL`
+	_, err := r.db.ExecContext(ctx, query, avatarURL, userID)
+	if err != nil {
+		return fmt.Errorf("failed to update user avatar: %w", err)
 	}
 	return nil
 }

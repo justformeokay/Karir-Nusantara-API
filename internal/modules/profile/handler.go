@@ -22,17 +22,19 @@ import (
 
 // Handler handles profile HTTP requests
 type Handler struct {
-	service   Service
-	validator *validator.Validator
-	docsPath  string
+	service    Service
+	validator  *validator.Validator
+	docsPath   string
+	avatarPath string
 }
 
 // NewHandler creates a new profile handler
 func NewHandler(service Service, validator *validator.Validator, docsPath string) *Handler {
 	return &Handler{
-		service:   service,
-		validator: validator,
-		docsPath:  docsPath,
+		service:    service,
+		validator:  validator,
+		docsPath:   docsPath,
+		avatarPath: filepath.Join(docsPath, "avatars"),
 	}
 }
 
@@ -99,6 +101,80 @@ func (h *Handler) DeleteProfile(w http.ResponseWriter, r *http.Request) {
 	}
 
 	response.NoContent(w)
+}
+
+// UploadAvatar handles POST /api/v1/profile/avatar
+func (h *Handler) UploadAvatar(w http.ResponseWriter, r *http.Request) {
+	userID := middleware.GetUserID(r.Context())
+	if userID == 0 {
+		response.Unauthorized(w, "Unauthorized")
+		return
+	}
+
+	// Parse multipart form (max 5MB for avatar)
+	if err := r.ParseMultipartForm(5 << 20); err != nil {
+		response.BadRequest(w, "Failed to parse form data. Max file size is 5MB")
+		return
+	}
+
+	// Get file
+	file, header, err := r.FormFile("avatar")
+	if err != nil {
+		response.BadRequest(w, "Avatar file is required")
+		return
+	}
+	defer file.Close()
+
+	// Validate file type (only images)
+	allowedTypes := map[string]bool{
+		"image/jpeg": true,
+		"image/png":  true,
+		"image/gif":  true,
+		"image/webp": true,
+	}
+
+	contentType := header.Header.Get("Content-Type")
+	if !allowedTypes[contentType] {
+		response.BadRequest(w, "Invalid file type. Allowed: JPG, PNG, GIF, WEBP")
+		return
+	}
+
+	// Create directory for avatars
+	if err := os.MkdirAll(h.avatarPath, 0755); err != nil {
+		response.InternalServerError(w, "Failed to create directory")
+		return
+	}
+
+	// Generate unique filename
+	ext := filepath.Ext(header.Filename)
+	filename := fmt.Sprintf("avatar_%d_%d%s", userID, time.Now().Unix(), ext)
+	filePath := filepath.Join(h.avatarPath, filename)
+
+	// Save file
+	dst, err := os.Create(filePath)
+	if err != nil {
+		response.InternalServerError(w, "Failed to save file")
+		return
+	}
+	defer dst.Close()
+
+	if _, err := io.Copy(dst, file); err != nil {
+		response.InternalServerError(w, "Failed to save file")
+		return
+	}
+
+	// Generate avatar URL
+	avatarURL := fmt.Sprintf("/docs/avatars/%s", filename)
+
+	// Update user avatar URL
+	if err := h.service.UpdateAvatar(r.Context(), userID, avatarURL); err != nil {
+		handleError(w, err)
+		return
+	}
+
+	response.OK(w, "Avatar uploaded successfully", map[string]string{
+		"avatar_url": avatarURL,
+	})
 }
 
 // ========================================

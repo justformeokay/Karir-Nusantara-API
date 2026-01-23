@@ -16,6 +16,9 @@ type Service interface {
 	CreateOrUpdateProfile(ctx context.Context, userID uint64, req *UpdateProfileRequest) (*ProfileResponse, error)
 	DeleteProfile(ctx context.Context, userID uint64) error
 
+	// Avatar operations
+	UpdateAvatar(ctx context.Context, userID uint64, avatarURL string) error
+
 	// Document operations
 	GetDocuments(ctx context.Context, userID uint64) ([]*DocumentResponse, error)
 	GetDocumentByID(ctx context.Context, docID uint64, userID uint64) (*DocumentResponse, error)
@@ -113,6 +116,14 @@ func (s *service) DeleteProfile(ctx context.Context, userID uint64) error {
 		return apperrors.NewInternalError("Failed to delete profile", err)
 	}
 
+	return nil
+}
+
+// UpdateAvatar updates the user's avatar URL
+func (s *service) UpdateAvatar(ctx context.Context, userID uint64, avatarURL string) error {
+	if err := s.repo.UpdateUserAvatar(ctx, userID, avatarURL); err != nil {
+		return apperrors.NewInternalError("Failed to update avatar", err)
+	}
 	return nil
 }
 

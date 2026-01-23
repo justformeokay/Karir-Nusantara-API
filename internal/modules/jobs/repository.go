@@ -21,7 +21,8 @@ type Repository interface {
 	ListByCompany(ctx context.Context, companyID uint64, params JobListParams) ([]*Job, int64, error)
 	IncrementViewCount(ctx context.Context, id uint64) error
 	IncrementApplicationCount(ctx context.Context, id uint64) error
-	
+	IncrementShareCount(ctx context.Context, id uint64) error
+
 	// Skills
 	AddSkills(ctx context.Context, jobID uint64, skills []string) error
 	GetSkills(ctx context.Context, jobID uint64) ([]JobSkill, error)
@@ -29,6 +30,12 @@ type Repository interface {
 
 	// Company info
 	GetCompanyInfo(ctx context.Context, companyID uint64) (*CompanyInfo, error)
+
+	// Tracking
+	RecordView(ctx context.Context, jobID, userID uint64) (bool, error) // Returns true if new view
+	RecordShare(ctx context.Context, jobID uint64, userID *uint64, platform string) error
+	HasUserViewed(ctx context.Context, jobID, userID uint64) (bool, error)
+	GetJobStats(ctx context.Context, jobID uint64) (*JobStatsResponse, error)
 }
 
 type mysqlRepository struct {
@@ -83,7 +90,7 @@ func (r *mysqlRepository) GetByID(ctx context.Context, id uint64) (*Job, error) 
 		SELECT id, company_id, title, slug, description, requirements, responsibilities, benefits,
 			   city, province, is_remote, job_type, experience_level,
 			   salary_min, salary_max, salary_currency, is_salary_visible,
-			   application_deadline, max_applications, status, views_count, applications_count,
+			   application_deadline, max_applications, status, views_count, applications_count, shares_count,
 			   published_at, created_at, updated_at, deleted_at
 		FROM jobs
 		WHERE id = ? AND deleted_at IS NULL
@@ -106,7 +113,7 @@ func (r *mysqlRepository) GetBySlug(ctx context.Context, slug string) (*Job, err
 		SELECT id, company_id, title, slug, description, requirements, responsibilities, benefits,
 			   city, province, is_remote, job_type, experience_level,
 			   salary_min, salary_max, salary_currency, is_salary_visible,
-			   application_deadline, max_applications, status, views_count, applications_count,
+			   application_deadline, max_applications, status, views_count, applications_count, shares_count,
 			   published_at, created_at, updated_at, deleted_at
 		FROM jobs
 		WHERE slug = ? AND deleted_at IS NULL
@@ -242,7 +249,7 @@ func (r *mysqlRepository) List(ctx context.Context, params JobListParams) ([]*Jo
 		SELECT id, company_id, title, slug, description, requirements, responsibilities, benefits,
 			   city, province, is_remote, job_type, experience_level,
 			   salary_min, salary_max, salary_currency, is_salary_visible,
-			   application_deadline, max_applications, status, views_count, applications_count,
+			   application_deadline, max_applications, status, views_count, applications_count, shares_count,
 			   published_at, created_at, updated_at, deleted_at
 		FROM jobs
 		WHERE %s
@@ -306,7 +313,7 @@ func (r *mysqlRepository) ListByCompany(ctx context.Context, companyID uint64, p
 		SELECT id, company_id, title, slug, description, requirements, responsibilities, benefits,
 			   city, province, is_remote, job_type, experience_level,
 			   salary_min, salary_max, salary_currency, is_salary_visible,
-			   application_deadline, max_applications, status, views_count, applications_count,
+			   application_deadline, max_applications, status, views_count, applications_count, shares_count,
 			   published_at, created_at, updated_at, deleted_at
 		FROM jobs
 		WHERE %s
@@ -373,7 +380,7 @@ func (r *mysqlRepository) DeleteSkills(ctx context.Context, jobID uint64) error 
 // GetCompanyInfo retrieves company info for a job
 func (r *mysqlRepository) GetCompanyInfo(ctx context.Context, companyID uint64) (*CompanyInfo, error) {
 	query := `SELECT id, company_name, company_logo_url, company_website, company_city, company_province FROM companies WHERE id = ? AND deleted_at IS NULL`
-	
+
 	var result struct {
 		ID       uint64         `db:"id"`
 		Name     sql.NullString `db:"company_name"`
@@ -382,7 +389,7 @@ func (r *mysqlRepository) GetCompanyInfo(ctx context.Context, companyID uint64) 
 		City     sql.NullString `db:"company_city"`
 		Province sql.NullString `db:"company_province"`
 	}
-	
+
 	if err := r.db.GetContext(ctx, &result, query, companyID); err != nil {
 		if errors.Is(err, sql.ErrNoRows) {
 			return nil, nil
@@ -397,5 +404,79 @@ func (r *mysqlRepository) GetCompanyInfo(ctx context.Context, companyID uint64) 
 		Website:  result.Website.String,
 		City:     result.City.String,
 		Province: result.Province.String,
+	}, nil
+}
+
+// IncrementShareCount increments the share count
+func (r *mysqlRepository) IncrementShareCount(ctx context.Context, id uint64) error {
+	query := `UPDATE jobs SET shares_count = shares_count + 1 WHERE id = ?`
+	_, err := r.db.ExecContext(ctx, query, id)
+	return err
+}
+
+// RecordView records a unique view for a job by a user
+// Returns true if this is a new view (user hasn't viewed this job before)
+func (r *mysqlRepository) RecordView(ctx context.Context, jobID, userID uint64) (bool, error) {
+	// Try to insert - if it already exists (due to unique constraint), it will fail
+	query := `INSERT INTO job_views (job_id, user_id, viewed_at) VALUES (?, ?, NOW())`
+	_, err := r.db.ExecContext(ctx, query, jobID, userID)
+	if err != nil {
+		// Check if it's a duplicate entry error (MySQL error 1062)
+		if strings.Contains(err.Error(), "Duplicate entry") || strings.Contains(err.Error(), "1062") {
+			return false, nil // Not a new view, but not an error
+		}
+		return false, fmt.Errorf("failed to record view: %w", err)
+	}
+	return true, nil // New view recorded
+}
+
+// RecordShare records a share event for a job
+func (r *mysqlRepository) RecordShare(ctx context.Context, jobID uint64, userID *uint64, platform string) error {
+	query := `INSERT INTO job_shares (job_id, user_id, platform, shared_at) VALUES (?, ?, ?, NOW())`
+	_, err := r.db.ExecContext(ctx, query, jobID, userID, platform)
+	if err != nil {
+		return fmt.Errorf("failed to record share: %w", err)
+	}
+	return nil
+}
+
+// HasUserViewed checks if a user has already viewed a job
+func (r *mysqlRepository) HasUserViewed(ctx context.Context, jobID, userID uint64) (bool, error) {
+	query := `SELECT COUNT(*) FROM job_views WHERE job_id = ? AND user_id = ?`
+	var count int
+	if err := r.db.GetContext(ctx, &count, query, jobID, userID); err != nil {
+		return false, fmt.Errorf("failed to check view: %w", err)
+	}
+	return count > 0, nil
+}
+
+// GetJobStats gets job statistics
+func (r *mysqlRepository) GetJobStats(ctx context.Context, jobID uint64) (*JobStatsResponse, error) {
+	query := `
+		SELECT id, title, views_count, applications_count, shares_count 
+		FROM jobs 
+		WHERE id = ? AND deleted_at IS NULL
+	`
+	var result struct {
+		ID                uint64 `db:"id"`
+		Title             string `db:"title"`
+		ViewsCount        uint64 `db:"views_count"`
+		ApplicationsCount uint64 `db:"applications_count"`
+		SharesCount       uint64 `db:"shares_count"`
+	}
+	if err := r.db.GetContext(ctx, &result, query, jobID); err != nil {
+		if errors.Is(err, sql.ErrNoRows) {
+			return nil, nil
+		}
+		return nil, fmt.Errorf("failed to get job stats: %w", err)
+	}
+
+	return &JobStatsResponse{
+		JobID:             result.ID,
+		HashID:            "", // Will be filled by service
+		Title:             result.Title,
+		ViewsCount:        result.ViewsCount,
+		ApplicationsCount: result.ApplicationsCount,
+		SharesCount:       result.SharesCount,
 	}, nil
 }

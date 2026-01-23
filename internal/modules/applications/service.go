@@ -82,6 +82,12 @@ func (s *service) Apply(ctx context.Context, userID uint64, req *ApplyJobRequest
 		return nil, apperrors.NewInternalError("Failed to create application", err)
 	}
 
+	// Increment job applications count
+	if err := s.jobService.IncrementApplicationCount(ctx, req.JobID); err != nil {
+		// Log error but don't fail the application
+		// The application was created successfully
+	}
+
 	// Add initial timeline event
 	event := &TimelineEvent{
 		ApplicationID:        app.ID,
