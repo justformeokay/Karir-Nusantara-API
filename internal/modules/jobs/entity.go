@@ -3,6 +3,8 @@ package jobs
 import (
 	"database/sql"
 	"time"
+
+	"github.com/karirnusantara/api/internal/shared/hashid"
 )
 
 // Job types
@@ -70,11 +72,20 @@ type Job struct {
 // CompanyInfo represents minimal company information for job listing
 type CompanyInfo struct {
 	ID       uint64 `json:"id"`
+	HashID   string `json:"hash_id,omitempty"`
 	Name     string `json:"name"`
 	LogoURL  string `json:"logo_url,omitempty"`
 	Website  string `json:"website,omitempty"`
 	City     string `json:"city,omitempty"`
 	Province string `json:"province,omitempty"`
+}
+
+// WithHashID adds hash_id to CompanyInfo
+func (c *CompanyInfo) WithHashID() *CompanyInfo {
+	if c != nil {
+		c.HashID = hashid.Encode(c.ID)
+	}
+	return c
 }
 
 // JobSkill represents a required skill for a job
@@ -88,6 +99,7 @@ type JobSkill struct {
 // JobResponse represents the job response for API
 type JobResponse struct {
 	ID                  uint64       `json:"id"`
+	HashID              string       `json:"hash_id"`
 	Title               string       `json:"title"`
 	Slug                string       `json:"slug"`
 	Description         string       `json:"description"`
@@ -126,6 +138,7 @@ type SalaryInfo struct {
 func (j *Job) ToResponse() *JobResponse {
 	resp := &JobResponse{
 		ID:          j.ID,
+		HashID:      hashid.Encode(j.ID),
 		Title:       j.Title,
 		Slug:        j.Slug,
 		Description: j.Description,
@@ -140,7 +153,7 @@ func (j *Job) ToResponse() *JobResponse {
 		ViewsCount:        j.ViewsCount,
 		ApplicationsCount: j.ApplicationsCount,
 		CreatedAt:         j.CreatedAt.Format(time.RFC3339),
-		Company:           j.Company,
+		Company:           j.Company.WithHashID(),
 	}
 
 	if j.Requirements.Valid {

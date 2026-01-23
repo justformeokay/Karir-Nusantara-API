@@ -3,6 +3,8 @@ package company
 import (
 	"database/sql"
 	"time"
+
+	"github.com/karirnusantara/api/internal/shared/hashid"
 )
 
 // ValidationError represents a validation error with code and message
@@ -47,6 +49,7 @@ type Company struct {
 // CompanyResponse represents company data for API responses
 type CompanyResponse struct {
 	ID                  uint64 `json:"id"`
+	HashID              string `json:"hash_id"`
 	UserID              uint64 `json:"user_id"`
 	CompanyName         string `json:"company_name,omitempty"`
 	CompanyDescription  string `json:"company_description,omitempty"`
@@ -71,6 +74,7 @@ type CompanyResponse struct {
 func (c *Company) ToResponse() *CompanyResponse {
 	resp := &CompanyResponse{
 		ID:            c.ID,
+		HashID:        hashid.Encode(c.ID),
 		UserID:        c.UserID,
 		CompanyStatus: c.CompanyStatus,
 		CreatedAt:     c.CreatedAt.Format(time.RFC3339),
@@ -120,6 +124,59 @@ func (c *Company) ToResponse() *CompanyResponse {
 	}
 	if c.EmployeeCount.Valid {
 		resp.EmployeeCount = int(c.EmployeeCount.Int64)
+	}
+
+	return resp
+}
+
+// PublicCompanyResponse represents company data for public API (job seekers view)
+type PublicCompanyResponse struct {
+	ID                 uint64 `json:"id"`
+	HashID             string `json:"hash_id"`
+	CompanyName        string `json:"company_name"`
+	CompanyDescription string `json:"company_description,omitempty"`
+	CompanyWebsite     string `json:"company_website,omitempty"`
+	CompanyLogoURL     string `json:"company_logo_url,omitempty"`
+	CompanyIndustry    string `json:"company_industry,omitempty"`
+	CompanySize        string `json:"company_size,omitempty"`
+	CompanyCity        string `json:"company_city,omitempty"`
+	CompanyProvince    string `json:"company_province,omitempty"`
+	EstablishedYear    int    `json:"established_year,omitempty"`
+}
+
+// ToPublicResponse converts Company to PublicCompanyResponse (public-safe data only)
+func (c *Company) ToPublicResponse() *PublicCompanyResponse {
+	resp := &PublicCompanyResponse{
+		ID:     c.ID,
+		HashID: hashid.Encode(c.ID),
+	}
+
+	if c.CompanyName.Valid {
+		resp.CompanyName = c.CompanyName.String
+	}
+	if c.CompanyDescription.Valid {
+		resp.CompanyDescription = c.CompanyDescription.String
+	}
+	if c.CompanyWebsite.Valid {
+		resp.CompanyWebsite = c.CompanyWebsite.String
+	}
+	if c.CompanyLogoURL.Valid {
+		resp.CompanyLogoURL = c.CompanyLogoURL.String
+	}
+	if c.CompanyIndustry.Valid {
+		resp.CompanyIndustry = c.CompanyIndustry.String
+	}
+	if c.CompanySize.Valid {
+		resp.CompanySize = c.CompanySize.String
+	}
+	if c.CompanyCity.Valid {
+		resp.CompanyCity = c.CompanyCity.String
+	}
+	if c.CompanyProvince.Valid {
+		resp.CompanyProvince = c.CompanyProvince.String
+	}
+	if c.EstablishedYear.Valid {
+		resp.EstablishedYear = int(c.EstablishedYear.Int64)
 	}
 
 	return resp

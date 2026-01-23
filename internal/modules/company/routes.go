@@ -12,7 +12,10 @@ type MiddlewareFunc func(http.Handler) http.Handler
 // RegisterRoutes registers company routes
 func RegisterRoutes(r chi.Router, h *Handler, authenticate MiddlewareFunc) {
 	r.Route("/companies", func(r chi.Router) {
-		// Protected routes
+		// Public routes - for job seekers to view company details
+		r.Get("/{id}", h.GetPublicCompanyProfile)
+
+		// Protected routes - for company owners
 		r.Group(func(r chi.Router) {
 			r.Use(authenticate)
 			r.Get("/profile", h.GetCompanyProfile)

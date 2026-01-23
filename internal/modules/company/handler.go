@@ -5,6 +5,8 @@ import (
 	"fmt"
 	"net/http"
 
+	"github.com/go-chi/chi/v5"
+	"github.com/karirnusantara/api/internal/shared/hashid"
 	"github.com/karirnusantara/api/internal/shared/response"
 )
 
@@ -197,4 +199,40 @@ func (h *Handler) UploadCompanyDocument(w http.ResponseWriter, r *http.Request) 
 		"doc_type": docType,
 		"file_url": fullPath,
 	})
+}
+
+// GetPublicCompanyProfile retrieves a company profile for public viewing (by job seekers)
+// GET /api/v1/companies/{id}
+func (h *Handler) GetPublicCompanyProfile(w http.ResponseWriter, r *http.Request) {
+	idStr := chi.URLParam(r, "id")
+	if idStr == "" {
+		response.BadRequest(w, "Company ID is required")
+		return
+	}
+
+	// Try to parse as hash_id first, then as numeric ID
+	var companyID uint64
+	var err error
+
+	// First try hash_id decode
+	companyID, err = hashid.Decode(idStr)
+	if err != nil {
+		// If hash_id decode fails, this could be a direct numeric ID (for backwards compatibility)
+		// but for security reasons, we reject numeric IDs
+		response.BadRequest(w, "Invalid company ID format")
+		return
+	}
+
+	company, err := h.service.GetPublicCompanyByID(r.Context(), companyID)
+	if err != nil {
+		response.InternalServerError(w, "Failed to get company profile")
+		return
+	}
+
+	if company == nil {
+		response.NotFound(w, "Company not found")
+		return
+	}
+
+	response.OK(w, "Company profile retrieved", company)
 }

@@ -11,6 +11,7 @@ import (
 type Service interface {
 	GetCompanyByUserID(ctx context.Context, userID uint64) (*CompanyResponse, error)
 	GetCompanyEntityByUserID(ctx context.Context, userID uint64) (*Company, error)
+	GetPublicCompanyByID(ctx context.Context, companyID uint64) (*PublicCompanyResponse, error)
 	CreateOrUpdateCompany(ctx context.Context, userID uint64, req *UpdateCompanyRequest) (*CompanyResponse, error)
 	UpdateCompanyLogoURL(ctx context.Context, companyID uint64, logoURL string) error
 	UpdateCompanyDocument(ctx context.Context, companyID uint64, docType, filePath string) error
@@ -52,6 +53,24 @@ func (s *service) GetCompanyEntityByUserID(ctx context.Context, userID uint64) (
 	}
 
 	return company, nil
+}
+
+// GetPublicCompanyByID retrieves public company information by ID (for job seekers)
+func (s *service) GetPublicCompanyByID(ctx context.Context, companyID uint64) (*PublicCompanyResponse, error) {
+	company, err := s.repo.GetByID(ctx, companyID)
+	if err != nil {
+		return nil, apperrors.NewInternalError("Failed to get company", err)
+	}
+	if company == nil {
+		return nil, nil
+	}
+
+	// Only return companies with verified status
+	if company.CompanyStatus != "verified" && company.CompanyStatus != "pending" {
+		return nil, nil
+	}
+
+	return company.ToPublicResponse(), nil
 }
 
 // CreateOrUpdateCompany creates or updates company information

@@ -3,6 +3,8 @@ package admin
 import (
 	"database/sql"
 	"time"
+
+	"github.com/karirnusantara/api/internal/shared/hashid"
 )
 
 // ============================================
@@ -32,6 +34,7 @@ type SimpleUser struct {
 // AdminUserResponse represents the admin user response
 type AdminUserResponse struct {
 	ID        uint64 `json:"id"`
+	HashID    string `json:"hash_id"`
 	Email     string `json:"email"`
 	FullName  string `json:"full_name"`
 	Role      string `json:"role"`
@@ -42,6 +45,7 @@ type AdminUserResponse struct {
 func (u *AdminUser) ToResponse() *AdminUserResponse {
 	return &AdminUserResponse{
 		ID:        u.ID,
+		HashID:    hashid.Encode(u.ID),
 		Email:     u.Email,
 		FullName:  u.FullName,
 		Role:      u.Role,
@@ -88,6 +92,7 @@ type CompanyAdmin struct {
 // CompanyAdminResponse represents the company response for admin API
 type CompanyAdminResponse struct {
 	ID                 uint64 `json:"id"`
+	HashID             string `json:"hash_id"`
 	Email              string `json:"email"`
 	FullName           string `json:"full_name"`
 	Phone              string `json:"phone,omitempty"`
@@ -109,6 +114,7 @@ type CompanyAdminResponse struct {
 func (c *CompanyAdmin) ToResponse() *CompanyAdminResponse {
 	resp := &CompanyAdminResponse{
 		ID:                c.ID,
+		HashID:            hashid.Encode(c.ID),
 		Email:             c.Email,
 		FullName:          c.FullName,
 		IsActive:          c.IsActive,

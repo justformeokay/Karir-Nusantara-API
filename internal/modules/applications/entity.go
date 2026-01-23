@@ -3,6 +3,8 @@ package applications
 import (
 	"database/sql"
 	"time"
+
+	"github.com/karirnusantara/api/internal/shared/hashid"
 )
 
 // Application statuses
@@ -43,6 +45,7 @@ type Application struct {
 // JobInfo represents minimal job information for application
 type JobInfo struct {
 	ID       uint64      `json:"id"`
+	HashID   string      `json:"hash_id"`
 	Title    string      `json:"title"`
 	Company  CompanyInfo `json:"company"`
 	City     string      `json:"city"`
@@ -53,6 +56,7 @@ type JobInfo struct {
 // CompanyInfo represents minimal company information
 type CompanyInfo struct {
 	ID      uint64 `json:"id"`
+	HashID  string `json:"hash_id"`
 	Name    string `json:"name"`
 	LogoURL string `json:"logo_url,omitempty"`
 }
@@ -60,6 +64,7 @@ type CompanyInfo struct {
 // ApplicantInfo represents minimal applicant information
 type ApplicantInfo struct {
 	ID       uint64 `json:"id"`
+	HashID   string `json:"hash_id"`
 	Name     string `json:"name"`
 	Email    string `json:"email"`
 	Phone    string `json:"phone,omitempty"`
@@ -136,6 +141,7 @@ func DefaultApplicationListParams() ApplicationListParams {
 // ApplicationResponse represents the application response
 type ApplicationResponse struct {
 	ID               uint64                  `json:"id"`
+	HashID           string                  `json:"hash_id"`
 	Job              *JobInfo                `json:"job"`
 	Applicant        *ApplicantInfo          `json:"applicant,omitempty"`
 	CVSnapshot       *CVSnapshotInfo         `json:"cv_snapshot,omitempty"`
@@ -163,6 +169,7 @@ type TimelineEventResponse struct {
 func (a *Application) ToResponse() *ApplicationResponse {
 	resp := &ApplicationResponse{
 		ID:               a.ID,
+		HashID:           hashid.Encode(a.ID),
 		Job:              a.Job,
 		Applicant:        a.Applicant,
 		CVSnapshot:       a.CVSnapshot,
@@ -170,6 +177,17 @@ func (a *Application) ToResponse() *ApplicationResponse {
 		StatusLabel:      GetStatusLabel(a.CurrentStatus),
 		AppliedAt:        a.AppliedAt.Format(time.RFC3339),
 		LastStatusUpdate: a.LastStatusUpdate.Format(time.RFC3339),
+	}
+
+	// Add hash_id to Job
+	if resp.Job != nil {
+		resp.Job.HashID = hashid.Encode(resp.Job.ID)
+		resp.Job.Company.HashID = hashid.Encode(resp.Job.Company.ID)
+	}
+
+	// Add hash_id to Applicant
+	if resp.Applicant != nil {
+		resp.Applicant.HashID = hashid.Encode(resp.Applicant.ID)
 	}
 
 	if a.CoverLetter.Valid {

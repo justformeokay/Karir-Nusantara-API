@@ -8,6 +8,7 @@ import (
 	"github.com/go-chi/chi/v5"
 	"github.com/karirnusantara/api/internal/middleware"
 	apperrors "github.com/karirnusantara/api/internal/shared/errors"
+	"github.com/karirnusantara/api/internal/shared/hashid"
 	"github.com/karirnusantara/api/internal/shared/response"
 	"github.com/karirnusantara/api/internal/shared/validator"
 )
@@ -24,6 +25,23 @@ func NewHandler(service Service, validator *validator.Validator) *Handler {
 		service:   service,
 		validator: validator,
 	}
+}
+
+// parseID parses the ID from URL parameter - supports both numeric ID and hash_id
+func parseID(idStr string) (uint64, error) {
+	// First try to parse as numeric ID
+	id, err := strconv.ParseUint(idStr, 10, 64)
+	if err == nil {
+		return id, nil
+	}
+
+	// If not numeric, try to decode as hash_id
+	id, err = hashid.Decode(idStr)
+	if err != nil {
+		return 0, err
+	}
+
+	return id, nil
 }
 
 // Create handles job creation
@@ -73,7 +91,7 @@ func (h *Handler) Create(w http.ResponseWriter, r *http.Request) {
 // GET /api/v1/jobs/{id}
 func (h *Handler) GetByID(w http.ResponseWriter, r *http.Request) {
 	idStr := chi.URLParam(r, "id")
-	id, err := strconv.ParseUint(idStr, 10, 64)
+	id, err := parseID(idStr)
 	if err != nil {
 		response.BadRequest(w, "Invalid job ID")
 		return
@@ -131,7 +149,7 @@ func (h *Handler) Update(w http.ResponseWriter, r *http.Request) {
 	companyID := company.ID
 
 	idStr := chi.URLParam(r, "id")
-	id, err := strconv.ParseUint(idStr, 10, 64)
+	id, err := parseID(idStr)
 	if err != nil {
 		response.BadRequest(w, "Invalid job ID")
 		return
@@ -179,7 +197,7 @@ func (h *Handler) Delete(w http.ResponseWriter, r *http.Request) {
 	companyID := company.ID
 
 	idStr := chi.URLParam(r, "id")
-	id, err := strconv.ParseUint(idStr, 10, 64)
+	id, err := parseID(idStr)
 	if err != nil {
 		response.BadRequest(w, "Invalid job ID")
 		return
@@ -304,7 +322,7 @@ func (h *Handler) Publish(w http.ResponseWriter, r *http.Request) {
 	companyID := company.ID
 
 	idStr := chi.URLParam(r, "id")
-	id, err := strconv.ParseUint(idStr, 10, 64)
+	id, err := parseID(idStr)
 	if err != nil {
 		response.BadRequest(w, "Invalid job ID")
 		return
@@ -341,7 +359,7 @@ func (h *Handler) Close(w http.ResponseWriter, r *http.Request) {
 	companyID := company.ID
 
 	idStr := chi.URLParam(r, "id")
-	id, err := strconv.ParseUint(idStr, 10, 64)
+	id, err := parseID(idStr)
 	if err != nil {
 		response.BadRequest(w, "Invalid job ID")
 		return
@@ -378,7 +396,7 @@ func (h *Handler) Pause(w http.ResponseWriter, r *http.Request) {
 	companyID := company.ID
 
 	idStr := chi.URLParam(r, "id")
-	id, err := strconv.ParseUint(idStr, 10, 64)
+	id, err := parseID(idStr)
 	if err != nil {
 		response.BadRequest(w, "Invalid job ID")
 		return
@@ -415,7 +433,7 @@ func (h *Handler) Reopen(w http.ResponseWriter, r *http.Request) {
 	companyID := company.ID
 
 	idStr := chi.URLParam(r, "id")
-	id, err := strconv.ParseUint(idStr, 10, 64)
+	id, err := parseID(idStr)
 	if err != nil {
 		response.BadRequest(w, "Invalid job ID")
 		return
