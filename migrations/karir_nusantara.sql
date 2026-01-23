@@ -3,7 +3,7 @@
 -- https://www.phpmyadmin.net/
 --
 -- Host: localhost
--- Generation Time: Jan 21, 2026 at 06:29 PM
+-- Generation Time: Jan 22, 2026 at 07:30 AM
 -- Server version: 10.4.28-MariaDB
 -- PHP Version: 8.0.28
 
@@ -103,6 +103,41 @@ CREATE TABLE `audit_logs` (
 -- --------------------------------------------------------
 
 --
+-- Table structure for table `chat_messages`
+--
+
+CREATE TABLE `chat_messages` (
+  `id` bigint(20) UNSIGNED NOT NULL,
+  `conversation_id` bigint(20) UNSIGNED NOT NULL,
+  `sender_id` bigint(20) UNSIGNED NOT NULL,
+  `sender_type` enum('company','admin') NOT NULL,
+  `message` text NOT NULL,
+  `attachment_url` varchar(500) DEFAULT NULL,
+  `attachment_type` enum('image','audio') DEFAULT NULL,
+  `attachment_filename` varchar(255) DEFAULT NULL,
+  `is_read` tinyint(1) DEFAULT 0,
+  `created_at` timestamp NOT NULL DEFAULT current_timestamp()
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+--
+-- Dumping data for table `chat_messages`
+--
+
+INSERT INTO `chat_messages` (`id`, `conversation_id`, `sender_id`, `sender_type`, `message`, `attachment_url`, `attachment_type`, `attachment_filename`, `is_read`, `created_at`) VALUES
+(1, 1, 7, 'company', 'Halo admin, saya coba posting lowongan gagal', NULL, NULL, NULL, 0, '2026-01-21 17:48:41'),
+(2, 1, 1, 'admin', 'Halo, saya sudah cek. Mohon pastikan kuota posting Anda masih tersedia. Silakan cek di menu Dashboard.', NULL, NULL, NULL, 1, '2026-01-21 17:49:18'),
+(3, 4, 7, 'company', 'Test message from E2E script', NULL, NULL, NULL, 0, '2026-01-22 01:39:48'),
+(4, 4, 1, 'admin', 'Admin reply: Percakapan sudah diterima. Terima kasih!', NULL, NULL, NULL, 1, '2026-01-22 01:39:49'),
+(5, 4, 7, 'company', 'heyy', NULL, NULL, NULL, 0, '2026-01-22 01:53:38'),
+(6, 3, 7, 'company', 'testtt', NULL, NULL, NULL, 0, '2026-01-22 01:59:55'),
+(7, 3, 7, 'company', '🎤 Pesan Suara', '/uploads/chat/7_1769048557.webm', 'audio', 'voice_1769048553734.webm', 0, '2026-01-22 02:22:37'),
+(8, 3, 7, 'company', 'test bang', '/uploads/chat/7_1769048600.png', 'image', 'Screenshot 2026-01-21 at 6.20.01 PM.png', 0, '2026-01-22 02:23:20'),
+(9, 3, 7, 'company', 'sdas', NULL, NULL, NULL, 0, '2026-01-22 02:42:59'),
+(10, 4, 7, 'company', 'hello bang', NULL, NULL, NULL, 0, '2026-01-22 03:14:46');
+
+-- --------------------------------------------------------
+
+--
 -- Table structure for table `companies`
 --
 
@@ -165,8 +200,36 @@ CREATE TABLE `company_quotas` (
 
 INSERT INTO `company_quotas` (`id`, `company_id`, `free_quota_used`, `paid_quota`, `created_at`, `updated_at`) VALUES
 (1, 4, 0, 0, '2026-01-18 07:15:18', '2026-01-18 07:15:18'),
-(2, 7, 10, 16, '2026-01-18 09:14:40', '2026-01-21 16:40:27'),
+(2, 7, 10, 10, '2026-01-18 09:14:40', '2026-01-22 06:17:52'),
 (3, 1, 2, 0, '2026-01-20 07:33:46', '2026-01-20 07:34:26');
+
+-- --------------------------------------------------------
+
+--
+-- Table structure for table `conversations`
+--
+
+CREATE TABLE `conversations` (
+  `id` bigint(20) UNSIGNED NOT NULL,
+  `company_id` bigint(20) UNSIGNED NOT NULL,
+  `title` varchar(255) NOT NULL,
+  `subject` text NOT NULL,
+  `category` enum('complaint','helpdesk','general','urgent') DEFAULT 'general',
+  `status` enum('open','in_progress','resolved','closed') DEFAULT 'open',
+  `created_at` timestamp NOT NULL DEFAULT current_timestamp(),
+  `updated_at` timestamp NOT NULL DEFAULT current_timestamp() ON UPDATE current_timestamp(),
+  `closed_at` timestamp NULL DEFAULT NULL
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+--
+-- Dumping data for table `conversations`
+--
+
+INSERT INTO `conversations` (`id`, `company_id`, `title`, `subject`, `category`, `status`, `created_at`, `updated_at`, `closed_at`) VALUES
+(1, 7, 'Help Desk: Tidak bisa posting lowongan baru', 'Tidak bisa posting lowongan baru', 'helpdesk', 'closed', '2026-01-21 17:42:17', '2026-01-22 03:15:05', '2026-01-22 03:15:05'),
+(2, 7, 'Help Desk: Tidak bisa posting lowongan baru', 'Tidak bisa posting lowongan baru', 'helpdesk', 'resolved', '2026-01-21 17:42:27', '2026-01-21 17:49:26', NULL),
+(3, 7, 'Pertanyaan: Test dari curl', 'Test dari curl', 'general', 'closed', '2026-01-22 01:38:43', '2026-01-22 03:03:32', '2026-01-22 03:03:32'),
+(4, 7, 'Help Desk: Test E2E Chat', 'Test E2E Chat', 'helpdesk', 'closed', '2026-01-22 01:39:48', '2026-01-22 03:14:59', '2026-01-22 03:14:59');
 
 -- --------------------------------------------------------
 
@@ -317,7 +380,13 @@ INSERT INTO `jobs` (`id`, `company_id`, `title`, `slug`, `description`, `require
 (46, 1, 'Extra Job Beyond Quota', 'extra-job-beyond-quota', 'This job should fail because we have exhausted all free quota and have not paid for additional quota.', 'Experience required', 'Development work', 'Benefits provided', 'Jakarta', 'DKI Jakarta', 0, 'full_time', 'senior', NULL, NULL, 'IDR', 0, NULL, NULL, 'active', NULL, NULL, NULL, 0, 0, '2026-01-20 09:38:16', '2026-01-20 09:38:16', '2026-01-20 09:38:16', NULL),
 (47, 1, 'Frontend Developer - Draft Test', 'frontend-developer-draft-test', 'Ini adalah lowongan test yang disimpan sebagai draft. Deskripsi minimal 50 karakter untuk validasi.', 'Persyaratan test minimal 30 karakter untuk validasi.', NULL, NULL, 'Jakarta', 'DKI Jakarta', 0, 'full_time', 'junior', NULL, NULL, 'IDR', 0, NULL, NULL, 'draft', NULL, NULL, NULL, 0, 0, NULL, '2026-01-20 09:55:43', '2026-01-20 09:55:43', NULL),
 (48, 1, 'Sales Marketing', 'sales-marketing', 'Tanggung Jawab Pekerjaan\n\nMencapai target\nMenjaga hubungan dengan pelanggan\nRiset pemasaran\nMenjalankan promosi perusahaan\nSyarat & Keahlian\n\nMin lulusan SMA\nUsia 20 - 45 tahun\nPengalaman tidak diutamakan\nPria/Wanita\nRajin dan bertanggung jawab\n\nPengalaman\n\nTidak diutamakan\nBenefit\n\nKomisi, Piknik', 'Max age 28\nMinimum Bachelor Degree in any major\nMin GPA 3.00\nFresh graduates are welcome to apply\nInterest to work in broadcasting industry\nHave a good looking\nHave a good communication & presentation skill\nHave a good networking skill', NULL, NULL, 'Sidaorjo', 'Jawa Timur', 0, 'contract', 'junior', 4000000, 4000000, 'IDR', 1, '2026-02-12', NULL, 'draft', NULL, NULL, NULL, 0, 0, NULL, '2026-01-20 10:00:06', '2026-01-20 10:00:06', NULL),
-(49, 1, 'Graphic Designer', 'graphic-designer', 'This is a full-time remote Senior Graphic Designer role starting in March. You will create polished, globally appealing designs for social media, e-commerce, and marketing campaigns, working closely with an international team. Intermediate English communication is required.\nWork Type: Remote\nEmployment: Full-time\nLevel: Senior\nEnglish: Intermediate (daily team communication)\nSalary: HKD 5,000 / month\n≈ IDR 10,800,000 / month\n\nKey Responsibilities\nCreate high-quality visual designs for social media, ads, campaigns, and e-commerce\nDesign using Canva as the main tool for all primary visuals\nEnsure designs meet international beauty brand standards\nMaintain brand consistency across all platforms\nCollaborate with cross-border teams and respond to feedback\nPrepare final assets for digital publishing', 'Senior-level experience (3+ years) as a Graphic Designer\nExcellent Canva skills (primary tool for all main designs)\nStrong understanding of global / international design aesthetics\nAbility to design for international audiences, not local-only styles\nStrong sense of typography, layout, spacing, and color\nIntermediate English (spoken & written) for team communication\nAble to work independently and meet deadlines\nPortfolio showing modern, clean, internationally relevant designs', NULL, NULL, 'Jakarta', 'DKI Jakarta', 0, 'contract', 'junior', 2400000, 3000000, 'IDR', 1, '2026-02-21', NULL, 'active', NULL, NULL, NULL, 0, 0, '2026-01-21 13:52:32', '2026-01-21 13:52:32', '2026-01-21 13:52:32', NULL);
+(49, 1, 'Graphic Designer', 'graphic-designer', 'This is a full-time remote Senior Graphic Designer role starting in March. You will create polished, globally appealing designs for social media, e-commerce, and marketing campaigns, working closely with an international team. Intermediate English communication is required.\nWork Type: Remote\nEmployment: Full-time\nLevel: Senior\nEnglish: Intermediate (daily team communication)\nSalary: HKD 5,000 / month\n≈ IDR 10,800,000 / month\n\nKey Responsibilities\nCreate high-quality visual designs for social media, ads, campaigns, and e-commerce\nDesign using Canva as the main tool for all primary visuals\nEnsure designs meet international beauty brand standards\nMaintain brand consistency across all platforms\nCollaborate with cross-border teams and respond to feedback\nPrepare final assets for digital publishing', 'Senior-level experience (3+ years) as a Graphic Designer\nExcellent Canva skills (primary tool for all main designs)\nStrong understanding of global / international design aesthetics\nAbility to design for international audiences, not local-only styles\nStrong sense of typography, layout, spacing, and color\nIntermediate English (spoken & written) for team communication\nAble to work independently and meet deadlines\nPortfolio showing modern, clean, internationally relevant designs', NULL, NULL, 'Jakarta', 'DKI Jakarta', 0, 'contract', 'junior', 2400000, 3000000, 'IDR', 1, '2026-02-21', NULL, 'active', NULL, NULL, NULL, 0, 0, '2026-01-21 13:52:32', '2026-01-21 13:52:32', '2026-01-21 13:52:32', NULL),
+(50, 1, 'Backend Developer - Email Notification Test', 'backend-developer-email-notification-test', 'Testing email notification feature untuk job posting', 'Menguasai Go, MySQL, dan email integration', NULL, NULL, 'Jakarta', 'DKI Jakarta', 0, 'full_time', 'mid', NULL, NULL, 'IDR', 0, NULL, NULL, 'active', NULL, NULL, NULL, 0, 0, '2026-01-22 03:58:55', '2026-01-22 03:58:55', '2026-01-22 03:58:55', NULL),
+(51, 1, 'Frontend Developer - Test Email v2', 'frontend-developer-test-email-v2', 'Testing email notification feature dengan debug logs untuk memastikan email terkirim dengan benar ke alamat company yang terdaftar', NULL, NULL, NULL, 'Bandung', 'Jawa Barat', 0, 'full_time', 'junior', NULL, NULL, 'IDR', 0, NULL, NULL, 'active', NULL, NULL, NULL, 0, 0, '2026-01-22 04:00:54', '2026-01-22 04:00:54', '2026-01-22 04:00:54', NULL),
+(52, 1, 'QA Engineer - Email Test With Correct Binary', 'qa-engineer-email-test-with-correct-binary', 'Testing email notification feature dengan binary yang sudah terupdate untuk memastikan email terkirim dengan sempurna', NULL, NULL, NULL, 'Surabaya', 'Jawa Timur', 0, 'full_time', 'mid', NULL, NULL, 'IDR', 0, NULL, NULL, 'active', NULL, NULL, NULL, 0, 0, '2026-01-22 04:02:07', '2026-01-22 04:02:07', '2026-01-22 04:02:07', NULL),
+(53, 1, 'DevOps Engineer - Final Email Notification Test', 'devops-engineer-final-email-notification-test', 'Testing email notification dengan background context agar tidak ter-cancel saat request selesai dan email dapat terkirim dengan sempurna', NULL, NULL, NULL, 'Yogyakarta', 'DI Yogyakarta', 0, 'full_time', 'senior', NULL, NULL, 'IDR', 0, NULL, NULL, 'active', NULL, NULL, NULL, 0, 0, '2026-01-22 04:08:45', '2026-01-22 04:08:45', '2026-01-22 04:08:45', NULL),
+(54, 1, 'Accounting', 'accounting', 'Tentang Kami Twister Communications adalah creative agency yang fokus pada brand activation, event management, dan design services untuk brand multinasional dan lokal di Indonesia.\n\nDeskripsi Pekerjaan Kami mencari Accounting Staff yang teliti untuk mendukung Divisi Finance, Accounting and Tax dalam mengelola tugas Accounting secara keseluruhan sesuai dengan standar operasional Perusahaan.\n\nTugas & Tanggungjawab\n\nMelakukan pencatatan transaksi keuangan harian secara akurat dan tepat waktu\n\nMenyusun dan menginput jurnal akuntansi ke dalam sistem\n\nMelakukan rekonsiliasi bank serta memastikan kesesuaian saldo kas dan bank\n\nMembantu proses closing laporan keuangan bulanan dan tahunan\n\nMenyusun dan memeriksa laporan keuangan (Laba Rugi, Neraca, Arus Kas)\n\nMenyiapkan data pendukung untuk kebutuhan audit internal maupun eksternal\n\nMembantu pengelolaan dan pelaporan perpajakan (PPN, PPh 21, PPh 23, dll)\n\nMengarsipkan dokumen keuangan dan perpajakan secara rapi dan sistematis\n\nMengoperasikan dan memastikan data pada software akuntansi selalu update\n\nMemastikan seluruh proses akuntansi berjalan sesuai SOP dan kebijakan perusahaan\n\nTugas terkait lainnya sesuai yang diberikan', 'Pendidikan minimal S1 Akuntansi\n\nMempunyai pengalaman 1 tahun sebagai Accounting Staff lebih diutamakan\n\nMengetahui program Accounting (contoh: Accurate, ERP)\n\nMahir rumus excel seperti vlookup & pivot\n\nMenguasai Ms Office\n\nTeliti, Jujur, Cekatan dan bertanggung jawab\n\nMampu bekerja dalam lingkungan yang dinamis\n\nMampu bekerja dalam team\n\nDiutamakan berpengalaman pada bidang Jasa\n\nFresh Graduate are Welcome', NULL, NULL, 'Sidaorjo', 'Jawa Timur', 0, 'full_time', 'junior', NULL, NULL, 'IDR', 1, '2026-02-22', NULL, 'active', NULL, NULL, NULL, 0, 0, '2026-01-22 05:52:04', '2026-01-22 05:52:04', '2026-01-22 05:52:04', NULL),
+(55, 1, 'Full Stack Developer - Email Test dengan Logging Detail', 'full-stack-developer-email-test-dengan-logging-detail', 'Kami mencari Full Stack Developer yang berpengalaman untuk bergabung dengan tim kami. Posisi ini akan fokus pada pengembangan aplikasi web modern menggunakan teknologi terkini.', 'Minimal 2 tahun pengalaman, menguasai React, Node.js, dan database', NULL, NULL, 'Jakarta', 'DKI Jakarta', 0, 'full_time', 'mid', NULL, NULL, 'IDR', 0, NULL, NULL, 'active', NULL, NULL, NULL, 0, 0, '2026-01-22 06:17:52', '2026-01-22 06:17:52', '2026-01-22 06:17:52', NULL);
 
 -- --------------------------------------------------------
 
@@ -405,7 +474,21 @@ INSERT INTO `job_skills` (`id`, `job_id`, `skill_name`, `is_required`) VALUES
 (66, 26, 'TypeScript', 1),
 (67, 26, 'React', 1),
 (68, 26, 'Go', 1),
-(69, 26, 'PostgreSQL', 1);
+(69, 26, 'PostgreSQL', 1),
+(70, 50, 'Golang', 1),
+(71, 50, 'MySQL', 1),
+(72, 50, 'SMTP', 1),
+(73, 51, 'React', 1),
+(74, 51, 'TypeScript', 1),
+(75, 52, 'Testing', 1),
+(76, 52, 'Automation', 1),
+(77, 53, 'Docker', 1),
+(78, 53, 'Kubernetes', 1),
+(79, 53, 'CI/CD', 1),
+(80, 55, 'React', 1),
+(81, 55, 'Node.js', 1),
+(82, 55, 'PostgreSQL', 1),
+(83, 55, 'Docker', 1);
 
 -- --------------------------------------------------------
 
@@ -685,7 +768,51 @@ INSERT INTO `refresh_tokens` (`id`, `user_id`, `token_hash`, `expires_at`, `revo
 (183, 7, '4d4aa5cf728096d896034d7daaf3bc268de7bded465f4774625c8930487361d7', '2026-01-28 17:00:59', NULL, '', '', '2026-01-21 17:00:59'),
 (184, 7, 'a7f6a2d0d947550e975ac39c7c983dc5fef17240637fff48419ec451b7237ac5', '2026-01-28 17:06:28', NULL, '', '', '2026-01-21 17:06:28'),
 (185, 7, 'b63821332b0379ffb7f7210d32aa189e1160c19b14a5495623fbbf69abadb66d', '2026-01-28 17:21:32', NULL, '', '', '2026-01-21 17:21:32'),
-(186, 7, '07e1fb865f9cc86d965b4eb90a812a005b23738032fb73121e6cc2cf4277871a', '2026-01-28 17:26:43', NULL, '', '', '2026-01-21 17:26:43');
+(186, 7, '07e1fb865f9cc86d965b4eb90a812a005b23738032fb73121e6cc2cf4277871a', '2026-01-28 17:26:43', NULL, '', '', '2026-01-21 17:26:43'),
+(187, 7, 'f44c607cf5946770534702e5589da85733022238717f69dc84df8c54a2c2550e', '2026-01-28 17:42:01', NULL, '', '', '2026-01-21 17:42:01'),
+(188, 7, 'e210546052cb8a77355ce589d4ba34caa8b049c6cbd93b4d8c22629c1e348a76', '2026-01-28 17:42:07', NULL, '', '', '2026-01-21 17:42:07'),
+(189, 7, '9ae015e407d35bd95f6cdf5cb6cf9c564ef65daa5fc3441ccbd7b0d37ac9942a', '2026-01-28 17:43:34', NULL, '', '', '2026-01-21 17:43:34'),
+(190, 7, '41a6335ef8d35dd1d01fd1a2b5b595bb3bdb148df746865996a1fa1197942323', '2026-01-28 17:43:41', NULL, '', '', '2026-01-21 17:43:41'),
+(191, 7, '468f316b8de9e790cf1fd839f89cc313826af83a7bafc3adb367ac3079739ef5', '2026-01-28 17:48:41', NULL, '', '', '2026-01-21 17:48:41'),
+(192, 7, '644556ecbea846cb87ebebdfd95230dcf5c5db2b503e7000d48d3811491d8dab', '2026-01-28 17:48:50', NULL, '', '', '2026-01-21 17:48:50'),
+(193, 1, 'dd2f39eedbf9b68865e6b14688671a3063e9cf7b5ec486a8f4fe56508f12b1a2', '2026-01-28 17:49:00', NULL, '', '', '2026-01-21 17:49:00'),
+(194, 1, 'c340a51ade96fa04d3579290135cbd2d7ec811b8c7e1b3551236868441030fc1', '2026-01-28 17:49:18', NULL, '', '', '2026-01-21 17:49:18'),
+(195, 1, 'a4de93a856ea2213c4034b815baf40e14692157fdf9602278990fabed8ce96c7', '2026-01-28 17:49:26', NULL, '', '', '2026-01-21 17:49:26'),
+(196, 7, '5dfb0f476366fee6a245526fc89cdab119e4a2df1478fcf960596564614fe150', '2026-01-28 17:53:05', NULL, '', '', '2026-01-21 17:53:05'),
+(197, 7, 'c4a421a85cd63e73256121a0f8a425846a6da0c8758dfcaaee41d4e9d0893fb4', '2026-01-29 01:34:23', NULL, '', '', '2026-01-22 01:34:23'),
+(198, 7, '2651c19610b13f8e6b379da9d79cc9c509a03141f327eff79530352ca0895a4d', '2026-01-29 01:38:43', NULL, '', '', '2026-01-22 01:38:43'),
+(199, 7, '7271a2a6e9c89365b05143c22ea79cbfbbe5fdbdb46c00686a5d1469569961ae', '2026-01-29 01:39:02', NULL, '', '', '2026-01-22 01:39:02'),
+(200, 7, 'b935b60717abc9c35a208e8b3e5d4573e20b856439f6f40af6789d6059936ea8', '2026-01-29 01:39:48', NULL, '', '', '2026-01-22 01:39:48'),
+(201, 1, '75aa6395138bcad48ac94afa5f7f59088f9d4c207b6b8a68a60aeb0a7b0b9f2b', '2026-01-29 01:39:49', NULL, '', '', '2026-01-22 01:39:49'),
+(202, 7, '5c8883baa4f8013274454d4447020ec2ee1d9315a18a618d41e142caaecd37a4', '2026-01-29 01:53:27', NULL, '', '', '2026-01-22 01:53:27'),
+(203, 7, '102c1da2c1d87ed26c58b4023a119de8be117d0104c845f55b9d61cbc5f4f871', '2026-01-29 02:22:03', NULL, '', '', '2026-01-22 02:22:03'),
+(204, 7, 'd2b79945bbe5910c3d1fb31100cc7b6fc516a94312cf5c2506bfce67e5a911b8', '2026-01-29 02:41:56', NULL, '', '', '2026-01-22 02:41:56'),
+(205, 7, '7ceb88c4f7674949c1c0535fd4bb72c08b5937a43f15f51bf5bbee6bf3d04322', '2026-01-29 02:51:07', NULL, '', '', '2026-01-22 02:51:07'),
+(206, 7, '247833d3b3d8560d31780b5c45f7e5d162ba19d0c77e1958085d63073696d967', '2026-01-29 02:51:24', NULL, '', '', '2026-01-22 02:51:24'),
+(207, 7, '6289f07e8077fc534549b244bb2989b6b72b13e932e56ed42f451a8ba986b14b', '2026-01-29 02:51:39', NULL, '', '', '2026-01-22 02:51:39'),
+(208, 7, '1618899e2e7b472f2b878ab3d5272def795ec4a129cc68274a33139464b02bd7', '2026-01-29 02:57:06', NULL, '', '', '2026-01-22 02:57:06'),
+(209, 7, 'ee142b36e58ca27bea31bc07b382064cd2a6dd4cc734fe50bd222bbe4ec037a6', '2026-01-29 02:57:15', NULL, '', '', '2026-01-22 02:57:15'),
+(210, 7, '6e79072e5d36b114660f1d9de136d246394e627ff627dc2c3186636752a52820', '2026-01-29 03:03:32', NULL, '', '', '2026-01-22 03:03:32'),
+(211, 7, '6a30a6abb4b0922c0d328ec1f59f5e2f33bf23e6bc71acac5d44e7ae8f40f571', '2026-01-29 03:03:41', NULL, '', '', '2026-01-22 03:03:41'),
+(212, 7, 'e93f81c3e53bf78ab49466157d406f7280ff4e87ed4dc4d0af7e7d62dd6e2dc5', '2026-01-29 03:03:52', NULL, '', '', '2026-01-22 03:03:52'),
+(213, 7, '1399e07a14073cefe9f49cccde1722e352df5c981964b2be68d79feb3c24678b', '2026-01-29 03:04:26', NULL, '', '', '2026-01-22 03:04:26'),
+(214, 7, '0fc0a0d2c8d886a0e793e492a2e9d91f9a17cf4c2f0a4544c641a5284264cea0', '2026-01-29 03:04:56', NULL, '', '', '2026-01-22 03:04:56'),
+(215, 7, 'ab1c1d9d2068522e18b058f0d223011da553b920b89d510e6b319b49b637ddc1', '2026-01-29 03:13:03', NULL, '', '', '2026-01-22 03:13:03'),
+(216, 7, '02bb5cdfec46fa208b1798b9fb684e95176fa82e7124dc0b544965972ea9f04a', '2026-01-29 03:23:24', NULL, '', '', '2026-01-22 03:23:24'),
+(217, 7, '6fa36beb607cc78ebe5c683ceac07875518802ae3a979aec3674148053577522', '2026-01-29 03:52:55', NULL, '', '', '2026-01-22 03:52:55'),
+(218, 7, '12ac41638b5dd40b70e51fec7278857eba8fa3ba45df6fecbb07af3a10791441', '2026-01-29 03:53:40', NULL, '', '', '2026-01-22 03:53:40'),
+(219, 7, '893ec89224aad0149e4d16d472658fa6acfc23a196840c479be58289c819173b', '2026-01-29 03:58:54', NULL, '', '', '2026-01-22 03:58:54'),
+(220, 7, '2fbf32a24a6e9eff6c99447d3e22061186f94fdd4c8115e709e12a8fbe88ba7f', '2026-01-29 04:00:38', NULL, '', '', '2026-01-22 04:00:38'),
+(221, 7, '44aad3f97669d592b439c0073346350f553b1955d28cb399ec20a09a2b113f68', '2026-01-29 04:00:53', NULL, '', '', '2026-01-22 04:00:53'),
+(222, 7, '3cb3f4712d8912034ae40320809bfb361e595adda85117a4081740f0e9df5867', '2026-01-29 04:02:07', NULL, '', '', '2026-01-22 04:02:07'),
+(223, 7, '19014b0e639d7bbdce980ad2f9d8dc0405e6dec2b9698aef4f6fb419a9c18041', '2026-01-29 04:08:44', NULL, '', '', '2026-01-22 04:08:44'),
+(224, 7, '41948ca0c577557b09f6ba756aba13d3d6be3506da331c3bd45b84b414032366', '2026-01-29 04:15:35', NULL, '', '', '2026-01-22 04:15:35'),
+(225, 7, 'b9d82e8d33cda0c3c712c272c679ba15a58cd4d39740eacbe1fd73606ecb61db', '2026-01-29 05:50:08', NULL, '', '', '2026-01-22 05:50:08'),
+(226, 7, '9d1a0b07a9ea44ca9dd0c17a50aca4ad0fc72d44ad2a3c4c84e40b5ea44821a5', '2026-01-29 06:02:37', NULL, '', '', '2026-01-22 06:02:37'),
+(227, 7, 'f3dc71bb619d23bcac83db9602a21fea5041533d7190d53bfd49f761b4f923ea', '2026-01-29 06:17:15', NULL, '', '', '2026-01-22 06:17:15'),
+(228, 7, '5fe0f41c4a0f2826d79626bd21b3cb9c4de2782aa404c9349789904cdd50c044', '2026-01-29 06:17:20', NULL, '', '', '2026-01-22 06:17:20'),
+(229, 7, 'a21e7b461c6ab444b1f67cc4d6dd5023c388b4e9876616c8ea2802e821dfa100', '2026-01-29 06:17:51', NULL, '', '', '2026-01-22 06:17:51'),
+(230, 7, 'de905dde15c990dad3e1d969968a5c194580d19be65afb03dc05c7e60ff6f317', '2026-01-29 06:18:07', NULL, '', '', '2026-01-22 06:18:07');
 
 -- --------------------------------------------------------
 
@@ -777,6 +904,17 @@ ALTER TABLE `audit_logs`
   ADD KEY `idx_audit_logs_created_at` (`created_at`);
 
 --
+-- Indexes for table `chat_messages`
+--
+ALTER TABLE `chat_messages`
+  ADD PRIMARY KEY (`id`),
+  ADD KEY `idx_conversation_id` (`conversation_id`),
+  ADD KEY `idx_sender_id` (`sender_id`),
+  ADD KEY `idx_created_at` (`created_at`),
+  ADD KEY `idx_is_read` (`is_read`),
+  ADD KEY `idx_attachment_type` (`attachment_type`);
+
+--
 -- Indexes for table `companies`
 --
 ALTER TABLE `companies`
@@ -794,6 +932,16 @@ ALTER TABLE `company_quotas`
   ADD PRIMARY KEY (`id`),
   ADD UNIQUE KEY `company_id` (`company_id`),
   ADD KEY `idx_company_quotas_company_id` (`company_id`);
+
+--
+-- Indexes for table `conversations`
+--
+ALTER TABLE `conversations`
+  ADD PRIMARY KEY (`id`),
+  ADD KEY `idx_company_id` (`company_id`),
+  ADD KEY `idx_status` (`status`),
+  ADD KEY `idx_category` (`category`),
+  ADD KEY `idx_created_at` (`created_at`);
 
 --
 -- Indexes for table `cvs`
@@ -922,6 +1070,12 @@ ALTER TABLE `audit_logs`
   MODIFY `id` bigint(20) UNSIGNED NOT NULL AUTO_INCREMENT;
 
 --
+-- AUTO_INCREMENT for table `chat_messages`
+--
+ALTER TABLE `chat_messages`
+  MODIFY `id` bigint(20) UNSIGNED NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=11;
+
+--
 -- AUTO_INCREMENT for table `companies`
 --
 ALTER TABLE `companies`
@@ -932,6 +1086,12 @@ ALTER TABLE `companies`
 --
 ALTER TABLE `company_quotas`
   MODIFY `id` bigint(20) UNSIGNED NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=4;
+
+--
+-- AUTO_INCREMENT for table `conversations`
+--
+ALTER TABLE `conversations`
+  MODIFY `id` bigint(20) UNSIGNED NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=5;
 
 --
 -- AUTO_INCREMENT for table `cvs`
@@ -949,13 +1109,13 @@ ALTER TABLE `cv_snapshots`
 -- AUTO_INCREMENT for table `jobs`
 --
 ALTER TABLE `jobs`
-  MODIFY `id` bigint(20) UNSIGNED NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=50;
+  MODIFY `id` bigint(20) UNSIGNED NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=56;
 
 --
 -- AUTO_INCREMENT for table `job_skills`
 --
 ALTER TABLE `job_skills`
-  MODIFY `id` bigint(20) UNSIGNED NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=70;
+  MODIFY `id` bigint(20) UNSIGNED NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=84;
 
 --
 -- AUTO_INCREMENT for table `notifications`
@@ -979,7 +1139,7 @@ ALTER TABLE `payments`
 -- AUTO_INCREMENT for table `refresh_tokens`
 --
 ALTER TABLE `refresh_tokens`
-  MODIFY `id` bigint(20) UNSIGNED NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=187;
+  MODIFY `id` bigint(20) UNSIGNED NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=231;
 
 --
 -- AUTO_INCREMENT for table `saved_jobs`
@@ -1012,6 +1172,13 @@ ALTER TABLE `application_timelines`
   ADD CONSTRAINT `fk_timelines_application` FOREIGN KEY (`application_id`) REFERENCES `applications` (`id`) ON DELETE CASCADE;
 
 --
+-- Constraints for table `chat_messages`
+--
+ALTER TABLE `chat_messages`
+  ADD CONSTRAINT `chat_messages_ibfk_1` FOREIGN KEY (`conversation_id`) REFERENCES `conversations` (`id`) ON DELETE CASCADE,
+  ADD CONSTRAINT `chat_messages_ibfk_2` FOREIGN KEY (`sender_id`) REFERENCES `users` (`id`) ON DELETE CASCADE;
+
+--
 -- Constraints for table `companies`
 --
 ALTER TABLE `companies`
@@ -1023,6 +1190,12 @@ ALTER TABLE `companies`
 --
 ALTER TABLE `company_quotas`
   ADD CONSTRAINT `company_quotas_ibfk_1` FOREIGN KEY (`company_id`) REFERENCES `users` (`id`) ON DELETE CASCADE;
+
+--
+-- Constraints for table `conversations`
+--
+ALTER TABLE `conversations`
+  ADD CONSTRAINT `conversations_ibfk_1` FOREIGN KEY (`company_id`) REFERENCES `users` (`id`) ON DELETE CASCADE;
 
 --
 -- Constraints for table `cvs`

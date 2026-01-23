@@ -73,6 +73,8 @@ type CompanyInfo struct {
 	Name     string `json:"name"`
 	LogoURL  string `json:"logo_url,omitempty"`
 	Website  string `json:"website,omitempty"`
+	City     string `json:"city,omitempty"`
+	Province string `json:"province,omitempty"`
 }
 
 // JobSkill represents a required skill for a job

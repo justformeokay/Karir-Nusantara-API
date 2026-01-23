@@ -372,13 +372,15 @@ func (r *mysqlRepository) DeleteSkills(ctx context.Context, jobID uint64) error 
 
 // GetCompanyInfo retrieves company info for a job
 func (r *mysqlRepository) GetCompanyInfo(ctx context.Context, companyID uint64) (*CompanyInfo, error) {
-	query := `SELECT id, company_name, company_logo_url, company_website FROM companies WHERE id = ? AND deleted_at IS NULL`
+	query := `SELECT id, company_name, company_logo_url, company_website, company_city, company_province FROM companies WHERE id = ? AND deleted_at IS NULL`
 	
 	var result struct {
-		ID         uint64         `db:"id"`
-		Name       sql.NullString `db:"company_name"`
-		LogoURL    sql.NullString `db:"company_logo_url"`
-		Website    sql.NullString `db:"company_website"`
+		ID       uint64         `db:"id"`
+		Name     sql.NullString `db:"company_name"`
+		LogoURL  sql.NullString `db:"company_logo_url"`
+		Website  sql.NullString `db:"company_website"`
+		City     sql.NullString `db:"company_city"`
+		Province sql.NullString `db:"company_province"`
 	}
 	
 	if err := r.db.GetContext(ctx, &result, query, companyID); err != nil {
@@ -389,9 +391,11 @@ func (r *mysqlRepository) GetCompanyInfo(ctx context.Context, companyID uint64) 
 	}
 
 	return &CompanyInfo{
-		ID:      result.ID,
-		Name:    result.Name.String,
-		LogoURL: result.LogoURL.String,
-		Website: result.Website.String,
+		ID:       result.ID,
+		Name:     result.Name.String,
+		LogoURL:  result.LogoURL.String,
+		Website:  result.Website.String,
+		City:     result.City.String,
+		Province: result.Province.String,
 	}, nil
 }
