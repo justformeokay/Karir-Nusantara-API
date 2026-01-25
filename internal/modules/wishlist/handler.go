@@ -4,10 +4,12 @@ import (
 	"encoding/json"
 	"net/http"
 	"strconv"
+	"strings"
 
 	"github.com/go-chi/chi/v5"
 	"github.com/karirnusantara/api/internal/middleware"
 	apperrors "github.com/karirnusantara/api/internal/shared/errors"
+	"github.com/karirnusantara/api/internal/shared/hashid"
 	"github.com/karirnusantara/api/internal/shared/response"
 	"github.com/karirnusantara/api/internal/shared/validator"
 )
@@ -26,6 +28,26 @@ func NewHandler(service Service, validator *validator.Validator) *Handler {
 	}
 }
 
+// parseJobID parses a job ID which can be either a numeric ID or a hash_id
+func parseJobID(idStr string) (uint64, error) {
+	// First try to parse as numeric ID
+	id, err := strconv.ParseUint(idStr, 10, 64)
+	if err == nil {
+		return id, nil
+	}
+
+	// If not numeric, try to decode as hash_id (starts with "kn_")
+	if strings.HasPrefix(idStr, "kn_") {
+		id, err = hashid.Decode(idStr)
+		if err != nil {
+			return 0, err
+		}
+		return id, nil
+	}
+
+	return 0, err
+}
+
 // SaveJob handles saving a job to wishlist
 func (h *Handler) SaveJob(w http.ResponseWriter, r *http.Request) {
 	userID := middleware.GetUserID(r.Context())
@@ -36,8 +58,19 @@ func (h *Handler) SaveJob(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	if errors := h.validator.Validate(&req); errors != nil {
-		response.UnprocessableEntity(w, "Validation failed", errors)
+	// Parse hash_id if provided
+	if req.HashID != "" && req.JobID == 0 {
+		decoded, err := hashid.Decode(req.HashID)
+		if err != nil {
+			response.BadRequest(w, "Invalid hash_id")
+			return
+		}
+		req.JobID = decoded
+	}
+
+	// Validate that we have a job_id
+	if req.JobID == 0 {
+		response.BadRequest(w, "job_id or hash_id is required")
 		return
 	}
 
@@ -54,7 +87,7 @@ func (h *Handler) SaveJob(w http.ResponseWriter, r *http.Request) {
 func (h *Handler) RemoveJob(w http.ResponseWriter, r *http.Request) {
 	userID := middleware.GetUserID(r.Context())
 
-	jobID, err := strconv.ParseUint(chi.URLParam(r, "jobId"), 10, 64)
+	jobID, err := parseJobID(chi.URLParam(r, "jobId"))
 	if err != nil {
 		response.BadRequest(w, "Invalid job ID")
 		return
@@ -108,7 +141,7 @@ func (h *Handler) ListSavedJobs(w http.ResponseWriter, r *http.Request) {
 func (h *Handler) CheckSaved(w http.ResponseWriter, r *http.Request) {
 	userID := middleware.GetUserID(r.Context())
 
-	jobID, err := strconv.ParseUint(chi.URLParam(r, "jobId"), 10, 64)
+	jobID, err := parseJobID(chi.URLParam(r, "jobId"))
 	if err != nil {
 		response.BadRequest(w, "Invalid job ID")
 		return

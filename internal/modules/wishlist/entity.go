@@ -43,7 +43,8 @@ type CompanyInfo struct {
 
 // SaveJobRequest represents the request to save a job
 type SaveJobRequest struct {
-	JobID uint64 `json:"job_id" validate:"required"`
+	JobID  uint64 `json:"job_id"`
+	HashID string `json:"hash_id"`
 }
 
 // ListParams represents pagination parameters

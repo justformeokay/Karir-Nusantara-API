@@ -101,11 +101,11 @@ func (r *repository) ListByUser(ctx context.Context, userID uint64, params ListP
 			j.job_type as "job.job_type", j.experience_level as "job.experience_level",
 			j.salary_min as "job.salary_min", j.salary_max as "job.salary_max",
 			j.status as "job.status", j.created_at as "job.created_at",
-			u.id as "job.company.id", u.company_name as "job.company.name", 
-			u.company_logo_url as "job.company.logo_url"
+			c.id as "job.company.id", c.company_name as "job.company.name", 
+			c.company_logo_url as "job.company.logo_url"
 		FROM saved_jobs sj
 		JOIN jobs j ON sj.job_id = j.id
-		JOIN users u ON j.company_id = u.id
+		JOIN companies c ON j.company_id = c.id
 		WHERE sj.user_id = ?
 		ORDER BY sj.created_at DESC
 		LIMIT ? OFFSET ?
