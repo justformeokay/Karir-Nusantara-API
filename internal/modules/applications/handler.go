@@ -141,7 +141,7 @@ func (h *Handler) ListCompanyApplications(w http.ResponseWriter, r *http.Request
 
 // ListJobApplications handles listing applications for a specific job
 func (h *Handler) ListJobApplications(w http.ResponseWriter, r *http.Request) {
-	jobID, err := strconv.ParseUint(chi.URLParam(r, "jobId"), 10, 64)
+	jobID, err := parseID(chi.URLParam(r, "jobId"))
 	if err != nil {
 		response.BadRequest(w, "Invalid job ID")
 		return
