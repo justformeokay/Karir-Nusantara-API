@@ -8,6 +8,7 @@ import (
 	"github.com/go-chi/chi/v5"
 	"github.com/karirnusantara/api/internal/middleware"
 	apperrors "github.com/karirnusantara/api/internal/shared/errors"
+	"github.com/karirnusantara/api/internal/shared/hashid"
 	"github.com/karirnusantara/api/internal/shared/response"
 	"github.com/karirnusantara/api/internal/shared/validator"
 )
@@ -24,6 +25,23 @@ func NewHandler(service Service, validator *validator.Validator) *Handler {
 		service:   service,
 		validator: validator,
 	}
+}
+
+// parseID parses the ID from URL parameter - supports both numeric ID and hash_id
+func parseID(idStr string) (uint64, error) {
+	// First try to parse as numeric ID
+	id, err := strconv.ParseUint(idStr, 10, 64)
+	if err == nil {
+		return id, nil
+	}
+
+	// If not numeric, try to decode as hash_id
+	id, err = hashid.Decode(idStr)
+	if err != nil {
+		return 0, err
+	}
+
+	return id, nil
 }
 
 // Apply handles job application submission
@@ -52,7 +70,7 @@ func (h *Handler) Apply(w http.ResponseWriter, r *http.Request) {
 
 // GetByID handles getting a single application
 func (h *Handler) GetByID(w http.ResponseWriter, r *http.Request) {
-	id, err := strconv.ParseUint(chi.URLParam(r, "id"), 10, 64)
+	id, err := parseID(chi.URLParam(r, "id"))
 	if err != nil {
 		response.BadRequest(w, "Invalid application ID")
 		return
@@ -94,7 +112,15 @@ func (h *Handler) ListMyApplications(w http.ResponseWriter, r *http.Request) {
 
 // ListCompanyApplications handles listing applications for a company
 func (h *Handler) ListCompanyApplications(w http.ResponseWriter, r *http.Request) {
-	companyID := middleware.GetUserID(r.Context())
+	userID := middleware.GetUserID(r.Context())
+
+	// Get company ID from user ID
+	companyID, err := h.service.GetCompanyIDByUserID(r.Context(), userID)
+	if err != nil {
+		handleError(w, err)
+		return
+	}
+
 	params := h.parseListParams(r)
 
 	apps, total, err := h.service.ListByCompany(r.Context(), companyID, params)
@@ -121,7 +147,15 @@ func (h *Handler) ListJobApplications(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	companyID := middleware.GetUserID(r.Context())
+	userID := middleware.GetUserID(r.Context())
+
+	// Get company ID from user ID
+	companyID, err := h.service.GetCompanyIDByUserID(r.Context(), userID)
+	if err != nil {
+		handleError(w, err)
+		return
+	}
+
 	params := h.parseListParams(r)
 
 	apps, total, err := h.service.ListByJob(r.Context(), jobID, companyID, params)
@@ -142,13 +176,20 @@ func (h *Handler) ListJobApplications(w http.ResponseWriter, r *http.Request) {
 
 // UpdateStatus handles updating application status by company
 func (h *Handler) UpdateStatus(w http.ResponseWriter, r *http.Request) {
-	id, err := strconv.ParseUint(chi.URLParam(r, "id"), 10, 64)
+	id, err := parseID(chi.URLParam(r, "id"))
 	if err != nil {
 		response.BadRequest(w, "Invalid application ID")
 		return
 	}
 
-	companyID := middleware.GetUserID(r.Context())
+	userID := middleware.GetUserID(r.Context())
+
+	// Get company ID from user ID
+	companyID, err := h.service.GetCompanyIDByUserID(r.Context(), userID)
+	if err != nil {
+		handleError(w, err)
+		return
+	}
 
 	var req UpdateStatusRequest
 	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
@@ -172,7 +213,7 @@ func (h *Handler) UpdateStatus(w http.ResponseWriter, r *http.Request) {
 
 // Withdraw handles application withdrawal by applicant
 func (h *Handler) Withdraw(w http.ResponseWriter, r *http.Request) {
-	id, err := strconv.ParseUint(chi.URLParam(r, "id"), 10, 64)
+	id, err := parseID(chi.URLParam(r, "id"))
 	if err != nil {
 		response.BadRequest(w, "Invalid application ID")
 		return
@@ -196,7 +237,7 @@ func (h *Handler) Withdraw(w http.ResponseWriter, r *http.Request) {
 
 // GetTimeline handles getting application timeline
 func (h *Handler) GetTimeline(w http.ResponseWriter, r *http.Request) {
-	id, err := strconv.ParseUint(chi.URLParam(r, "id"), 10, 64)
+	id, err := parseID(chi.URLParam(r, "id"))
 	if err != nil {
 		response.BadRequest(w, "Invalid application ID")
 		return

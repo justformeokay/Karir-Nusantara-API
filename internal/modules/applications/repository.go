@@ -3,6 +3,7 @@ package applications
 import (
 	"context"
 	"database/sql"
+	"encoding/json"
 	"errors"
 	"fmt"
 	"strings"
@@ -28,6 +29,7 @@ type Repository interface {
 	GetJobInfo(ctx context.Context, jobID uint64) (*JobInfo, error)
 	GetApplicantInfo(ctx context.Context, userID uint64) (*ApplicantInfo, error)
 	GetCVSnapshotInfo(ctx context.Context, snapshotID uint64) (*CVSnapshotInfo, error)
+	GetCompanyIDByUserID(ctx context.Context, userID uint64) (uint64, error)
 }
 
 type mysqlRepository struct {
@@ -306,13 +308,14 @@ func (r *mysqlRepository) GetJobInfo(ctx context.Context, jobID uint64) (*JobInf
 
 // GetApplicantInfo retrieves applicant info
 func (r *mysqlRepository) GetApplicantInfo(ctx context.Context, userID uint64) (*ApplicantInfo, error) {
-	query := `SELECT id, full_name, email, phone FROM users WHERE id = ?`
+	query := `SELECT id, full_name, email, phone, avatar_url FROM users WHERE id = ?`
 
 	var result struct {
-		ID    uint64         `db:"id"`
-		Name  string         `db:"full_name"`
-		Email string         `db:"email"`
-		Phone sql.NullString `db:"phone"`
+		ID        uint64         `db:"id"`
+		Name      string         `db:"full_name"`
+		Email     string         `db:"email"`
+		Phone     sql.NullString `db:"phone"`
+		AvatarURL sql.NullString `db:"avatar_url"`
 	}
 
 	if err := r.db.GetContext(ctx, &result, query, userID); err != nil {
@@ -323,20 +326,28 @@ func (r *mysqlRepository) GetApplicantInfo(ctx context.Context, userID uint64) (
 	}
 
 	return &ApplicantInfo{
-		ID:    result.ID,
-		Name:  result.Name,
-		Email: result.Email,
-		Phone: result.Phone.String,
+		ID:        result.ID,
+		Name:      result.Name,
+		Email:     result.Email,
+		Phone:     result.Phone.String,
+		AvatarURL: result.AvatarURL.String,
 	}, nil
 }
 
-// GetCVSnapshotInfo retrieves CV snapshot info
+// GetCVSnapshotInfo retrieves CV snapshot info with full details
 func (r *mysqlRepository) GetCVSnapshotInfo(ctx context.Context, snapshotID uint64) (*CVSnapshotInfo, error) {
-	query := `SELECT id, completeness_score, created_at FROM cv_snapshots WHERE id = ?`
+	query := `SELECT id, completeness_score, personal_info, education, experience, skills, certifications, languages, projects, created_at FROM cv_snapshots WHERE id = ?`
 
 	var result struct {
 		ID                uint64    `db:"id"`
 		CompletenessScore int       `db:"completeness_score"`
+		PersonalInfo      string    `db:"personal_info"`
+		Education         string    `db:"education"`
+		Experience        string    `db:"experience"`
+		Skills            string    `db:"skills"`
+		Certifications    string    `db:"certifications"`
+		Languages         string    `db:"languages"`
+		Projects          string    `db:"projects"`
 		CreatedAt         time.Time `db:"created_at"`
 	}
 
@@ -347,9 +358,47 @@ func (r *mysqlRepository) GetCVSnapshotInfo(ctx context.Context, snapshotID uint
 		return nil, fmt.Errorf("failed to get CV snapshot info: %w", err)
 	}
 
-	return &CVSnapshotInfo{
+	snapshot := &CVSnapshotInfo{
 		ID:                result.ID,
 		CompletenessScore: result.CompletenessScore,
 		CreatedAt:         result.CreatedAt.Format(time.RFC3339),
-	}, nil
+	}
+
+	// Parse JSON fields
+	if result.PersonalInfo != "" && result.PersonalInfo != "null" {
+		json.Unmarshal([]byte(result.PersonalInfo), &snapshot.PersonalInfo)
+	}
+	if result.Education != "" && result.Education != "null" {
+		json.Unmarshal([]byte(result.Education), &snapshot.Education)
+	}
+	if result.Experience != "" && result.Experience != "null" {
+		json.Unmarshal([]byte(result.Experience), &snapshot.Experience)
+	}
+	if result.Skills != "" && result.Skills != "null" {
+		json.Unmarshal([]byte(result.Skills), &snapshot.Skills)
+	}
+	if result.Certifications != "" && result.Certifications != "null" {
+		json.Unmarshal([]byte(result.Certifications), &snapshot.Certifications)
+	}
+	if result.Languages != "" && result.Languages != "null" {
+		json.Unmarshal([]byte(result.Languages), &snapshot.Languages)
+	}
+	if result.Projects != "" && result.Projects != "null" {
+		json.Unmarshal([]byte(result.Projects), &snapshot.Projects)
+	}
+
+	return snapshot, nil
+}
+
+// GetCompanyIDByUserID retrieves company ID for a given user ID
+func (r *mysqlRepository) GetCompanyIDByUserID(ctx context.Context, userID uint64) (uint64, error) {
+	var companyID uint64
+	query := `SELECT id FROM companies WHERE user_id = ? AND deleted_at IS NULL`
+	if err := r.db.GetContext(ctx, &companyID, query, userID); err != nil {
+		if errors.Is(err, sql.ErrNoRows) {
+			return 0, fmt.Errorf("company not found for user ID %d", userID)
+		}
+		return 0, fmt.Errorf("failed to get company ID: %w", err)
+	}
+	return companyID, nil
 }

@@ -19,6 +19,7 @@ type Service interface {
 	ListByJob(ctx context.Context, jobID uint64, companyID uint64, params ApplicationListParams) ([]*ApplicationResponse, int64, error)
 	UpdateStatus(ctx context.Context, applicationID uint64, companyID uint64, req *UpdateStatusRequest) (*ApplicationResponse, error)
 	Withdraw(ctx context.Context, applicationID uint64, userID uint64, reason string) error
+	GetCompanyIDByUserID(ctx context.Context, userID uint64) (uint64, error)
 }
 
 type service struct {
@@ -358,4 +359,9 @@ func (s *service) loadApplicationRelations(ctx context.Context, app *Application
 	app.Timeline = timeline
 
 	return nil
+}
+
+// GetCompanyIDByUserID retrieves company ID for a given user ID
+func (s *service) GetCompanyIDByUserID(ctx context.Context, userID uint64) (uint64, error) {
+	return s.repo.GetCompanyIDByUserID(ctx, userID)
 }

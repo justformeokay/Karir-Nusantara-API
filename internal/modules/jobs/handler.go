@@ -103,8 +103,8 @@ func (h *Handler) GetByID(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	// Increment view count (async would be better in production)
-	go h.service.IncrementViewCount(r.Context(), id)
+	// Note: View tracking is handled by POST /jobs/{id}/view endpoint
+	// which ensures unique views per user (one view per user per job)
 
 	response.OK(w, "Job retrieved", job)
 }

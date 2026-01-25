@@ -63,18 +63,26 @@ type CompanyInfo struct {
 
 // ApplicantInfo represents minimal applicant information
 type ApplicantInfo struct {
-	ID       uint64 `json:"id"`
-	HashID   string `json:"hash_id"`
-	Name     string `json:"name"`
-	Email    string `json:"email"`
-	Phone    string `json:"phone,omitempty"`
+	ID        uint64 `json:"id"`
+	HashID    string `json:"hash_id"`
+	Name      string `json:"name"`
+	Email     string `json:"email"`
+	Phone     string `json:"phone,omitempty"`
+	AvatarURL string `json:"avatar_url,omitempty"`
 }
 
-// CVSnapshotInfo represents minimal CV snapshot information
+// CVSnapshotInfo represents CV snapshot information
 type CVSnapshotInfo struct {
-	ID                uint64 `json:"id"`
-	CompletenessScore int    `json:"completeness_score"`
-	CreatedAt         string `json:"created_at"`
+	ID                uint64                   `json:"id"`
+	CompletenessScore int                      `json:"completeness_score"`
+	PersonalInfo      map[string]interface{}   `json:"personal_info,omitempty"`
+	Education         []map[string]interface{} `json:"education,omitempty"`
+	Experience        []map[string]interface{} `json:"experience,omitempty"`
+	Skills            []map[string]interface{} `json:"skills,omitempty"`
+	Certifications    []map[string]interface{} `json:"certifications,omitempty"`
+	Languages         []map[string]interface{} `json:"languages,omitempty"`
+	Projects          []map[string]interface{} `json:"projects,omitempty"`
+	CreatedAt         string                   `json:"created_at"`
 }
 
 // TimelineEvent represents an application timeline event

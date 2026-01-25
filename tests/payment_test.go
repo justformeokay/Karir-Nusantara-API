@@ -2,7 +2,6 @@ package tests
 
 import (
 	"encoding/json"
-	"fmt"
 	"net/http"
 	"testing"
 
@@ -49,8 +48,8 @@ func TestPayment_ProofStoredWithPendingStatus(t *testing.T) {
 	// Note: In real test, you'd use multipart/form-data for file upload
 	// This is a simplified version
 	payload := map[string]interface{}{
-		"quantity":   5,
-		"proof_url":  "https://example.com/proof.jpg", // Simulated
+		"quantity":  5,
+		"proof_url": "https://example.com/proof.jpg", // Simulated
 	}
 
 	resp := makeAuthenticatedRequest(t, "POST", "/api/v1/company/quota/payment", token, payload)

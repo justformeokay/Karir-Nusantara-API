@@ -4,6 +4,7 @@ import (
 	"time"
 
 	"github.com/jmoiron/sqlx"
+	"github.com/karirnusantara/api/internal/shared/hashid"
 )
 
 // Repository handles database operations for dashboard
@@ -99,6 +100,7 @@ func (r *Repository) GetRecentApplicants(companyID uint64, limit int) ([]RecentA
 	for i, row := range rows {
 		applicants[i] = RecentApplicant{
 			ID:             row.ID,
+			HashID:         hashid.Encode(row.ID),
 			ApplicantName:  row.ApplicantName,
 			ApplicantPhoto: row.ApplicantPhoto,
 			JobID:          row.JobID,
@@ -146,6 +148,7 @@ func (r *Repository) GetActiveJobs(companyID uint64, limit int) ([]ActiveJob, er
 	for i, row := range rows {
 		jobs[i] = ActiveJob{
 			ID:              row.ID,
+			HashID:          hashid.Encode(row.ID),
 			Title:           row.Title,
 			Status:          row.Status,
 			ApplicantsCount: row.ApplicantsCount,
