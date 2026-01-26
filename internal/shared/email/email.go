@@ -52,7 +52,7 @@ func LoadConfigFromEnv() *Config {
 // Equivalent to PHP's SMTPOptions with verify_peer=false, allow_self_signed=true
 func (s *Service) SendEmail(to string, subject string, body string) error {
 	from := fmt.Sprintf("%s <%s>", s.config.FromName, s.config.FromEmail)
-	
+
 	// Setup message headers
 	headers := make(map[string]string)
 	headers["From"] = from
@@ -74,7 +74,7 @@ func (s *Service) SendEmail(to string, subject string, body string) error {
 	host := s.config.SMTPHost
 	addr := fmt.Sprintf("%s:%s", host, s.config.SMTPPort)
 	log.Printf("[EMAIL] Connecting to SMTP server: %s", addr)
-	
+
 	// Establish connection
 	conn, err := net.Dial("tcp", addr)
 	if err != nil {
@@ -148,7 +148,7 @@ func (s *Service) SendEmail(to string, subject string, body string) error {
 // SendWelcomeEmail sends welcome email to new company
 func (s *Service) SendWelcomeEmail(to string, companyName string, fullName string) error {
 	subject := "Selamat Datang di Karir Nusantara"
-	
+
 	tmpl := `
 <!DOCTYPE html>
 <html>
@@ -208,7 +208,7 @@ func (s *Service) SendWelcomeEmail(to string, companyName string, fullName strin
 // SendJobSeekerWelcomeEmail sends welcome email to new job seeker
 func (s *Service) SendJobSeekerWelcomeEmail(to string, fullName string) error {
 	subject := "Selamat Datang di Karir Nusantara!"
-	
+
 	tmpl := `
 <!DOCTYPE html>
 <html>
@@ -324,10 +324,10 @@ func (s *Service) SendJobSeekerWelcomeEmail(to string, fullName string) error {
 // SendPasswordResetEmail sends password reset email
 func (s *Service) SendPasswordResetEmail(to string, resetToken string, fullName string) error {
 	subject := "Reset Password - Karir Nusantara"
-	
-	// URL untuk reset password di frontend
-	resetURL := fmt.Sprintf("https://company.karirnusantara.com/reset-password?token=%s", resetToken)
-	
+
+	// URL untuk reset password di frontend job seeker
+	resetURL := fmt.Sprintf("http://localhost:8080/reset-password?token=%s", resetToken)
+
 	tmpl := `
 <!DOCTYPE html>
 <html>
@@ -396,7 +396,7 @@ func (s *Service) SendPasswordResetEmail(to string, resetToken string, fullName 
 // SendPasswordChangeConfirmationEmail sends confirmation email after password change
 func (s *Service) SendPasswordChangeConfirmationEmail(to string, fullName string) error {
 	subject := "Password Berhasil Diubah - Karir Nusantara"
-	
+
 	tmpl := `
 <!DOCTYPE html>
 <html>
@@ -468,22 +468,22 @@ func (s *Service) SendPasswordChangeConfirmationEmail(to string, fullName string
 // SendEmailWithAttachment sends an email with PDF attachment
 func (s *Service) SendEmailWithAttachment(to string, subject string, htmlBody string, attachmentPath string) error {
 	from := fmt.Sprintf("%s <%s>", s.config.FromName, s.config.FromEmail)
-	
+
 	// Read attachment file
 	fileData, err := os.ReadFile(attachmentPath)
 	if err != nil {
 		return fmt.Errorf("failed to read attachment: %w", err)
 	}
-	
+
 	// Get filename
 	filename := filepath.Base(attachmentPath)
-	
+
 	// Generate boundary
 	boundary := "boundary_karir_nusantara_" + fmt.Sprintf("%d", len(fileData))
-	
+
 	// Build email with attachment
 	var message bytes.Buffer
-	
+
 	// Headers
 	message.WriteString(fmt.Sprintf("From: %s\r\n", from))
 	message.WriteString(fmt.Sprintf("To: %s\r\n", to))
@@ -491,7 +491,7 @@ func (s *Service) SendEmailWithAttachment(to string, subject string, htmlBody st
 	message.WriteString("MIME-Version: 1.0\r\n")
 	message.WriteString(fmt.Sprintf("Content-Type: multipart/mixed; boundary=\"%s\"\r\n", boundary))
 	message.WriteString("\r\n")
-	
+
 	// HTML Body
 	message.WriteString(fmt.Sprintf("--%s\r\n", boundary))
 	message.WriteString("Content-Type: text/html; charset=\"UTF-8\"\r\n")
@@ -499,14 +499,14 @@ func (s *Service) SendEmailWithAttachment(to string, subject string, htmlBody st
 	message.WriteString("\r\n")
 	message.WriteString(htmlBody)
 	message.WriteString("\r\n\r\n")
-	
+
 	// PDF Attachment
 	message.WriteString(fmt.Sprintf("--%s\r\n", boundary))
 	message.WriteString("Content-Type: application/pdf\r\n")
 	message.WriteString(fmt.Sprintf("Content-Disposition: attachment; filename=\"%s\"\r\n", filename))
 	message.WriteString("Content-Transfer-Encoding: base64\r\n")
 	message.WriteString("\r\n")
-	
+
 	// Encode file to base64
 	encoded := base64.StdEncoding.EncodeToString(fileData)
 	// Split into 76-character lines (RFC 2045)
@@ -517,80 +517,80 @@ func (s *Service) SendEmailWithAttachment(to string, subject string, htmlBody st
 		}
 		message.WriteString(encoded[i:end] + "\r\n")
 	}
-	
+
 	message.WriteString("\r\n")
 	message.WriteString(fmt.Sprintf("--%s--\r\n", boundary))
-	
+
 	// Send via SMTP
 	host := s.config.SMTPHost
 	addr := fmt.Sprintf("%s:%s", host, s.config.SMTPPort)
-	
+
 	// Establish connection
 	conn, err := net.Dial("tcp", addr)
 	if err != nil {
 		return fmt.Errorf("failed to connect to SMTP server: %w", err)
 	}
 	defer conn.Close()
-	
+
 	// Create SMTP client
 	client, err := smtp.NewClient(conn, host)
 	if err != nil {
 		return fmt.Errorf("failed to create SMTP client: %w", err)
 	}
 	defer client.Close()
-	
+
 	// TLS config
 	tlsConfig := &tls.Config{
 		InsecureSkipVerify: true,
 		ServerName:         host,
 	}
-	
+
 	// Start TLS
 	if err = client.StartTLS(tlsConfig); err != nil {
 		return fmt.Errorf("failed to start TLS: %w", err)
 	}
-	
+
 	// Authenticate
 	auth := smtp.PlainAuth("", s.config.SMTPUser, s.config.SMTPPassword, host)
 	if err = client.Auth(auth); err != nil {
 		return fmt.Errorf("failed to authenticate: %w", err)
 	}
-	
+
 	// Set sender
 	if err = client.Mail(s.config.FromEmail); err != nil {
 		return fmt.Errorf("failed to set sender: %w", err)
 	}
-	
+
 	// Set recipient
 	if err = client.Rcpt(to); err != nil {
 		return fmt.Errorf("failed to set recipient: %w", err)
 	}
-	
+
 	// Send message
 	w, err := client.Data()
 	if err != nil {
 		return fmt.Errorf("failed to get data writer: %w", err)
 	}
-	
+
 	_, err = io.Copy(w, &message)
 	if err != nil {
 		return fmt.Errorf("failed to write message: %w", err)
 	}
-	
+
 	err = w.Close()
 	if err != nil {
 		return fmt.Errorf("failed to close data writer: %w", err)
 	}
-	
+
 	client.Quit()
-	
+
 	return nil
 }
 
 // SendPaymentConfirmationEmail sends payment confirmation email with invoice PDF
 func (s *Service) SendPaymentConfirmationEmail(to string, companyName string, invoiceNumber string, amount int64, invoicePDFPath string) error {
 	subject := "Konfirmasi Pembayaran & Invoice - Karir Nusantara"
-	
+
 	tmpl := `
 <!DOCTYPE html>
 <html>
@@ -669,15 +669,15 @@ func (s *Service) SendPaymentConfirmationEmail(to string, companyName string, in
 </body>
 </html>
 `
-	
+
 	t, err := template.New("paymentconfirmation").Parse(tmpl)
 	if err != nil {
 		return fmt.Errorf("failed to parse template: %w", err)
 	}
-	
+
 	// Format amount to Rupiah
 	amountStr := formatRupiahHTML(amount)
-	
+
 	data := struct {
 		CompanyName   string
 		InvoiceNumber string
@@ -687,12 +687,12 @@ func (s *Service) SendPaymentConfirmationEmail(to string, companyName string, in
 		InvoiceNumber: invoiceNumber,
 		Amount:        amountStr,
 	}
-	
+
 	var body bytes.Buffer
 	if err := t.Execute(&body, data); err != nil {
 		return fmt.Errorf("failed to execute template: %w", err)
 	}
-	
+
 	// Send email with PDF attachment
 	return s.SendEmailWithAttachment(to, subject, body.String(), invoicePDFPath)
 }
@@ -700,7 +700,7 @@ func (s *Service) SendPaymentConfirmationEmail(to string, companyName string, in
 // formatRupiahHTML formats an amount to Indonesian Rupiah format for HTML
 func formatRupiahHTML(amount int64) string {
 	amountStr := fmt.Sprintf("%d", amount)
-	
+
 	// Add thousands separator
 	result := ""
 	for i, digit := range amountStr {
@@ -709,7 +709,7 @@ func formatRupiahHTML(amount int64) string {
 		}
 		result += string(digit)
 	}
-	
+
 	return "Rp " + result
 }
 

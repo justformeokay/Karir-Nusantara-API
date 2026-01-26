@@ -14,6 +14,7 @@ type Config struct {
 	Database DatabaseConfig
 	JWT      JWTConfig
 	CORS     CORSConfig
+	Email    EmailConfig
 }
 
 // AppConfig holds application-specific configuration
@@ -46,6 +47,16 @@ type JWTConfig struct {
 // CORSConfig holds CORS configuration
 type CORSConfig struct {
 	AllowedOrigins []string
+}
+
+// EmailConfig holds email configuration
+type EmailConfig struct {
+	SMTPHost     string
+	SMTPPort     string
+	SMTPUsername string
+	SMTPPassword string
+	FromEmail    string
+	FromName     string
 }
 
 // Load loads configuration from environment variables
@@ -81,6 +92,14 @@ func Load() (*Config, error) {
 		},
 		CORS: CORSConfig{
 			AllowedOrigins: getEnvSlice("CORS_ALLOWED_ORIGINS", []string{"http://localhost:3000", "http://localhost:5173", "http://localhost:5174", "http://localhost:5175"}),
+		},
+		Email: EmailConfig{
+			SMTPHost:     getEnv("SMTP_HOST", "smtp.gmail.com"),
+			SMTPPort:     getEnv("SMTP_PORT", "587"),
+			SMTPUsername: getEnv("SMTP_USERNAME", ""),
+			SMTPPassword: getEnv("SMTP_PASSWORD", ""),
+			FromEmail:    getEnv("SMTP_FROM_EMAIL", "noreply@karirnusantara.com"),
+			FromName:     getEnv("SMTP_FROM_NAME", "Karir Nusantara"),
 		},
 	}
 

@@ -24,10 +24,12 @@ import (
 	"github.com/karirnusantara/api/internal/modules/cvs"
 	"github.com/karirnusantara/api/internal/modules/dashboard"
 	"github.com/karirnusantara/api/internal/modules/jobs"
+	"github.com/karirnusantara/api/internal/modules/passwordreset"
 	"github.com/karirnusantara/api/internal/modules/policies"
 	"github.com/karirnusantara/api/internal/modules/profile"
 	"github.com/karirnusantara/api/internal/modules/quota"
 	"github.com/karirnusantara/api/internal/modules/recommendations"
+	"github.com/karirnusantara/api/internal/modules/tickets"
 	"github.com/karirnusantara/api/internal/modules/wishlist"
 	"github.com/karirnusantara/api/internal/shared/email"
 	"github.com/karirnusantara/api/internal/shared/invoice"
@@ -75,6 +77,8 @@ func main() {
 	companyRepo := company.NewRepository(db)
 	chatRepo := chat.NewRepository(db)
 	profileRepo := profile.NewRepository(db)
+	ticketsRepo := tickets.NewRepository(db)
+	passwordResetRepo := passwordreset.NewRepository(db)
 
 	// Initialize other services
 	quotaService := quota.NewService(quotaRepo)
@@ -86,6 +90,8 @@ func main() {
 	companyService := company.NewService(companyRepo)
 	chatService := chat.NewService(chatRepo)
 	profileService := profile.NewService(profileRepo)
+	passwordResetService := passwordreset.NewService(passwordResetRepo, emailService)
+	ticketsService := tickets.NewService(ticketsRepo)
 
 	// Initialize invoice service
 	invoiceService := invoice.NewService("./docs/invoices")
@@ -100,6 +106,8 @@ func main() {
 	dashboardHandler := dashboard.NewHandler(dashboardService)
 	chatHandler := chat.NewHandler(chatService, v, "./docs")
 	profileHandler := profile.NewHandler(profileService, v, "./docs")
+	passwordResetHandler := passwordreset.NewHandler(passwordResetService)
+	ticketsHandler := tickets.NewHandler(ticketsService, v)
 
 	// Initialize recommendations module
 	recommendationsService := recommendations.NewService()
@@ -148,6 +156,8 @@ func main() {
 		chat.RegisterRoutes(r, chatHandler, authMiddleware)
 		policies.RegisterRoutes(r)
 		recommendations.RegisterRoutes(r, recommendationsHandler, authMiddleware.Authenticate)
+		passwordreset.RegisterRoutes(r, passwordResetHandler)
+		tickets.RegisterRoutes(r, ticketsHandler, authMiddleware)
 
 		// Admin module routes
 		adminModule := admin.NewModuleWithQuota(db, cfg, authMiddleware, quotaService, emailService, invoiceService)
