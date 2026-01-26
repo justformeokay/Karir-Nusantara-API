@@ -297,16 +297,33 @@ func IsTerminalStatus(status string) bool {
 
 // IsValidStatusTransition checks if status transition is valid
 func IsValidStatusTransition(from, to string) bool {
-	// Define valid transitions
+	// Define valid transitions - made more flexible for business needs
+	// Companies should be able to skip stages if needed
 	validTransitions := map[string][]string{
-		StatusSubmitted:          {StatusViewed, StatusRejected},
-		StatusViewed:             {StatusShortlisted, StatusRejected},
-		StatusShortlisted:        {StatusInterviewScheduled, StatusRejected},
-		StatusInterviewScheduled: {StatusInterviewCompleted, StatusRejected},
-		StatusInterviewCompleted: {StatusAssessment, StatusOfferSent, StatusRejected},
-		StatusAssessment:         {StatusOfferSent, StatusRejected},
-		StatusOfferSent:          {StatusOfferAccepted, StatusRejected},
-		StatusOfferAccepted:      {StatusHired},
+		StatusSubmitted: {
+			StatusViewed, StatusShortlisted, StatusInterviewScheduled, StatusRejected,
+		},
+		StatusViewed: {
+			StatusShortlisted, StatusInterviewScheduled, StatusRejected,
+		},
+		StatusShortlisted: {
+			StatusInterviewScheduled, StatusRejected,
+		},
+		StatusInterviewScheduled: {
+			StatusInterviewCompleted, StatusRejected,
+		},
+		StatusInterviewCompleted: {
+			StatusAssessment, StatusOfferSent, StatusHired, StatusRejected,
+		},
+		StatusAssessment: {
+			StatusOfferSent, StatusHired, StatusRejected,
+		},
+		StatusOfferSent: {
+			StatusOfferAccepted, StatusRejected,
+		},
+		StatusOfferAccepted: {
+			StatusHired,
+		},
 	}
 
 	allowed, ok := validTransitions[from]
