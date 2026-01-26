@@ -251,16 +251,38 @@ func (s *service) UpdateStatus(ctx context.Context, applicationID uint64, compan
 	}
 
 	// Handle interview scheduling
-	if req.Status == StatusInterviewScheduled && req.ScheduledAt != "" {
-		scheduledTime, err := time.Parse(time.RFC3339, req.ScheduledAt)
-		if err == nil {
-			event.ScheduledAt = sql.NullTime{Time: scheduledTime, Valid: true}
+	if req.Status == StatusInterviewScheduled {
+		// Parse and set scheduled time
+		if req.ScheduledAt != "" {
+			scheduledTime, err := time.Parse(time.RFC3339, req.ScheduledAt)
+			if err == nil {
+				event.ScheduledAt = sql.NullTime{Time: scheduledTime, Valid: true}
+			}
 		}
 		if req.ScheduledLocation != "" {
 			event.ScheduledLocation = sql.NullString{String: req.ScheduledLocation, Valid: true}
 		}
 		if req.ScheduledNotes != "" {
 			event.ScheduledNotes = sql.NullString{String: req.ScheduledNotes, Valid: true}
+		}
+		// Handle new interview type fields
+		if req.InterviewType != "" {
+			event.InterviewType = sql.NullString{String: req.InterviewType, Valid: true}
+		}
+		if req.MeetingLink != "" {
+			event.MeetingLink = sql.NullString{String: req.MeetingLink, Valid: true}
+		}
+		if req.MeetingPlatform != "" {
+			event.MeetingPlatform = sql.NullString{String: req.MeetingPlatform, Valid: true}
+		}
+		if req.InterviewAddress != "" {
+			event.InterviewAddress = sql.NullString{String: req.InterviewAddress, Valid: true}
+		}
+		if req.ContactPerson != "" {
+			event.ContactPerson = sql.NullString{String: req.ContactPerson, Valid: true}
+		}
+		if req.ContactPhone != "" {
+			event.ContactPhone = sql.NullString{String: req.ContactPhone, Valid: true}
 		}
 	}
 

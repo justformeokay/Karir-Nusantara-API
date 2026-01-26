@@ -97,6 +97,12 @@ type TimelineEvent struct {
 	ScheduledAt          sql.NullTime   `db:"scheduled_at" json:"scheduled_at,omitempty"`
 	ScheduledLocation    sql.NullString `db:"scheduled_location" json:"scheduled_location,omitempty"`
 	ScheduledNotes       sql.NullString `db:"scheduled_notes" json:"scheduled_notes,omitempty"`
+	InterviewType        sql.NullString `db:"interview_type" json:"interview_type,omitempty"`
+	MeetingLink          sql.NullString `db:"meeting_link" json:"meeting_link,omitempty"`
+	MeetingPlatform      sql.NullString `db:"meeting_platform" json:"meeting_platform,omitempty"`
+	InterviewAddress     sql.NullString `db:"interview_address" json:"interview_address,omitempty"`
+	ContactPerson        sql.NullString `db:"contact_person" json:"contact_person,omitempty"`
+	ContactPhone         sql.NullString `db:"contact_phone" json:"contact_phone,omitempty"`
 	CreatedAt            time.Time      `db:"created_at" json:"created_at"`
 }
 
@@ -110,11 +116,17 @@ type ApplyJobRequest struct {
 
 // UpdateStatusRequest represents a status update request (by company)
 type UpdateStatusRequest struct {
-	Status            string `json:"status" validate:"required,oneof=viewed shortlisted interview_scheduled interview_completed assessment offer_sent offer_accepted hired rejected"`
+	Status            string `json:"status" validate:"required,oneof=viewed shortlisted interview_scheduled interview_completed assessment offer_sent offer_accepted hired rejected submitted"`
 	Note              string `json:"note,omitempty"`
 	ScheduledAt       string `json:"scheduled_at,omitempty"`
 	ScheduledLocation string `json:"scheduled_location,omitempty"`
 	ScheduledNotes    string `json:"scheduled_notes,omitempty"`
+	InterviewType     string `json:"interview_type,omitempty"`    // online, offline, whatsapp_notification
+	MeetingLink       string `json:"meeting_link,omitempty"`      // Zoom/Google Meet link for online
+	MeetingPlatform   string `json:"meeting_platform,omitempty"`  // zoom, google_meet, microsoft_teams, etc.
+	InterviewAddress  string `json:"interview_address,omitempty"` // Full address for offline interview
+	ContactPerson     string `json:"contact_person,omitempty"`    // Contact person name
+	ContactPhone      string `json:"contact_phone,omitempty"`     // Contact phone number
 }
 
 // WithdrawRequest represents a withdrawal request
@@ -162,6 +174,7 @@ type ApplicationResponse struct {
 }
 
 // TimelineEventResponse represents a timeline event response
+// TimelineEventResponse represents a timeline event response
 type TimelineEventResponse struct {
 	ID                uint64 `json:"id"`
 	Status            string `json:"status"`
@@ -170,6 +183,12 @@ type TimelineEventResponse struct {
 	ScheduledAt       string `json:"scheduled_at,omitempty"`
 	ScheduledLocation string `json:"scheduled_location,omitempty"`
 	ScheduledNotes    string `json:"scheduled_notes,omitempty"`
+	InterviewType     string `json:"interview_type,omitempty"`
+	MeetingLink       string `json:"meeting_link,omitempty"`
+	MeetingPlatform   string `json:"meeting_platform,omitempty"`
+	InterviewAddress  string `json:"interview_address,omitempty"`
+	ContactPerson     string `json:"contact_person,omitempty"`
+	ContactPhone      string `json:"contact_phone,omitempty"`
 	CreatedAt         string `json:"created_at"`
 }
 
@@ -223,6 +242,25 @@ func (a *Application) ToResponse() *ApplicationResponse {
 			}
 			if event.ScheduledNotes.Valid {
 				resp.Timeline[i].ScheduledNotes = event.ScheduledNotes.String
+			}
+			// Add new interview scheduling fields
+			if event.InterviewType.Valid {
+				resp.Timeline[i].InterviewType = event.InterviewType.String
+			}
+			if event.MeetingLink.Valid {
+				resp.Timeline[i].MeetingLink = event.MeetingLink.String
+			}
+			if event.MeetingPlatform.Valid {
+				resp.Timeline[i].MeetingPlatform = event.MeetingPlatform.String
+			}
+			if event.InterviewAddress.Valid {
+				resp.Timeline[i].InterviewAddress = event.InterviewAddress.String
+			}
+			if event.ContactPerson.Valid {
+				resp.Timeline[i].ContactPerson = event.ContactPerson.String
+			}
+			if event.ContactPhone.Valid {
+				resp.Timeline[i].ContactPhone = event.ContactPhone.String
 			}
 		}
 	}

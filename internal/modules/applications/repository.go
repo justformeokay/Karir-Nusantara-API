@@ -207,10 +207,12 @@ func (r *mysqlRepository) AddTimelineEvent(ctx context.Context, event *TimelineE
 		INSERT INTO application_timelines (
 			application_id, status, note, is_visible_to_applicant,
 			updated_by_type, updated_by_id, scheduled_at, scheduled_location, scheduled_notes,
+			interview_type, meeting_link, meeting_platform, interview_address, contact_person, contact_phone,
 			created_at
 		) VALUES (
 			?, ?, ?, ?,
 			?, ?, ?, ?, ?,
+			?, ?, ?, ?, ?, ?,
 			NOW()
 		)
 	`
@@ -218,6 +220,7 @@ func (r *mysqlRepository) AddTimelineEvent(ctx context.Context, event *TimelineE
 	result, err := r.db.ExecContext(ctx, query,
 		event.ApplicationID, event.Status, event.Note, event.IsVisibleToApplicant,
 		event.UpdatedByType, event.UpdatedByID, event.ScheduledAt, event.ScheduledLocation, event.ScheduledNotes,
+		event.InterviewType, event.MeetingLink, event.MeetingPlatform, event.InterviewAddress, event.ContactPerson, event.ContactPhone,
 	)
 	if err != nil {
 		return fmt.Errorf("failed to add timeline event: %w", err)
@@ -232,7 +235,9 @@ func (r *mysqlRepository) AddTimelineEvent(ctx context.Context, event *TimelineE
 func (r *mysqlRepository) GetTimeline(ctx context.Context, applicationID uint64) ([]TimelineEvent, error) {
 	query := `
 		SELECT id, application_id, status, note, is_visible_to_applicant,
-			   updated_by_type, updated_by_id, scheduled_at, scheduled_location, scheduled_notes, created_at
+			   updated_by_type, updated_by_id, scheduled_at, scheduled_location, scheduled_notes,
+			   interview_type, meeting_link, meeting_platform, interview_address, contact_person, contact_phone,
+			   created_at
 		FROM application_timelines
 		WHERE application_id = ?
 		ORDER BY created_at ASC
@@ -250,7 +255,9 @@ func (r *mysqlRepository) GetTimeline(ctx context.Context, applicationID uint64)
 func (r *mysqlRepository) GetTimelineForApplicant(ctx context.Context, applicationID uint64) ([]TimelineEvent, error) {
 	query := `
 		SELECT id, application_id, status, note, is_visible_to_applicant,
-			   updated_by_type, updated_by_id, scheduled_at, scheduled_location, scheduled_notes, created_at
+			   updated_by_type, updated_by_id, scheduled_at, scheduled_location, scheduled_notes,
+			   interview_type, meeting_link, meeting_platform, interview_address, contact_person, contact_phone,
+			   created_at
 		FROM application_timelines
 		WHERE application_id = ? AND is_visible_to_applicant = TRUE
 		ORDER BY created_at ASC
