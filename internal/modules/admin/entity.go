@@ -151,6 +151,64 @@ func (c *CompanyAdmin) ToResponse() *CompanyAdminResponse {
 	return resp
 }
 
+// CompanyDetailResponse represents the detailed company information for admin
+type CompanyDetailResponse struct {
+	// Basic Info
+	ID       uint64 `json:"id"`
+	HashID   string `json:"hash_id"`
+	Email    string `json:"email"`
+	FullName string `json:"full_name"`
+	Phone    string `json:"phone,omitempty"`
+
+	// Company Info
+	CompanyName        string `json:"company_name"`
+	CompanyDescription string `json:"company_description,omitempty"`
+	CompanyWebsite     string `json:"company_website,omitempty"`
+	CompanyLogoURL     string `json:"company_logo_url,omitempty"`
+	CompanyIndustry    string `json:"company_industry,omitempty"`
+	CompanySize        string `json:"company_size,omitempty"`
+	CompanyLocation    string `json:"company_location,omitempty"`
+	CompanyAddress     string `json:"company_address,omitempty"`
+	CompanyCity        string `json:"company_city,omitempty"`
+	CompanyProvince    string `json:"company_province,omitempty"`
+	PostalCode         string `json:"postal_code,omitempty"`
+	EstablishedYear    int    `json:"established_year,omitempty"`
+	EmployeeCount      int    `json:"employee_count,omitempty"`
+
+	// Verification Status
+	CompanyStatus       string `json:"company_status"`
+	IsActive            bool   `json:"is_active"`
+	IsVerified          bool   `json:"is_verified"`
+	EmailVerifiedAt     string `json:"email_verified_at,omitempty"`
+	DocumentsVerifiedAt string `json:"documents_verified_at,omitempty"`
+	VerificationNotes   string `json:"verification_notes,omitempty"`
+
+	// Legal Documents
+	LegalDocuments struct {
+		KtpFounderURL    string `json:"ktp_founder_url,omitempty"`
+		AktaPendirianURL string `json:"akta_pendirian_url,omitempty"`
+		NpwpURL          string `json:"npwp_url,omitempty"`
+		NibURL           string `json:"nib_url,omitempty"`
+	} `json:"legal_documents"`
+
+	// Job & Application Stats
+	JobsCount         int `json:"jobs_count"`
+	ActiveJobsCount   int `json:"active_jobs_count"`
+	TotalApplications int `json:"total_applications"`
+
+	// Quota Info
+	QuotaInfo struct {
+		FreeQuotaUsed  int `json:"free_quota_used"`
+		FreeQuotaTotal int `json:"free_quota_total"` // Usually 5
+		PaidQuota      int `json:"paid_quota"`
+		TotalQuota     int `json:"total_quota"` // free + paid
+	} `json:"quota_info"`
+
+	// Timestamps
+	CreatedAt string `json:"created_at"`
+	UpdatedAt string `json:"updated_at"`
+}
+
 // ============================================
 // JOB ENTITIES (ADMIN VIEW)
 // ============================================
@@ -169,56 +227,56 @@ const (
 
 // JobAdmin represents job data for admin view
 type JobAdmin struct {
-	ID                  uint64         `db:"id" json:"id"`
-	CompanyID           uint64         `db:"company_id" json:"company_id"`
-	CompanyName         sql.NullString `db:"company_name" json:"company_name"`
-	Title               string         `db:"title" json:"title"`
-	Slug                string         `db:"slug" json:"slug"`
-	Description         string         `db:"description" json:"description"`
-	Requirements        sql.NullString `db:"requirements" json:"requirements,omitempty"`
-	City                string         `db:"city" json:"city"`
-	Province            string         `db:"province" json:"province"`
-	IsRemote            bool           `db:"is_remote" json:"is_remote"`
-	JobType             string         `db:"job_type" json:"job_type"`
-	ExperienceLevel     string         `db:"experience_level" json:"experience_level"`
-	SalaryMin           sql.NullInt64  `db:"salary_min" json:"salary_min,omitempty"`
-	SalaryMax           sql.NullInt64  `db:"salary_max" json:"salary_max,omitempty"`
-	Status              string         `db:"status" json:"status"`
-	AdminStatus         sql.NullString `db:"admin_status" json:"admin_status,omitempty"`
-	AdminNote           sql.NullString `db:"admin_note" json:"admin_note,omitempty"`
-	FlagReason          sql.NullString `db:"flag_reason" json:"flag_reason,omitempty"`
-	ViewsCount          uint64         `db:"views_count" json:"views_count"`
-	ApplicationsCount   uint64         `db:"applications_count" json:"applications_count"`
-	PublishedAt         sql.NullTime   `db:"published_at" json:"published_at,omitempty"`
-	CreatedAt           time.Time      `db:"created_at" json:"created_at"`
-	UpdatedAt           time.Time      `db:"updated_at" json:"updated_at"`
+	ID                uint64         `db:"id" json:"id"`
+	CompanyID         uint64         `db:"company_id" json:"company_id"`
+	CompanyName       sql.NullString `db:"company_name" json:"company_name"`
+	Title             string         `db:"title" json:"title"`
+	Slug              string         `db:"slug" json:"slug"`
+	Description       string         `db:"description" json:"description"`
+	Requirements      sql.NullString `db:"requirements" json:"requirements,omitempty"`
+	City              string         `db:"city" json:"city"`
+	Province          string         `db:"province" json:"province"`
+	IsRemote          bool           `db:"is_remote" json:"is_remote"`
+	JobType           string         `db:"job_type" json:"job_type"`
+	ExperienceLevel   string         `db:"experience_level" json:"experience_level"`
+	SalaryMin         sql.NullInt64  `db:"salary_min" json:"salary_min,omitempty"`
+	SalaryMax         sql.NullInt64  `db:"salary_max" json:"salary_max,omitempty"`
+	Status            string         `db:"status" json:"status"`
+	AdminStatus       sql.NullString `db:"admin_status" json:"admin_status,omitempty"`
+	AdminNote         sql.NullString `db:"admin_note" json:"admin_note,omitempty"`
+	FlagReason        sql.NullString `db:"flag_reason" json:"flag_reason,omitempty"`
+	ViewsCount        uint64         `db:"views_count" json:"views_count"`
+	ApplicationsCount uint64         `db:"applications_count" json:"applications_count"`
+	PublishedAt       sql.NullTime   `db:"published_at" json:"published_at,omitempty"`
+	CreatedAt         time.Time      `db:"created_at" json:"created_at"`
+	UpdatedAt         time.Time      `db:"updated_at" json:"updated_at"`
 }
 
 // JobAdminResponse represents the job response for admin API
 type JobAdminResponse struct {
-	ID                uint64  `json:"id"`
-	CompanyID         uint64  `json:"company_id"`
-	CompanyName       string  `json:"company_name"`
-	Title             string  `json:"title"`
-	Slug              string  `json:"slug"`
-	Description       string  `json:"description"`
-	Requirements      string  `json:"requirements,omitempty"`
-	City              string  `json:"city"`
-	Province          string  `json:"province"`
-	IsRemote          bool    `json:"is_remote"`
-	JobType           string  `json:"job_type"`
-	ExperienceLevel   string  `json:"experience_level"`
-	SalaryMin         *int64  `json:"salary_min,omitempty"`
-	SalaryMax         *int64  `json:"salary_max,omitempty"`
-	Status            string  `json:"status"`
-	AdminStatus       string  `json:"admin_status,omitempty"`
-	AdminNote         string  `json:"admin_note,omitempty"`
-	FlagReason        string  `json:"flag_reason,omitempty"`
-	ViewsCount        uint64  `json:"views_count"`
-	ApplicationsCount uint64  `json:"applications_count"`
-	PublishedAt       string  `json:"published_at,omitempty"`
-	CreatedAt         string  `json:"created_at"`
-	UpdatedAt         string  `json:"updated_at"`
+	ID                uint64 `json:"id"`
+	CompanyID         uint64 `json:"company_id"`
+	CompanyName       string `json:"company_name"`
+	Title             string `json:"title"`
+	Slug              string `json:"slug"`
+	Description       string `json:"description"`
+	Requirements      string `json:"requirements,omitempty"`
+	City              string `json:"city"`
+	Province          string `json:"province"`
+	IsRemote          bool   `json:"is_remote"`
+	JobType           string `json:"job_type"`
+	ExperienceLevel   string `json:"experience_level"`
+	SalaryMin         *int64 `json:"salary_min,omitempty"`
+	SalaryMax         *int64 `json:"salary_max,omitempty"`
+	Status            string `json:"status"`
+	AdminStatus       string `json:"admin_status,omitempty"`
+	AdminNote         string `json:"admin_note,omitempty"`
+	FlagReason        string `json:"flag_reason,omitempty"`
+	ViewsCount        uint64 `json:"views_count"`
+	ApplicationsCount uint64 `json:"applications_count"`
+	PublishedAt       string `json:"published_at,omitempty"`
+	CreatedAt         string `json:"created_at"`
+	UpdatedAt         string `json:"updated_at"`
 }
 
 func (j *JobAdmin) ToResponse() *JobAdminResponse {
@@ -434,18 +492,18 @@ func (js *JobSeekerAdmin) ToResponse() *JobSeekerAdminResponse {
 
 // DashboardStats represents admin dashboard statistics
 type DashboardStats struct {
-	TotalCompanies       int `json:"total_companies"`
-	PendingVerifications int `json:"pending_verifications"`
-	VerifiedCompanies    int `json:"verified_companies"`
-	SuspendedCompanies   int `json:"suspended_companies"`
-	TotalJobs            int `json:"total_jobs"`
-	ActiveJobs           int `json:"active_jobs"`
-	PendingJobs          int `json:"pending_jobs"`
-	FlaggedJobs          int `json:"flagged_jobs"`
-	TotalJobSeekers      int `json:"total_job_seekers"`
-	ActiveJobSeekers     int `json:"active_job_seekers"`
-	TotalPayments        int `json:"total_payments"`
-	PendingPayments      int `json:"pending_payments"`
+	TotalCompanies       int   `json:"total_companies"`
+	PendingVerifications int   `json:"pending_verifications"`
+	VerifiedCompanies    int   `json:"verified_companies"`
+	SuspendedCompanies   int   `json:"suspended_companies"`
+	TotalJobs            int   `json:"total_jobs"`
+	ActiveJobs           int   `json:"active_jobs"`
+	PendingJobs          int   `json:"pending_jobs"`
+	FlaggedJobs          int   `json:"flagged_jobs"`
+	TotalJobSeekers      int   `json:"total_job_seekers"`
+	ActiveJobSeekers     int   `json:"active_job_seekers"`
+	TotalPayments        int   `json:"total_payments"`
+	PendingPayments      int   `json:"pending_payments"`
 	TotalRevenue         int64 `json:"total_revenue"`
 }
 

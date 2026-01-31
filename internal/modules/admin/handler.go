@@ -146,6 +146,28 @@ func (h *Handler) GetCompanyByID(w http.ResponseWriter, r *http.Request) {
 	response.Success(w, http.StatusOK, "Data perusahaan berhasil diambil", company)
 }
 
+// GetCompanyDetail handles getting detailed company information
+// GET /api/v1/admin/companies/{id}/detail
+func (h *Handler) GetCompanyDetail(w http.ResponseWriter, r *http.Request) {
+	id := parseIDFromRequest(r)
+	if id == 0 {
+		response.Error(w, http.StatusBadRequest, "INVALID_ID", "ID tidak valid")
+		return
+	}
+
+	company, err := h.service.GetCompanyDetail(r.Context(), id)
+	if err != nil {
+		if errors.Is(err, ErrCompanyNotFound) {
+			response.Error(w, http.StatusNotFound, "NOT_FOUND", err.Error())
+			return
+		}
+		response.Error(w, http.StatusInternalServerError, "FETCH_FAILED", "Gagal mengambil detail perusahaan")
+		return
+	}
+
+	response.Success(w, http.StatusOK, "Detail perusahaan berhasil diambil", company)
+}
+
 // VerifyCompany handles company verification
 // POST /api/v1/admin/companies/{id}/verify
 func (h *Handler) VerifyCompany(w http.ResponseWriter, r *http.Request) {

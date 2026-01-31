@@ -13,7 +13,7 @@ import (
 
 // Module represents the admin module
 type Module struct {
-	handler    *Handler
+	handler        *Handler
 	authMiddleware *middleware.AuthMiddleware
 }
 
@@ -24,7 +24,7 @@ func NewModule(db *sqlx.DB, cfg *config.Config, authMiddleware *middleware.AuthM
 	handler := NewHandler(service)
 
 	return &Module{
-		handler:    handler,
+		handler:        handler,
 		authMiddleware: authMiddleware,
 	}
 }
@@ -36,7 +36,7 @@ func NewModuleWithQuota(db *sqlx.DB, cfg *config.Config, authMiddleware *middlew
 	handler := NewHandler(service)
 
 	return &Module{
-		handler:    handler,
+		handler:        handler,
 		authMiddleware: authMiddleware,
 	}
 }
@@ -65,6 +65,7 @@ func (m *Module) RegisterRoutes(r chi.Router) {
 			r.Route("/companies", func(r chi.Router) {
 				r.Get("/", m.handler.GetCompanies)
 				r.Get("/{id}", m.handler.GetCompanyByID)
+				r.Get("/{id}/detail", m.handler.GetCompanyDetail)
 				r.Post("/{id}/verify", m.handler.VerifyCompany)
 				r.Patch("/{id}/status", m.handler.UpdateCompanyStatus)
 			})

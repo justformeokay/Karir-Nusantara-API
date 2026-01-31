@@ -7,6 +7,8 @@ import (
 	"strings"
 
 	"github.com/jmoiron/sqlx"
+
+	"github.com/karirnusantara/api/internal/shared/hashid"
 )
 
 // Repository defines the admin repository interface
@@ -22,6 +24,7 @@ type Repository interface {
 	// Company operations
 	GetCompanies(ctx context.Context, filter CompanyFilter) ([]*CompanyAdmin, int, error)
 	GetCompanyByID(ctx context.Context, id uint64) (*CompanyAdmin, error)
+	GetCompanyDetailByID(ctx context.Context, id uint64) (*CompanyDetailResponse, error)
 	UpdateCompanyStatus(ctx context.Context, id uint64, status string) error
 	UpdateCompanyActive(ctx context.Context, id uint64, isActive bool) error
 
@@ -317,12 +320,101 @@ func (r *repository) GetCompanyByID(ctx context.Context, id uint64) (*CompanyAdm
 	return &c, nil
 }
 
+// GetCompanyDetailByID fetches detailed company information including documents and quota
+func (r *repository) GetCompanyDetailByID(ctx context.Context, id uint64) (*CompanyDetailResponse, error) {
+	query := `
+		SELECT 
+			u.id, u.email, u.full_name, COALESCE(u.phone, '') as phone,
+			c.company_name, COALESCE(c.company_description, '') as company_description, COALESCE(c.company_website, '') as company_website, COALESCE(c.company_logo_url, '') as company_logo_url,
+			COALESCE(c.company_industry, '') as company_industry, COALESCE(c.company_size, '') as company_size, COALESCE(c.company_location, '') as company_location, COALESCE(c.company_address, '') as company_address,
+			COALESCE(c.company_city, '') as company_city, COALESCE(c.company_province, '') as company_province, COALESCE(c.company_postal_code, '') as company_postal_code,
+			COALESCE(c.established_year, 0) as established_year, COALESCE(c.employee_count, 0) as employee_count,
+			c.company_status, u.is_active, u.is_verified, COALESCE(u.email_verified_at, '') as email_verified_at,
+			COALESCE(c.documents_verified_at, '') as documents_verified_at, COALESCE(c.verification_notes, '') as verification_notes,
+			COALESCE(c.ktp_founder_url, '') as ktp_founder_url, COALESCE(c.akta_pendirian_url, '') as akta_pendirian_url, COALESCE(c.npwp_url, '') as npwp_url, COALESCE(c.nib_url, '') as nib_url,
+			c.created_at, c.updated_at,
+			COALESCE((SELECT COUNT(*) FROM jobs WHERE company_id = u.id), 0) as jobs_count,
+			COALESCE((SELECT COUNT(*) FROM jobs WHERE company_id = u.id AND status = 'active'), 0) as active_jobs_count,
+			COALESCE((SELECT COUNT(*) FROM applications a JOIN jobs j ON a.job_id = j.id WHERE j.company_id = u.id), 0) as total_applications,
+			COALESCE(cq.free_quota_used, 0) as free_quota_used,
+			COALESCE(cq.paid_quota, 0) as paid_quota
+		FROM users u
+		JOIN companies c ON u.id = c.user_id
+		LEFT JOIN company_quotas cq ON c.id = cq.company_id
+		WHERE u.id = ? AND u.role = 'company'
+	`
+
+	var (
+		detail CompanyDetailResponse
+		companyIndustry, companySize, companyLocation, companyAddress,
+		companyCity, companyProvince, postalCode string
+		establishedYear, employeeCount   int64
+		verificationNotes, phone         string
+		docsVerifiedAt, emailVerifiedAt  string
+		ktpURL, aktaURL, npwpURL, nibURL string
+		freeQuotaUsed, paidQuota         int64
+	)
+
+	err := r.db.QueryRowContext(ctx, query, id).Scan(
+		&detail.ID, &detail.Email, &detail.FullName, &phone,
+		&detail.CompanyName, &detail.CompanyDescription, &detail.CompanyWebsite, &detail.CompanyLogoURL,
+		&companyIndustry, &companySize, &companyLocation, &companyAddress,
+		&companyCity, &companyProvince, &postalCode,
+		&establishedYear, &employeeCount,
+		&detail.CompanyStatus, &detail.IsActive, &detail.IsVerified, &emailVerifiedAt,
+		&docsVerifiedAt, &verificationNotes,
+		&ktpURL, &aktaURL, &npwpURL, &nibURL,
+		&detail.CreatedAt, &detail.UpdatedAt,
+		&detail.JobsCount, &detail.ActiveJobsCount, &detail.TotalApplications,
+		&freeQuotaUsed, &paidQuota,
+	)
+	if err != nil {
+		if err == sql.ErrNoRows {
+			return nil, nil
+		}
+		return nil, err
+	}
+
+	// Set HashID
+	detail.HashID = hashid.Encode(detail.ID)
+
+	// Set fields from string/int variables (they're never nullable now)
+	detail.Phone = phone
+	detail.CompanyIndustry = companyIndustry
+	detail.CompanySize = companySize
+	detail.CompanyLocation = companyLocation
+	detail.CompanyAddress = companyAddress
+	detail.CompanyCity = companyCity
+	detail.CompanyProvince = companyProvince
+	detail.PostalCode = postalCode
+	detail.EstablishedYear = int(establishedYear)
+	detail.EmployeeCount = int(employeeCount)
+	detail.DocumentsVerifiedAt = docsVerifiedAt
+	detail.EmailVerifiedAt = emailVerifiedAt
+	detail.VerificationNotes = verificationNotes
+
+	// Set legal documents (no longer nullable)
+	detail.LegalDocuments.KtpFounderURL = ktpURL
+	detail.LegalDocuments.AktaPendirianURL = aktaURL
+	detail.LegalDocuments.NpwpURL = npwpURL
+	detail.LegalDocuments.NibURL = nibURL
+
+	// Set quota info
+	const FreeQuotaTotal = 5
+	detail.QuotaInfo.FreeQuotaUsed = int(freeQuotaUsed)
+	detail.QuotaInfo.FreeQuotaTotal = FreeQuotaTotal
+	detail.QuotaInfo.PaidQuota = int(paidQuota)
+	detail.QuotaInfo.TotalQuota = detail.QuotaInfo.FreeQuotaUsed + detail.QuotaInfo.PaidQuota
+
+	return &detail, nil
+}
+
 func (r *repository) UpdateCompanyStatus(ctx context.Context, id uint64, status string) error {
 	// id is user_id, need to update companies table where user_id = id
 	// If status is being set to "verified", also set documents_verified_at
 	var query string
 	var args []interface{}
-	
+
 	if status == "verified" {
 		query = `UPDATE companies SET company_status = ?, documents_verified_at = NOW() WHERE user_id = ?`
 		args = []interface{}{status, id}
@@ -330,27 +422,27 @@ func (r *repository) UpdateCompanyStatus(ctx context.Context, id uint64, status 
 		query = `UPDATE companies SET company_status = ? WHERE user_id = ?`
 		args = []interface{}{status, id}
 	}
-	
+
 	fmt.Printf("[DEBUG] UpdateCompanyStatus: query=%s, status=%s, user_id=%d\n", query, status, id)
-	
+
 	result, err := r.db.ExecContext(ctx, query, args...)
 	if err != nil {
 		fmt.Printf("[DEBUG] ExecContext error: %v\n", err)
 		return fmt.Errorf("database error: %w", err)
 	}
-	
+
 	rowsAffected, err := result.RowsAffected()
 	if err != nil {
 		fmt.Printf("[DEBUG] RowsAffected error: %v\n", err)
 		return fmt.Errorf("rows affected error: %w", err)
 	}
-	
+
 	fmt.Printf("[DEBUG] Rows affected: %d\n", rowsAffected)
-	
+
 	if rowsAffected == 0 {
 		return fmt.Errorf("no company found with user_id %d", id)
 	}
-	
+
 	return nil
 }
 

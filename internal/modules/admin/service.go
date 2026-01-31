@@ -40,6 +40,7 @@ type Service interface {
 	// Company management
 	GetCompanies(ctx context.Context, filter CompanyFilter) (*PaginatedResponse, error)
 	GetCompanyByID(ctx context.Context, id uint64) (*CompanyAdminResponse, error)
+	GetCompanyDetail(ctx context.Context, id uint64) (*CompanyDetailResponse, error)
 	VerifyCompany(ctx context.Context, id uint64, req *CompanyVerificationRequest, adminID uint64) error
 	UpdateCompanyStatus(ctx context.Context, id uint64, req *CompanyStatusRequest, adminID uint64) error
 
@@ -187,6 +188,18 @@ func (s *service) GetCompanyByID(ctx context.Context, id uint64) (*CompanyAdminR
 	}
 
 	return company.ToResponse(), nil
+}
+
+func (s *service) GetCompanyDetail(ctx context.Context, id uint64) (*CompanyDetailResponse, error) {
+	company, err := s.repo.GetCompanyDetailByID(ctx, id)
+	if err != nil {
+		return nil, fmt.Errorf("failed to get company detail: %w", err)
+	}
+	if company == nil {
+		return nil, ErrCompanyNotFound
+	}
+
+	return company, nil
 }
 
 func (s *service) VerifyCompany(ctx context.Context, id uint64, req *CompanyVerificationRequest, adminID uint64) error {
@@ -415,12 +428,12 @@ func (s *service) ProcessPayment(ctx context.Context, id uint64, req *PaymentAct
 			}
 		}
 		action = "payment_approved"
-		
+
 		// Send confirmation email with invoice PDF (async)
 		if s.emailService != nil && s.invoiceService != nil {
 			go s.sendPaymentConfirmationWithInvoice(payment, req.Note)
 		}
-		
+
 	case "reject":
 		// Use quota service to reject
 		if s.quotaService != nil {
@@ -447,42 +460,42 @@ func (s *service) ProcessPayment(ctx context.Context, id uint64, req *PaymentAct
 func (s *service) sendPaymentConfirmationWithInvoice(payment *PaymentAdmin, adminNote string) {
 	// Get company email - need to query the users table
 	ctx := context.Background()
-	
+
 	// Generate invoice number
-	invoiceNumber := fmt.Sprintf("INV/%s/%05d", 
+	invoiceNumber := fmt.Sprintf("INV/%s/%05d",
 		time.Now().Format("2006/01"),
 		payment.ID)
-	
+
 	// Prepare invoice data
 	invoiceData := &invoice.PaymentInvoiceData{
-		InvoiceNumber: invoiceNumber,
-		PaymentID:     payment.ID,
-		CompanyName:   payment.CompanyName.String,
-		CompanyEmail:  "", // Will be filled from user query
+		InvoiceNumber:  invoiceNumber,
+		PaymentID:      payment.ID,
+		CompanyName:    payment.CompanyName.String,
+		CompanyEmail:   "", // Will be filled from user query
 		CompanyAddress: "",
-		Amount:        payment.Amount,
-		PaymentDate:   payment.SubmittedAt,
-		ConfirmedDate: time.Now(),
-		Description:   "Pembayaran Kuota Job Posting - Karir Nusantara",
-		AdminNote:     adminNote,
+		Amount:         payment.Amount,
+		PaymentDate:    payment.SubmittedAt,
+		ConfirmedDate:  time.Now(),
+		Description:    "Pembayaran Kuota Job Posting - Karir Nusantara",
+		AdminNote:      adminNote,
 	}
-	
+
 	// Get company details for email
 	companyUser, err := s.repo.GetUserByID(ctx, payment.CompanyID)
 	if err != nil {
 		fmt.Printf("Error getting company user for email: %v\n", err)
 		return
 	}
-	
+
 	invoiceData.CompanyEmail = companyUser.Email
-	
+
 	// Generate PDF invoice
 	pdfPath, err := s.invoiceService.GeneratePaymentInvoice(invoiceData)
 	if err != nil {
 		fmt.Printf("Error generating invoice PDF: %v\n", err)
 		return
 	}
-	
+
 	// Send email with invoice attachment
 	err = s.emailService.SendPaymentConfirmationEmail(
 		companyUser.Email,
@@ -491,13 +504,13 @@ func (s *service) sendPaymentConfirmationWithInvoice(payment *PaymentAdmin, admi
 		payment.Amount,
 		pdfPath,
 	)
-	
+
 	if err != nil {
 		fmt.Printf("Error sending payment confirmation email: %v\n", err)
 		return
 	}
-	
-	fmt.Printf("Payment confirmation email sent successfully to %s with invoice %s\n", 
+
+	fmt.Printf("Payment confirmation email sent successfully to %s with invoice %s\n",
 		companyUser.Email, invoiceNumber)
 }
 
