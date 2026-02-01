@@ -11,6 +11,7 @@ import (
 type Service interface {
 	GetCompanyByUserID(ctx context.Context, userID uint64) (*CompanyResponse, error)
 	GetCompanyEntityByUserID(ctx context.Context, userID uint64) (*Company, error)
+	GetCompanyIDByUserID(ctx context.Context, userID uint64) (uint64, error)
 	GetPublicCompanyByID(ctx context.Context, companyID uint64) (*PublicCompanyResponse, error)
 	CreateOrUpdateCompany(ctx context.Context, userID uint64, req *UpdateCompanyRequest) (*CompanyResponse, error)
 	UpdateCompanyLogoURL(ctx context.Context, companyID uint64, logoURL string) error
@@ -53,6 +54,19 @@ func (s *service) GetCompanyEntityByUserID(ctx context.Context, userID uint64) (
 	}
 
 	return company, nil
+}
+
+// GetCompanyIDByUserID retrieves only the company ID for a user (optimized for quota lookups)
+func (s *service) GetCompanyIDByUserID(ctx context.Context, userID uint64) (uint64, error) {
+	company, err := s.repo.GetByUserID(ctx, userID)
+	if err != nil {
+		return 0, apperrors.NewInternalError("Failed to get company", err)
+	}
+	if company == nil {
+		return 0, nil
+	}
+
+	return company.ID, nil
 }
 
 // GetPublicCompanyByID retrieves public company information by ID (for job seekers)

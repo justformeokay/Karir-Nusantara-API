@@ -102,7 +102,7 @@ func main() {
 	cvsHandler := cvs.NewHandler(cvsService, v)
 	applicationsHandler := applications.NewHandler(applicationsService, v)
 	wishlistHandler := wishlist.NewHandler(wishlistService, v)
-	quotaHandler := quota.NewHandler(quotaService, v)
+	quotaHandler := quota.NewHandler(quotaService, v, companyService)
 	dashboardHandler := dashboard.NewHandler(dashboardService)
 	chatHandler := chat.NewHandler(chatService, v, "./docs")
 	profileHandler := profile.NewHandler(profileService, v, "./docs")

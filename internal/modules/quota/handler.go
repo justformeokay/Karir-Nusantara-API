@@ -1,6 +1,7 @@
 package quota
 
 import (
+	"context"
 	"encoding/json"
 	"fmt"
 	"io"
@@ -15,17 +16,24 @@ import (
 	"github.com/karirnusantara/api/internal/shared/validator"
 )
 
+// CompanyService defines the interface for company operations needed by quota
+type CompanyService interface {
+	GetCompanyIDByUserID(ctx context.Context, userID uint64) (uint64, error)
+}
+
 // Handler handles HTTP requests for quota
 type Handler struct {
-	service   *Service
-	validator *validator.Validator
+	service        *Service
+	validator      *validator.Validator
+	companyService CompanyService
 }
 
 // NewHandler creates a new quota handler
-func NewHandler(service *Service, v *validator.Validator) *Handler {
+func NewHandler(service *Service, v *validator.Validator, companyService CompanyService) *Handler {
 	return &Handler{
-		service:   service,
-		validator: v,
+		service:        service,
+		validator:      v,
+		companyService: companyService,
 	}
 }
 
@@ -38,9 +46,20 @@ func NewHandler(service *Service, v *validator.Validator) *Handler {
 // @Success 200 {object} response.Response{data=QuotaResponse}
 // @Router /company/quota [get]
 func (h *Handler) GetQuota(w http.ResponseWriter, r *http.Request) {
-	companyID := middleware.GetUserID(r.Context())
-	if companyID == 0 {
+	userID := middleware.GetUserID(r.Context())
+	if userID == 0 {
 		response.Error(w, http.StatusUnauthorized, "UNAUTHORIZED", "User not authenticated")
+		return
+	}
+
+	// Get actual company ID from user ID
+	companyID, err := h.companyService.GetCompanyIDByUserID(r.Context(), userID)
+	if err != nil {
+		response.Error(w, http.StatusInternalServerError, "COMPANY_ERROR", "Failed to get company")
+		return
+	}
+	if companyID == 0 {
+		response.Error(w, http.StatusNotFound, "COMPANY_NOT_FOUND", "Company not found")
 		return
 	}
 
@@ -65,9 +84,20 @@ func (h *Handler) GetQuota(w http.ResponseWriter, r *http.Request) {
 // @Success 201 {object} response.Response{data=PaymentResponse}
 // @Router /company/payments/proof [post]
 func (h *Handler) SubmitPaymentProof(w http.ResponseWriter, r *http.Request) {
-	companyID := middleware.GetUserID(r.Context())
-	if companyID == 0 {
+	userID := middleware.GetUserID(r.Context())
+	if userID == 0 {
 		response.Error(w, http.StatusUnauthorized, "UNAUTHORIZED", "User not authenticated")
+		return
+	}
+
+	// Get actual company ID from user ID
+	companyID, err := h.companyService.GetCompanyIDByUserID(r.Context(), userID)
+	if err != nil {
+		response.Error(w, http.StatusInternalServerError, "COMPANY_ERROR", "Failed to get company")
+		return
+	}
+	if companyID == 0 {
+		response.Error(w, http.StatusNotFound, "COMPANY_NOT_FOUND", "Company not found")
 		return
 	}
 
@@ -154,9 +184,20 @@ func (h *Handler) SubmitPaymentProof(w http.ResponseWriter, r *http.Request) {
 // @Success 200 {object} response.Response{data=[]PaymentResponse}
 // @Router /company/payments [get]
 func (h *Handler) GetPayments(w http.ResponseWriter, r *http.Request) {
-	companyID := middleware.GetUserID(r.Context())
-	if companyID == 0 {
+	userID := middleware.GetUserID(r.Context())
+	if userID == 0 {
 		response.Error(w, http.StatusUnauthorized, "UNAUTHORIZED", "User not authenticated")
+		return
+	}
+
+	// Get actual company ID from user ID
+	companyID, err := h.companyService.GetCompanyIDByUserID(r.Context(), userID)
+	if err != nil {
+		response.Error(w, http.StatusInternalServerError, "COMPANY_ERROR", "Failed to get company")
+		return
+	}
+	if companyID == 0 {
+		response.Error(w, http.StatusNotFound, "COMPANY_NOT_FOUND", "Company not found")
 		return
 	}
 
@@ -230,9 +271,20 @@ func (h *Handler) GetPackages(w http.ResponseWriter, r *http.Request) {
 // @Success 200 {file} binary
 // @Router /company/payments/{id}/invoice [get]
 func (h *Handler) DownloadInvoice(w http.ResponseWriter, r *http.Request) {
-	companyID := middleware.GetUserID(r.Context())
-	if companyID == 0 {
+	userID := middleware.GetUserID(r.Context())
+	if userID == 0 {
 		response.Error(w, http.StatusUnauthorized, "UNAUTHORIZED", "User not authenticated")
+		return
+	}
+
+	// Get actual company ID from user ID
+	companyID, err := h.companyService.GetCompanyIDByUserID(r.Context(), userID)
+	if err != nil {
+		response.Error(w, http.StatusInternalServerError, "COMPANY_ERROR", "Failed to get company")
+		return
+	}
+	if companyID == 0 {
+		response.Error(w, http.StatusNotFound, "COMPANY_NOT_FOUND", "Company not found")
 		return
 	}
 
@@ -273,7 +325,7 @@ func (h *Handler) DownloadInvoice(w http.ResponseWriter, r *http.Request) {
 	} else {
 		dateStr = time.Now().Format("20060102")
 	}
-	
+
 	invoicePath := fmt.Sprintf("./docs/invoices/invoice_%s_%d.pdf", dateStr, paymentID)
 
 	// Check if invoice file exists

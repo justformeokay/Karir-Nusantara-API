@@ -642,7 +642,7 @@ func (r *repository) GetPayments(ctx context.Context, filter PaymentFilter) ([]*
 			p.amount, p.proof_image_url, p.status, p.note, p.confirmed_by_id,
 			p.submitted_at, p.confirmed_at, p.created_at, p.updated_at
 		FROM payments p
-		LEFT JOIN companies c ON p.company_id = c.user_id
+		LEFT JOIN companies c ON p.company_id = c.id
 		LEFT JOIN jobs j ON p.job_id = j.id
 	` + whereClause + " ORDER BY p.submitted_at DESC"
 
@@ -685,7 +685,7 @@ func (r *repository) GetPaymentByID(ctx context.Context, id uint64) (*PaymentAdm
 			p.amount, p.proof_image_url, p.status, p.note, p.confirmed_by_id,
 			p.submitted_at, p.confirmed_at, p.created_at, p.updated_at
 		FROM payments p
-		LEFT JOIN companies c ON p.company_id = c.user_id
+		LEFT JOIN companies c ON p.company_id = c.id
 		LEFT JOIN jobs j ON p.job_id = j.id
 		WHERE p.id = ?
 	`
