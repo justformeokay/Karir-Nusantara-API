@@ -202,6 +202,12 @@ type CompanyDetailResponse struct {
 		FreeQuotaTotal int `json:"free_quota_total"` // Usually 5
 		PaidQuota      int `json:"paid_quota"`
 		TotalQuota     int `json:"total_quota"` // free + paid
+
+		// Job posting details
+		FreeJobsActive  int `json:"free_jobs_active"`  // Active jobs using free quota
+		PaidJobsActive  int `json:"paid_jobs_active"`  // Active jobs using paid quota
+		TotalJobsActive int `json:"total_jobs_active"` // Total active jobs
+		DraftJobsCount  int `json:"draft_jobs_count"`  // Draft jobs
 	} `json:"quota_info"`
 
 	// Timestamps

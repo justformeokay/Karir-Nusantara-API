@@ -337,7 +337,8 @@ func (r *repository) GetCompanyDetailByID(ctx context.Context, id uint64) (*Comp
 			COALESCE((SELECT COUNT(*) FROM jobs WHERE company_id = u.id AND status = 'active'), 0) as active_jobs_count,
 			COALESCE((SELECT COUNT(*) FROM applications a JOIN jobs j ON a.job_id = j.id WHERE j.company_id = u.id), 0) as total_applications,
 			COALESCE(cq.free_quota_used, 0) as free_quota_used,
-			COALESCE(cq.paid_quota, 0) as paid_quota
+			COALESCE(cq.paid_quota, 0) as paid_quota,
+			COALESCE((SELECT COUNT(*) FROM jobs WHERE company_id = u.id AND status = 'draft'), 0) as draft_jobs_count
 		FROM users u
 		JOIN companies c ON u.id = c.user_id
 		LEFT JOIN company_quotas cq ON c.id = cq.company_id
@@ -348,11 +349,11 @@ func (r *repository) GetCompanyDetailByID(ctx context.Context, id uint64) (*Comp
 		detail CompanyDetailResponse
 		companyIndustry, companySize, companyLocation, companyAddress,
 		companyCity, companyProvince, postalCode string
-		establishedYear, employeeCount   int64
-		verificationNotes, phone         string
-		docsVerifiedAt, emailVerifiedAt  string
-		ktpURL, aktaURL, npwpURL, nibURL string
-		freeQuotaUsed, paidQuota         int64
+		establishedYear, employeeCount           int64
+		verificationNotes, phone                 string
+		docsVerifiedAt, emailVerifiedAt          string
+		ktpURL, aktaURL, npwpURL, nibURL         string
+		freeQuotaUsed, paidQuota, draftJobsCount int64
 	)
 
 	err := r.db.QueryRowContext(ctx, query, id).Scan(
@@ -366,7 +367,7 @@ func (r *repository) GetCompanyDetailByID(ctx context.Context, id uint64) (*Comp
 		&ktpURL, &aktaURL, &npwpURL, &nibURL,
 		&detail.CreatedAt, &detail.UpdatedAt,
 		&detail.JobsCount, &detail.ActiveJobsCount, &detail.TotalApplications,
-		&freeQuotaUsed, &paidQuota,
+		&freeQuotaUsed, &paidQuota, &draftJobsCount,
 	)
 	if err != nil {
 		if err == sql.ErrNoRows {
@@ -405,6 +406,22 @@ func (r *repository) GetCompanyDetailByID(ctx context.Context, id uint64) (*Comp
 	detail.QuotaInfo.FreeQuotaTotal = FreeQuotaTotal
 	detail.QuotaInfo.PaidQuota = int(paidQuota)
 	detail.QuotaInfo.TotalQuota = detail.QuotaInfo.FreeQuotaUsed + detail.QuotaInfo.PaidQuota
+
+	// Calculate job posting details
+	// Free jobs: min of (active_jobs_count, free_quota_used)
+	// Paid jobs: max of (active_jobs_count - free_quota_used, 0)
+	detail.QuotaInfo.FreeJobsActive = detail.ActiveJobsCount
+	if detail.QuotaInfo.FreeJobsActive > detail.QuotaInfo.FreeQuotaUsed {
+		detail.QuotaInfo.FreeJobsActive = detail.QuotaInfo.FreeQuotaUsed
+	}
+
+	detail.QuotaInfo.PaidJobsActive = detail.ActiveJobsCount - detail.QuotaInfo.FreeJobsActive
+	if detail.QuotaInfo.PaidJobsActive < 0 {
+		detail.QuotaInfo.PaidJobsActive = 0
+	}
+
+	detail.QuotaInfo.TotalJobsActive = detail.ActiveJobsCount
+	detail.QuotaInfo.DraftJobsCount = int(draftJobsCount)
 
 	return &detail, nil
 }
