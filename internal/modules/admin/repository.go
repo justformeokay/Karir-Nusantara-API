@@ -333,12 +333,12 @@ func (r *repository) GetCompanyDetailByID(ctx context.Context, id uint64) (*Comp
 			COALESCE(c.documents_verified_at, '') as documents_verified_at, COALESCE(c.verification_notes, '') as verification_notes,
 			COALESCE(c.ktp_founder_url, '') as ktp_founder_url, COALESCE(c.akta_pendirian_url, '') as akta_pendirian_url, COALESCE(c.npwp_url, '') as npwp_url, COALESCE(c.nib_url, '') as nib_url,
 			c.created_at, c.updated_at,
-			COALESCE((SELECT COUNT(*) FROM jobs WHERE company_id = u.id), 0) as jobs_count,
-			COALESCE((SELECT COUNT(*) FROM jobs WHERE company_id = u.id AND status = 'active'), 0) as active_jobs_count,
-			COALESCE((SELECT COUNT(*) FROM applications a JOIN jobs j ON a.job_id = j.id WHERE j.company_id = u.id), 0) as total_applications,
+			COALESCE((SELECT COUNT(*) FROM jobs WHERE company_id = c.id), 0) as jobs_count,
+			COALESCE((SELECT COUNT(*) FROM jobs WHERE company_id = c.id AND status = 'active'), 0) as active_jobs_count,
+			COALESCE((SELECT COUNT(*) FROM applications a JOIN jobs j ON a.job_id = j.id WHERE j.company_id = c.id), 0) as total_applications,
 			COALESCE(cq.free_quota_used, 0) as free_quota_used,
 			COALESCE(cq.paid_quota, 0) as paid_quota,
-			COALESCE((SELECT COUNT(*) FROM jobs WHERE company_id = u.id AND status = 'draft'), 0) as draft_jobs_count
+			COALESCE((SELECT COUNT(*) FROM jobs WHERE company_id = c.id AND status = 'draft'), 0) as draft_jobs_count
 		FROM users u
 		JOIN companies c ON u.id = c.user_id
 		LEFT JOIN company_quotas cq ON c.id = cq.company_id
@@ -401,7 +401,7 @@ func (r *repository) GetCompanyDetailByID(ctx context.Context, id uint64) (*Comp
 	detail.LegalDocuments.NibURL = nibURL
 
 	// Set quota info
-	const FreeQuotaTotal = 5
+	const FreeQuotaTotal = 10
 	detail.QuotaInfo.FreeQuotaUsed = int(freeQuotaUsed)
 	detail.QuotaInfo.FreeQuotaTotal = FreeQuotaTotal
 	detail.QuotaInfo.PaidQuota = int(paidQuota)

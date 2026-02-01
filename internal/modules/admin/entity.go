@@ -199,7 +199,7 @@ type CompanyDetailResponse struct {
 	// Quota Info
 	QuotaInfo struct {
 		FreeQuotaUsed  int `json:"free_quota_used"`
-		FreeQuotaTotal int `json:"free_quota_total"` // Usually 5
+		FreeQuotaTotal int `json:"free_quota_total"` // Usually 10
 		PaidQuota      int `json:"paid_quota"`
 		TotalQuota     int `json:"total_quota"` // free + paid
 
