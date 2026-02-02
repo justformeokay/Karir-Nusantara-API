@@ -713,6 +713,138 @@ func formatRupiahHTML(amount int64) string {
 	return "Rp " + result
 }
 
+// SendCompanyVerificationEmail sends verification status email to company
+func (s *Service) SendCompanyVerificationEmail(to string, companyName string, fullName string, isApproved bool, reason string) error {
+	var subject string
+	var statusText string
+	var statusColor string
+	var message string
+	var nextSteps string
+
+	if isApproved {
+		subject = "Selamat! Akun Perusahaan Anda Telah Diverifikasi - Karir Nusantara"
+		statusText = "DISETUJUI"
+		statusColor = "#10b981"
+		message = "Kami dengan senang hati memberitahukan bahwa akun perusahaan Anda telah berhasil diverifikasi oleh tim kami."
+		nextSteps = `
+			<ul style="margin: 10px 0; padding-left: 20px;">
+				<li>Anda sekarang dapat memposting lowongan pekerjaan</li>
+				<li>Akses fitur pencarian kandidat</li>
+				<li>Kelola lamaran yang masuk</li>
+				<li>Gunakan fitur chat untuk berkomunikasi dengan kandidat</li>
+			</ul>
+		`
+	} else {
+		subject = "Informasi Status Verifikasi Akun - Karir Nusantara"
+		statusText = "DITOLAK"
+		statusColor = "#ef4444"
+		message = "Mohon maaf, setelah tim kami meninjau dokumen dan informasi yang Anda berikan, kami belum dapat menyetujui verifikasi akun perusahaan Anda saat ini."
+		nextSteps = `
+			<ul style="margin: 10px 0; padding-left: 20px;">
+				<li>Periksa kembali kelengkapan dokumen perusahaan</li>
+				<li>Pastikan informasi yang diberikan akurat</li>
+				<li>Upload ulang dokumen yang diperlukan</li>
+				<li>Ajukan verifikasi ulang setelah melengkapi persyaratan</li>
+			</ul>
+		`
+	}
+
+	tmpl := `
+<!DOCTYPE html>
+<html>
+<head>
+	<style>
+		body { font-family: Arial, sans-serif; line-height: 1.6; color: #333; }
+		.container { max-width: 600px; margin: 0 auto; padding: 20px; }
+		.header { background-color: #2563eb; color: white; padding: 20px; text-align: center; }
+		.content { padding: 20px; background-color: #f9fafb; }
+		.status-badge { display: inline-block; padding: 8px 16px; border-radius: 5px; font-weight: bold; color: white; margin: 15px 0; }
+		.button { display: inline-block; padding: 12px 24px; background-color: #2563eb; color: white; text-decoration: none; border-radius: 5px; margin: 20px 0; }
+		.reason-box { background-color: #fff3cd; border: 1px solid #ffc107; padding: 15px; border-radius: 5px; margin: 15px 0; }
+		.footer { padding: 20px; text-align: center; font-size: 12px; color: #666; }
+	</style>
+</head>
+<body>
+	<div class="container">
+		<div class="header">
+			<h1>Status Verifikasi Perusahaan</h1>
+		</div>
+		<div class="content">
+			<p>Halo <strong>{{.FullName}}</strong>,</p>
+			<p>{{.Message}}</p>
+			
+			<div style="text-align: center;">
+				<span class="status-badge" style="background-color: {{.StatusColor}};">{{.StatusText}}</span>
+			</div>
+			
+			<p><strong>Detail Perusahaan:</strong></p>
+			<table style="width: 100%; border-collapse: collapse; margin: 10px 0;">
+				<tr>
+					<td style="padding: 8px; border-bottom: 1px solid #ddd; width: 40%;">Nama Perusahaan</td>
+					<td style="padding: 8px; border-bottom: 1px solid #ddd;"><strong>{{.CompanyName}}</strong></td>
+				</tr>
+				<tr>
+					<td style="padding: 8px; border-bottom: 1px solid #ddd;">Status Verifikasi</td>
+					<td style="padding: 8px; border-bottom: 1px solid #ddd;"><strong style="color: {{.StatusColor}};">{{.StatusText}}</strong></td>
+				</tr>
+			</table>
+			
+			{{if .Reason}}
+			<div class="reason-box">
+				<strong>Catatan dari Admin:</strong>
+				<p>{{.Reason}}</p>
+			</div>
+			{{end}}
+			
+			<p><strong>Langkah Selanjutnya:</strong></p>
+			{{.NextSteps}}
+			
+			<div style="text-align: center;">
+				<a href="https://company.karirnusantara.com" class="button">Masuk ke Dashboard</a>
+			</div>
+			
+			<p>Jika Anda memiliki pertanyaan atau membutuhkan bantuan lebih lanjut, silakan hubungi tim dukungan kami.</p>
+		</div>
+		<div class="footer">
+			<p>&copy; 2026 Karir Nusantara. All rights reserved.</p>
+			<p>Email ini dikirim secara otomatis, mohon untuk tidak membalas.</p>
+		</div>
+	</div>
+</body>
+</html>
+`
+
+	t, err := template.New("verification").Parse(tmpl)
+	if err != nil {
+		return fmt.Errorf("failed to parse template: %w", err)
+	}
+
+	data := struct {
+		FullName    string
+		CompanyName string
+		Message     string
+		StatusText  string
+		StatusColor string
+		Reason      string
+		NextSteps   template.HTML
+	}{
+		FullName:    fullName,
+		CompanyName: companyName,
+		Message:     message,
+		StatusText:  statusText,
+		StatusColor: statusColor,
+		Reason:      reason,
+		NextSteps:   template.HTML(nextSteps),
+	}
+
+	var body bytes.Buffer
+	if err := t.Execute(&body, data); err != nil {
+		return fmt.Errorf("failed to execute template: %w", err)
+	}
+
+	return s.SendEmail(to, subject, body.String())
+}
+
 // Helper function to get environment variable with default value
 func getEnv(key, defaultValue string) string {
 	value := os.Getenv(key)

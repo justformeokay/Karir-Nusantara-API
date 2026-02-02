@@ -217,14 +217,17 @@ func (s *service) VerifyCompany(ctx context.Context, id uint64, req *CompanyVeri
 
 	var newStatus string
 	var action string
+	var isApproved bool
 
 	switch req.Action {
 	case "approve":
 		newStatus = CompanyStatusVerified
 		action = "company_verified"
+		isApproved = true
 	case "reject":
 		newStatus = CompanyStatusRejected
 		action = "company_rejected"
+		isApproved = false
 	default:
 		return ErrInvalidAction
 	}
@@ -239,6 +242,28 @@ func (s *service) VerifyCompany(ctx context.Context, id uint64, req *CompanyVeri
 	// Log admin action (optional)
 	if req.Reason != "" {
 		s.logAction(ctx, adminID, action, "company", id, req.Reason)
+	}
+
+	// Send verification email notification (async)
+	if s.emailService != nil && company.Email != "" {
+		go func() {
+			companyName := ""
+			if company.CompanyName.Valid {
+				companyName = company.CompanyName.String
+			}
+			err := s.emailService.SendCompanyVerificationEmail(
+				company.Email,
+				companyName,
+				company.FullName,
+				isApproved,
+				req.Reason,
+			)
+			if err != nil {
+				fmt.Printf("DEBUG: Failed to send verification email to %s: %v\n", company.Email, err)
+			} else {
+				fmt.Printf("DEBUG: Verification email sent successfully to %s\n", company.Email)
+			}
+		}()
 	}
 
 	return nil
