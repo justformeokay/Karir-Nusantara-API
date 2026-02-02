@@ -20,6 +20,9 @@ type Repository interface {
 
 	// Dashboard
 	GetDashboardStats(ctx context.Context) (*DashboardStats, error)
+	GetPendingCompanies(ctx context.Context, limit int) ([]*CompanyAdmin, error)
+	GetPendingPayments(ctx context.Context, limit int) ([]*PaymentAdmin, error)
+	GetOpenSupportTickets(ctx context.Context, limit int) ([]*SupportTicketAdmin, error)
 
 	// Company operations
 	GetCompanies(ctx context.Context, filter CompanyFilter) ([]*CompanyAdmin, int, error)
@@ -149,17 +152,33 @@ func (r *repository) GetUserByID(ctx context.Context, id uint64) (*SimpleUser, e
 func (r *repository) GetDashboardStats(ctx context.Context) (*DashboardStats, error) {
 	stats := &DashboardStats{}
 
-	// Companies stats
+	// Companies stats - current and last month comparison
 	err := r.db.QueryRowContext(ctx, `
 		SELECT 
 			COUNT(*) as total,
 			SUM(CASE WHEN company_status = 'pending' THEN 1 ELSE 0 END) as pending,
 			SUM(CASE WHEN company_status = 'verified' THEN 1 ELSE 0 END) as verified,
 			SUM(CASE WHEN company_status = 'suspended' THEN 1 ELSE 0 END) as suspended
-		FROM users WHERE role = 'company'
+		FROM companies
 	`).Scan(&stats.TotalCompanies, &stats.PendingVerifications, &stats.VerifiedCompanies, &stats.SuspendedCompanies)
 	if err != nil {
 		return nil, fmt.Errorf("failed to get company stats: %w", err)
+	}
+
+	// Companies growth percentage (compare current month vs last month)
+	var companiesLastMonth int
+	err = r.db.QueryRowContext(ctx, `
+		SELECT COUNT(*) FROM companies 
+		WHERE created_at < DATE_FORMAT(CURDATE(), '%Y-%m-01')
+	`).Scan(&companiesLastMonth)
+	if err != nil {
+		companiesLastMonth = 0
+	}
+	if companiesLastMonth > 0 {
+		companiesThisMonth := stats.TotalCompanies - companiesLastMonth
+		if companiesThisMonth > 0 {
+			stats.CompaniesGrowthPercentage = float64(companiesThisMonth) / float64(companiesLastMonth) * 100
+		}
 	}
 
 	// Jobs stats
@@ -186,16 +205,57 @@ func (r *repository) GetDashboardStats(ctx context.Context) (*DashboardStats, er
 		return nil, fmt.Errorf("failed to get job seeker stats: %w", err)
 	}
 
+	// Job seekers growth percentage
+	var jobSeekersLastMonth int
+	err = r.db.QueryRowContext(ctx, `
+		SELECT COUNT(*) FROM users 
+		WHERE role = 'job_seeker' AND created_at < DATE_FORMAT(CURDATE(), '%Y-%m-01')
+	`).Scan(&jobSeekersLastMonth)
+	if err != nil {
+		jobSeekersLastMonth = 0
+	}
+	if jobSeekersLastMonth > 0 {
+		jobSeekersThisMonth := stats.TotalJobSeekers - jobSeekersLastMonth
+		if jobSeekersThisMonth > 0 {
+			stats.JobSeekersGrowthPercentage = float64(jobSeekersThisMonth) / float64(jobSeekersLastMonth) * 100
+		}
+	}
+
 	// Payments stats
 	err = r.db.QueryRowContext(ctx, `
 		SELECT 
 			COUNT(*) as total,
 			SUM(CASE WHEN status = 'pending' THEN 1 ELSE 0 END) as pending,
-			SUM(CASE WHEN status = 'confirmed' THEN amount ELSE 0 END) as revenue
+			COALESCE(SUM(CASE WHEN status = 'confirmed' THEN amount ELSE 0 END), 0) as revenue
 		FROM payments
 	`).Scan(&stats.TotalPayments, &stats.PendingPayments, &stats.TotalRevenue)
 	if err != nil {
 		return nil, fmt.Errorf("failed to get payment stats: %w", err)
+	}
+
+	// Revenue growth percentage
+	var revenueLastMonth int64
+	err = r.db.QueryRowContext(ctx, `
+		SELECT COALESCE(SUM(amount), 0) FROM payments 
+		WHERE status = 'confirmed' AND confirmed_at < DATE_FORMAT(CURDATE(), '%Y-%m-01')
+	`).Scan(&revenueLastMonth)
+	if err != nil {
+		revenueLastMonth = 0
+	}
+	if revenueLastMonth > 0 {
+		revenueThisMonth := stats.TotalRevenue - revenueLastMonth
+		if revenueThisMonth > 0 {
+			stats.RevenueGrowthPercentage = float64(revenueThisMonth) / float64(revenueLastMonth) * 100
+		}
+	}
+
+	// Open tickets (from conversations table)
+	err = r.db.QueryRowContext(ctx, `
+		SELECT COUNT(*) FROM conversations 
+		WHERE status IN ('open', 'in_progress')
+	`).Scan(&stats.OpenTickets)
+	if err != nil {
+		stats.OpenTickets = 0
 	}
 
 	return stats, nil
@@ -847,4 +907,148 @@ func (r *repository) LogAdminAction(ctx context.Context, log *AdminActionLog) er
 		log.AdminID, log.Action, log.EntityType, log.EntityID, log.Details, log.IPAddress,
 	)
 	return err
+}
+
+// ============================================
+// DASHBOARD DETAIL OPERATIONS
+// ============================================
+
+func (r *repository) GetPendingCompanies(ctx context.Context, limit int) ([]*CompanyAdmin, error) {
+	if limit <= 0 {
+		limit = 5
+	}
+
+	query := `
+		SELECT 
+			u.id, u.email, u.full_name, u.phone, u.is_active, u.is_verified,
+			u.email_verified_at, u.created_at, u.updated_at,
+			c.company_name, c.company_description, c.company_website, c.company_logo_url, c.company_status,
+			(SELECT COUNT(*) FROM jobs WHERE company_id = c.id) as jobs_count,
+			(SELECT COUNT(*) FROM jobs WHERE company_id = c.id AND status = 'active') as active_jobs_count,
+			(SELECT COUNT(*) FROM applications WHERE job_id IN (SELECT id FROM jobs WHERE company_id = c.id)) as total_applications
+		FROM users u
+		JOIN companies c ON u.id = c.user_id
+		WHERE u.role = 'company' AND c.company_status = 'pending'
+		ORDER BY c.created_at DESC
+		LIMIT ?
+	`
+
+	rows, err := r.db.QueryContext(ctx, query, limit)
+	if err != nil {
+		return nil, fmt.Errorf("failed to get pending companies: %w", err)
+	}
+	defer rows.Close()
+
+	var companies []*CompanyAdmin
+	for rows.Next() {
+		var c CompanyAdmin
+		if err := rows.Scan(
+			&c.ID, &c.Email, &c.FullName, &c.Phone, &c.IsActive, &c.IsVerified,
+			&c.EmailVerifiedAt, &c.CreatedAt, &c.UpdatedAt,
+			&c.CompanyName, &c.CompanyDescription, &c.CompanyWebsite, &c.CompanyLogoURL, &c.CompanyStatus,
+			&c.JobsCount, &c.ActiveJobsCount, &c.TotalApplications,
+		); err != nil {
+			return nil, fmt.Errorf("failed to scan pending company: %w", err)
+		}
+		companies = append(companies, &c)
+	}
+
+	if err = rows.Err(); err != nil {
+		return nil, fmt.Errorf("error iterating pending companies: %w", err)
+	}
+
+	return companies, nil
+}
+
+func (r *repository) GetPendingPayments(ctx context.Context, limit int) ([]*PaymentAdmin, error) {
+	if limit <= 0 {
+		limit = 5
+	}
+
+	// Note: payments.company_id may reference users.id or companies.id depending on data
+	// Using a subquery to handle both cases
+	query := `
+		SELECT 
+			p.id, p.company_id, p.job_id, p.amount, p.proof_image_url, p.status, p.note,
+			p.confirmed_by_id, p.submitted_at, p.confirmed_at, p.created_at, p.updated_at,
+			COALESCE(c.company_name, (SELECT company_name FROM companies WHERE user_id = p.company_id LIMIT 1), 'Unknown') as company_name,
+			j.title as job_title
+		FROM payments p
+		LEFT JOIN companies c ON p.company_id = c.id
+		LEFT JOIN jobs j ON p.job_id = j.id
+		WHERE p.status = 'pending'
+		ORDER BY p.submitted_at DESC
+		LIMIT ?
+	`
+
+	rows, err := r.db.QueryContext(ctx, query, limit)
+	if err != nil {
+		return nil, fmt.Errorf("failed to get pending payments: %w", err)
+	}
+	defer rows.Close()
+
+	var payments []*PaymentAdmin
+	for rows.Next() {
+		var p PaymentAdmin
+		if err := rows.Scan(
+			&p.ID, &p.CompanyID, &p.JobID, &p.Amount, &p.ProofImageURL, &p.Status, &p.Note,
+			&p.ConfirmedByID, &p.SubmittedAt, &p.ConfirmedAt, &p.CreatedAt, &p.UpdatedAt,
+			&p.CompanyName, &p.JobTitle,
+		); err != nil {
+			return nil, fmt.Errorf("failed to scan pending payment: %w", err)
+		}
+		payments = append(payments, &p)
+	}
+
+	if err = rows.Err(); err != nil {
+		return nil, fmt.Errorf("error iterating pending payments: %w", err)
+	}
+
+	return payments, nil
+}
+
+func (r *repository) GetOpenSupportTickets(ctx context.Context, limit int) ([]*SupportTicketAdmin, error) {
+	if limit <= 0 {
+		limit = 5
+	}
+
+	// Query conversations table (the actual support tickets table in this system)
+	query := `
+		SELECT 
+			cv.id, cv.company_id as user_id, 
+			COALESCE(c.company_name, u.full_name) as user_name, 
+			u.email as user_email,
+			cv.title as subject, cv.subject as message, cv.status, cv.category as priority, 
+			cv.created_at, cv.updated_at
+		FROM conversations cv
+		JOIN companies c ON cv.company_id = c.id
+		JOIN users u ON c.user_id = u.id
+		WHERE cv.status IN ('open', 'in_progress')
+		ORDER BY cv.created_at DESC
+		LIMIT ?
+	`
+
+	rows, err := r.db.QueryContext(ctx, query, limit)
+	if err != nil {
+		return nil, fmt.Errorf("failed to get open support tickets: %w", err)
+	}
+	defer rows.Close()
+
+	var tickets []*SupportTicketAdmin
+	for rows.Next() {
+		var st SupportTicketAdmin
+		if err := rows.Scan(
+			&st.ID, &st.UserID, &st.UserName, &st.UserEmail,
+			&st.Subject, &st.Message, &st.Status, &st.Priority, &st.CreatedAt, &st.UpdatedAt,
+		); err != nil {
+			return nil, fmt.Errorf("failed to scan support ticket: %w", err)
+		}
+		tickets = append(tickets, &st)
+	}
+
+	if err = rows.Err(); err != nil {
+		return nil, fmt.Errorf("error iterating support tickets: %w", err)
+	}
+
+	return tickets, nil
 }

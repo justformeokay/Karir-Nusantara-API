@@ -493,24 +493,80 @@ func (js *JobSeekerAdmin) ToResponse() *JobSeekerAdminResponse {
 }
 
 // ============================================
+// SUPPORT TICKET ENTITIES (ADMIN VIEW)
+// ============================================
+
+// SupportTicketAdmin represents support ticket data for admin view
+type SupportTicketAdmin struct {
+	ID        uint64         `db:"id" json:"id"`
+	UserID    uint64         `db:"user_id" json:"user_id"`
+	UserName  string         `db:"user_name" json:"user_name"`
+	UserEmail string         `db:"user_email" json:"user_email"`
+	Subject   string         `db:"subject" json:"subject"`
+	Message   string         `db:"message" json:"message"`
+	Status    string         `db:"status" json:"status"`
+	Priority  sql.NullString `db:"priority" json:"priority,omitempty"`
+	CreatedAt time.Time      `db:"created_at" json:"created_at"`
+	UpdatedAt time.Time      `db:"updated_at" json:"updated_at"`
+}
+
+// SupportTicketAdminResponse represents the support ticket response for admin API
+type SupportTicketAdminResponse struct {
+	ID        uint64 `json:"id"`
+	UserID    uint64 `json:"user_id"`
+	UserName  string `json:"user_name"`
+	UserEmail string `json:"user_email"`
+	Subject   string `json:"subject"`
+	Message   string `json:"message"`
+	Status    string `json:"status"`
+	Priority  string `json:"priority,omitempty"`
+	CreatedAt string `json:"created_at"`
+	UpdatedAt string `json:"updated_at"`
+}
+
+func (st *SupportTicketAdmin) ToResponse() *SupportTicketAdminResponse {
+	resp := &SupportTicketAdminResponse{
+		ID:        st.ID,
+		UserID:    st.UserID,
+		UserName:  st.UserName,
+		UserEmail: st.UserEmail,
+		Subject:   st.Subject,
+		Message:   st.Message,
+		Status:    st.Status,
+		CreatedAt: st.CreatedAt.Format(time.RFC3339),
+		UpdatedAt: st.UpdatedAt.Format(time.RFC3339),
+	}
+
+	if st.Priority.Valid {
+		resp.Priority = st.Priority.String
+	}
+
+	return resp
+}
+
+// ============================================
 // DASHBOARD STATS
 // ============================================
 
 // DashboardStats represents admin dashboard statistics
 type DashboardStats struct {
-	TotalCompanies       int   `json:"total_companies"`
-	PendingVerifications int   `json:"pending_verifications"`
-	VerifiedCompanies    int   `json:"verified_companies"`
-	SuspendedCompanies   int   `json:"suspended_companies"`
-	TotalJobs            int   `json:"total_jobs"`
-	ActiveJobs           int   `json:"active_jobs"`
-	PendingJobs          int   `json:"pending_jobs"`
-	FlaggedJobs          int   `json:"flagged_jobs"`
-	TotalJobSeekers      int   `json:"total_job_seekers"`
-	ActiveJobSeekers     int   `json:"active_job_seekers"`
-	TotalPayments        int   `json:"total_payments"`
-	PendingPayments      int   `json:"pending_payments"`
-	TotalRevenue         int64 `json:"total_revenue"`
+	TotalCompanies             int     `json:"total_companies"`
+	CompaniesGrowthPercentage  float64 `json:"companies_growth_percentage"`
+	PendingVerifications       int     `json:"pending_verifications"`
+	VerifiedCompanies          int     `json:"verified_companies"`
+	SuspendedCompanies         int     `json:"suspended_companies"`
+	TotalJobs                  int     `json:"total_jobs"`
+	ActiveJobs                 int     `json:"active_jobs"`
+	PendingJobs                int     `json:"pending_jobs"`
+	FlaggedJobs                int     `json:"flagged_jobs"`
+	TotalJobSeekers            int     `json:"total_job_seekers"`
+	JobSeekersGrowthPercentage float64 `json:"job_seekers_growth_percentage"`
+	ActiveJobSeekers           int     `json:"active_job_seekers"`
+	TotalPayments              int     `json:"total_payments"`
+	PendingPayments            int     `json:"pending_payments"`
+	TotalRevenue               int64   `json:"total_revenue"`
+	RevenueGrowthPercentage    float64 `json:"revenue_growth_percentage"`
+	OpenTickets                int     `json:"open_tickets"`
 }
 
 // ============================================

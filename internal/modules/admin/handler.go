@@ -96,6 +96,48 @@ func (h *Handler) GetDashboardStats(w http.ResponseWriter, r *http.Request) {
 	response.Success(w, http.StatusOK, "Statistik dashboard berhasil diambil", stats)
 }
 
+// GetPendingCompanies handles listing pending companies
+// GET /api/v1/admin/dashboard/pending-companies
+func (h *Handler) GetPendingCompanies(w http.ResponseWriter, r *http.Request) {
+	limit := parseIntOrDefault(r.URL.Query().Get("limit"), 5)
+
+	companies, err := h.service.GetPendingCompanies(r.Context(), limit)
+	if err != nil {
+		response.Error(w, http.StatusInternalServerError, "FETCH_FAILED", "Gagal mengambil daftar perusahaan tertunda")
+		return
+	}
+
+	response.Success(w, http.StatusOK, "Daftar perusahaan tertunda berhasil diambil", companies)
+}
+
+// GetPendingPayments handles listing pending payments
+// GET /api/v1/admin/dashboard/pending-payments
+func (h *Handler) GetPendingPayments(w http.ResponseWriter, r *http.Request) {
+	limit := parseIntOrDefault(r.URL.Query().Get("limit"), 5)
+
+	payments, err := h.service.GetPendingPayments(r.Context(), limit)
+	if err != nil {
+		response.Error(w, http.StatusInternalServerError, "FETCH_FAILED", "Gagal mengambil daftar pembayaran tertunda")
+		return
+	}
+
+	response.Success(w, http.StatusOK, "Daftar pembayaran tertunda berhasil diambil", payments)
+}
+
+// GetOpenSupportTickets handles listing open support tickets
+// GET /api/v1/admin/dashboard/open-tickets
+func (h *Handler) GetOpenSupportTickets(w http.ResponseWriter, r *http.Request) {
+	limit := parseIntOrDefault(r.URL.Query().Get("limit"), 5)
+
+	tickets, err := h.service.GetOpenSupportTickets(r.Context(), limit)
+	if err != nil {
+		response.Error(w, http.StatusInternalServerError, "FETCH_FAILED", "Gagal mengambil daftar tiket dukungan terbuka")
+		return
+	}
+
+	response.Success(w, http.StatusOK, "Daftar tiket dukungan terbuka berhasil diambil", tickets)
+}
+
 // ============================================
 // COMPANY MANAGEMENT
 // ============================================

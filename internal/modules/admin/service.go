@@ -36,6 +36,9 @@ type Service interface {
 
 	// Dashboard
 	GetDashboardStats(ctx context.Context) (*DashboardStats, error)
+	GetPendingCompanies(ctx context.Context, limit int) ([]*CompanyAdminResponse, error)
+	GetPendingPayments(ctx context.Context, limit int) ([]*PaymentAdminResponse, error)
+	GetOpenSupportTickets(ctx context.Context, limit int) ([]*SupportTicketAdminResponse, error)
 
 	// Company management
 	GetCompanies(ctx context.Context, filter CompanyFilter) (*PaginatedResponse, error)
@@ -610,4 +613,53 @@ func (s *service) generateAccessToken(admin *AdminUser, expiry time.Duration) (s
 
 	token := jwt.NewWithClaims(jwt.SigningMethodHS256, claims)
 	return token.SignedString([]byte(s.config.JWT.Secret))
+}
+
+// ============================================
+// DASHBOARD DETAIL OPERATIONS
+// ============================================
+
+func (s *service) GetPendingCompanies(ctx context.Context, limit int) ([]*CompanyAdminResponse, error) {
+	companies, err := s.repo.GetPendingCompanies(ctx, limit)
+	if err != nil {
+		return nil, fmt.Errorf("failed to get pending companies: %w", err)
+	}
+
+	// Convert to responses
+	responses := make([]*CompanyAdminResponse, len(companies))
+	for i, c := range companies {
+		responses[i] = c.ToResponse()
+	}
+
+	return responses, nil
+}
+
+func (s *service) GetPendingPayments(ctx context.Context, limit int) ([]*PaymentAdminResponse, error) {
+	payments, err := s.repo.GetPendingPayments(ctx, limit)
+	if err != nil {
+		return nil, fmt.Errorf("failed to get pending payments: %w", err)
+	}
+
+	// Convert to responses
+	responses := make([]*PaymentAdminResponse, len(payments))
+	for i, p := range payments {
+		responses[i] = p.ToResponse()
+	}
+
+	return responses, nil
+}
+
+func (s *service) GetOpenSupportTickets(ctx context.Context, limit int) ([]*SupportTicketAdminResponse, error) {
+	tickets, err := s.repo.GetOpenSupportTickets(ctx, limit)
+	if err != nil {
+		return nil, fmt.Errorf("failed to get open support tickets: %w", err)
+	}
+
+	// Convert to responses
+	responses := make([]*SupportTicketAdminResponse, len(tickets))
+	for i, t := range tickets {
+		responses[i] = t.ToResponse()
+	}
+
+	return responses, nil
 }

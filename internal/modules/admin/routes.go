@@ -60,6 +60,9 @@ func (m *Module) RegisterRoutes(r chi.Router) {
 
 			// Dashboard
 			r.Get("/dashboard/stats", m.handler.GetDashboardStats)
+			r.Get("/dashboard/pending-companies", m.handler.GetPendingCompanies)
+			r.Get("/dashboard/pending-payments", m.handler.GetPendingPayments)
+			r.Get("/dashboard/open-tickets", m.handler.GetOpenSupportTickets)
 
 			// Company management
 			r.Route("/companies", func(r chi.Router) {
