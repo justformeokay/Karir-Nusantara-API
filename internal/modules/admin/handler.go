@@ -387,7 +387,7 @@ func (h *Handler) GetPayments(w http.ResponseWriter, r *http.Request) {
 		DateFrom:  r.URL.Query().Get("date_from"),
 		DateTo:    r.URL.Query().Get("date_to"),
 		Page:      parseIntOrDefault(r.URL.Query().Get("page"), 1),
-		PageSize:  parseIntOrDefault(r.URL.Query().Get("page_size"), 10),
+		PageSize:  parseIntOrDefault(r.URL.Query().Get("page_size"), 15),
 	}
 
 	result, err := h.service.GetPayments(r.Context(), filter)
