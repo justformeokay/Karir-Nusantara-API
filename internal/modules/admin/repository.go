@@ -1013,6 +1013,7 @@ func (r *repository) GetOpenSupportTickets(ctx context.Context, limit int) ([]*S
 	}
 
 	// Query conversations table (the actual support tickets table in this system)
+	// Note: conversations.company_id actually stores user_id (for company/user who created the conversation)
 	query := `
 		SELECT 
 			cv.id, cv.company_id as user_id, 
@@ -1021,8 +1022,8 @@ func (r *repository) GetOpenSupportTickets(ctx context.Context, limit int) ([]*S
 			cv.title as subject, cv.subject as message, cv.status, cv.category as priority, 
 			cv.created_at, cv.updated_at
 		FROM conversations cv
-		JOIN companies c ON cv.company_id = c.id
-		JOIN users u ON c.user_id = u.id
+		LEFT JOIN users u ON cv.company_id = u.id
+		LEFT JOIN companies c ON u.id = c.user_id
 		WHERE cv.status IN ('open', 'in_progress')
 		ORDER BY cv.created_at DESC
 		LIMIT ?
