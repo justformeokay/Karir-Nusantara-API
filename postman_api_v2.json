@@ -1,13 +1,13 @@
 {
   "info": {
-    "_postman_id": "karir-nusantara-api-complete",
-    "name": "Karir Nusantara API - Complete Collection",
-    "description": "Complete API collection for Karir Nusantara platform",
+    "_postman_id": "karir-nusantara-api-v2-2026",
+    "name": "Karir Nusantara API v2 - Complete Collection",
+    "description": "Complete and updated API collection for Karir Nusantara platform\n\n**Last Updated**: February 2026\n**API Version**: v1\n**Base URL**: {{baseUrl}} (default: http://localhost:8081)\n\n## Features\n- ✅ Complete Authentication (Register, Login, Password Management)\n- ✅ Job Management (CRUD, Publishing, Status Management)\n- ✅ Job Applications (Apply, Withdraw, Status Updates)\n- ✅ User Profiles (CV, Avatar, Documents)\n- ✅ Wishlist/Saved Jobs\n- ✅ Company Management\n- ✅ Chat/Conversations\n- ✅ Admin Panel\n- ✅ Support Tickets\n- ✅ Recommendations\n\n## Authentication\nUse Bearer token authentication:\n```\nAuthorization: Bearer {{token}}\n```\n\n## Password Management APIs\n- **Forgot Password**: POST /api/v1/auth/forgot-password\n- **Reset Password**: POST /api/v1/auth/reset-password  \n- **Change Password**: PUT /api/v1/auth/change-password",
     "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
   },
   "item": [
     {
-      "name": "Health Check",
+      "name": "🔍 Health Check",
       "item": [
         {
           "name": "Health Check",
@@ -19,12 +19,13 @@
               "host": ["{{baseUrl}}"],
               "path": ["health"]
             }
-          }
+          },
+          "response": []
         }
       ]
     },
     {
-      "name": "Authentication",
+      "name": "🔐 Authentication",
       "item": [
         {
           "name": "Register",
@@ -45,7 +46,8 @@
               "host": ["{{baseUrl}}"],
               "path": ["api", "v1", "auth", "register"]
             }
-          }
+          },
+          "response": []
         },
         {
           "name": "Login",
@@ -66,7 +68,8 @@
               "host": ["{{baseUrl}}"],
               "path": ["api", "v1", "auth", "login"]
             }
-          }
+          },
+          "response": []
         },
         {
           "name": "Refresh Token",
@@ -87,7 +90,8 @@
               "host": ["{{baseUrl}}"],
               "path": ["api", "v1", "auth", "refresh"]
             }
-          }
+          },
+          "response": []
         },
         {
           "name": "Logout",
@@ -104,7 +108,8 @@
               "host": ["{{baseUrl}}"],
               "path": ["api", "v1", "auth", "logout"]
             }
-          }
+          },
+          "response": []
         },
         {
           "name": "Get Current User",
@@ -121,8 +126,14 @@
               "host": ["{{baseUrl}}"],
               "path": ["api", "v1", "auth", "me"]
             }
-          }
-        },
+          },
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "🔑 Password Management",
+      "item": [
         {
           "name": "Forgot Password",
           "request": {
@@ -142,49 +153,8 @@
               "host": ["{{baseUrl}}"],
               "path": ["api", "v1", "auth", "forgot-password"]
             }
-          }
-        },
-        {
-          "name": "Reset Password",
-          "request": {
-            "method": "POST",
-            "header": [
-              {
-                "key": "Content-Type",
-                "value": "application/json"
-              }
-            ],
-            "body": {
-              "mode": "raw",
-              "raw": "{\n  \"token\": \"reset_token_here\",\n  \"password\": \"NewPassword123!\"\n}"
-            },
-            "url": {
-              "raw": "{{baseUrl}}/api/v1/auth/reset-password",
-              "host": ["{{baseUrl}}"],
-              "path": ["api", "v1", "auth", "reset-password"]
-            }
-          }
-        },
-        {
-          "name": "Forgot Password",
-          "request": {
-            "method": "POST",
-            "header": [
-              {
-                "key": "Content-Type",
-                "value": "application/json"
-              }
-            ],
-            "body": {
-              "mode": "raw",
-              "raw": "{\n  \"email\": \"user@example.com\"\n}"
-            },
-            "url": {
-              "raw": "{{baseUrl}}/api/v1/auth/forgot-password",
-              "host": ["{{baseUrl}}"],
-              "path": ["api", "v1", "auth", "forgot-password"]
-            }
-          }
+          },
+          "response": []
         },
         {
           "name": "Reset Password",
@@ -205,7 +175,8 @@
               "host": ["{{baseUrl}}"],
               "path": ["api", "v1", "auth", "reset-password"]
             }
-          }
+          },
+          "response": []
         },
         {
           "name": "Change Password",
@@ -230,10 +201,60 @@
               "host": ["{{baseUrl}}"],
               "path": ["api", "v1", "auth", "change-password"]
             }
-          }
+          },
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "👤 User Profile",
+      "item": [
+        {
+          "name": "Get Profile",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token}}"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/v1/profile",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "v1", "profile"]
+            }
+          },
+          "response": []
         },
         {
           "name": "Update Profile",
+          "request": {
+            "method": "PUT",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token}}"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"full_name\": \"John Doe\",\n  \"phone\": \"081234567890\",\n  \"location\": \"Jakarta\",\n  \"bio\": \"Senior Developer\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/v1/profile",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "v1", "profile"]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Update User Profile",
           "request": {
             "method": "PUT",
             "header": [
@@ -255,12 +276,212 @@
               "host": ["{{baseUrl}}"],
               "path": ["api", "v1", "auth", "profile"]
             }
-          }
+          },
+          "response": []
+        },
+        {
+          "name": "Delete Profile",
+          "request": {
+            "method": "DELETE",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token}}"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/v1/profile",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "v1", "profile"]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Upload Avatar",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token}}"
+              }
+            ],
+            "body": {
+              "mode": "formdata",
+              "formdata": [
+                {
+                  "key": "avatar",
+                  "type": "file",
+                  "src": []
+                }
+              ]
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/v1/profile/avatar",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "v1", "profile", "avatar"]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Get Documents",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token}}"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/v1/profile/documents",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "v1", "profile", "documents"]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Upload Document",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token}}"
+              }
+            ],
+            "body": {
+              "mode": "formdata",
+              "formdata": [
+                {
+                  "key": "document",
+                  "type": "file",
+                  "src": []
+                },
+                {
+                  "key": "document_type",
+                  "value": "portfolio"
+                }
+              ]
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/v1/profile/documents",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "v1", "profile", "documents"]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Get Document",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token}}"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/v1/profile/documents/1",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "v1", "profile", "documents", "1"]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Delete Document",
+          "request": {
+            "method": "DELETE",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token}}"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/v1/profile/documents/1",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "v1", "profile", "documents", "1"]
+            }
+          },
+          "response": []
         }
       ]
     },
     {
-      "name": "Jobs",
+      "name": "📄 CV Management",
+      "item": [
+        {
+          "name": "Get CV",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token}}"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/v1/cv",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "v1", "cv"]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Create/Update CV",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token}}"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"summary\": \"Experienced developer with 5+ years\",\n  \"experiences\": [\n    {\n      \"company\": \"Company A\",\n      \"position\": \"Developer\",\n      \"start_date\": \"2020-01-01\",\n      \"end_date\": \"2023-12-31\",\n      \"description\": \"Worked on web applications\"\n    }\n  ],\n  \"educations\": [\n    {\n      \"institution\": \"University\",\n      \"field_of_study\": \"Computer Science\",\n      \"graduation_date\": \"2019-06-15\"\n    }\n  ],\n  \"skills\": [\"Go\", \"TypeScript\", \"React\", \"PostgreSQL\"]\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/v1/cv",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "v1", "cv"]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Delete CV",
+          "request": {
+            "method": "DELETE",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token}}"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/v1/cv",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "v1", "cv"]
+            }
+          },
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "💼 Jobs",
       "item": [
         {
           "name": "List Jobs",
@@ -290,7 +511,8 @@
                 }
               ]
             }
-          }
+          },
+          "response": []
         },
         {
           "name": "Get Job by ID",
@@ -302,7 +524,8 @@
               "host": ["{{baseUrl}}"],
               "path": ["api", "v1", "jobs", "1"]
             }
-          }
+          },
+          "response": []
         },
         {
           "name": "Get Job by Slug",
@@ -314,7 +537,8 @@
               "host": ["{{baseUrl}}"],
               "path": ["api", "v1", "jobs", "slug", "senior-developer"]
             }
-          }
+          },
+          "response": []
         },
         {
           "name": "Create Job (Company)",
@@ -339,7 +563,8 @@
               "host": ["{{baseUrl}}"],
               "path": ["api", "v1", "jobs"]
             }
-          }
+          },
+          "response": []
         },
         {
           "name": "Update Job (Company)",
@@ -364,7 +589,8 @@
               "host": ["{{baseUrl}}"],
               "path": ["api", "v1", "jobs", "1"]
             }
-          }
+          },
+          "response": []
         },
         {
           "name": "Delete Job (Company)",
@@ -381,7 +607,8 @@
               "host": ["{{baseUrl}}"],
               "path": ["api", "v1", "jobs", "1"]
             }
-          }
+          },
+          "response": []
         },
         {
           "name": "Publish Job (Company)",
@@ -398,7 +625,8 @@
               "host": ["{{baseUrl}}"],
               "path": ["api", "v1", "jobs", "1", "publish"]
             }
-          }
+          },
+          "response": []
         },
         {
           "name": "Close Job (Company)",
@@ -415,7 +643,8 @@
               "host": ["{{baseUrl}}"],
               "path": ["api", "v1", "jobs", "1", "close"]
             }
-          }
+          },
+          "response": []
         },
         {
           "name": "Pause Job (Company)",
@@ -432,7 +661,8 @@
               "host": ["{{baseUrl}}"],
               "path": ["api", "v1", "jobs", "1", "pause"]
             }
-          }
+          },
+          "response": []
         },
         {
           "name": "Reopen Job (Company)",
@@ -449,7 +679,8 @@
               "host": ["{{baseUrl}}"],
               "path": ["api", "v1", "jobs", "1", "reopen"]
             }
-          }
+          },
+          "response": []
         },
         {
           "name": "Get Job Stats (Company)",
@@ -466,7 +697,8 @@
               "host": ["{{baseUrl}}"],
               "path": ["api", "v1", "jobs", "1", "stats"]
             }
-          }
+          },
+          "response": []
         },
         {
           "name": "Track Job View (Job Seeker)",
@@ -483,7 +715,8 @@
               "host": ["{{baseUrl}}"],
               "path": ["api", "v1", "jobs", "1", "view"]
             }
-          }
+          },
+          "response": []
         },
         {
           "name": "Track Job Share",
@@ -495,7 +728,8 @@
               "host": ["{{baseUrl}}"],
               "path": ["api", "v1", "jobs", "1", "share"]
             }
-          }
+          },
+          "response": []
         },
         {
           "name": "List Company Jobs (Company)",
@@ -512,12 +746,13 @@
               "host": ["{{baseUrl}}"],
               "path": ["api", "v1", "jobs", "company", "list"]
             }
-          }
+          },
+          "response": []
         }
       ]
     },
     {
-      "name": "Applications",
+      "name": "📝 Applications",
       "item": [
         {
           "name": "Apply for Job (Job Seeker)",
@@ -542,7 +777,8 @@
               "host": ["{{baseUrl}}"],
               "path": ["api", "v1", "applications"]
             }
-          }
+          },
+          "response": []
         },
         {
           "name": "Get Application by ID",
@@ -559,7 +795,8 @@
               "host": ["{{baseUrl}}"],
               "path": ["api", "v1", "applications", "1"]
             }
-          }
+          },
+          "response": []
         },
         {
           "name": "Get Application Timeline",
@@ -576,7 +813,8 @@
               "host": ["{{baseUrl}}"],
               "path": ["api", "v1", "applications", "1", "timeline"]
             }
-          }
+          },
+          "response": []
         },
         {
           "name": "List My Applications (Job Seeker)",
@@ -593,7 +831,8 @@
               "host": ["{{baseUrl}}"],
               "path": ["api", "v1", "applications", "me"]
             }
-          }
+          },
+          "response": []
         },
         {
           "name": "Withdraw Application (Job Seeker)",
@@ -610,7 +849,8 @@
               "host": ["{{baseUrl}}"],
               "path": ["api", "v1", "applications", "1", "withdraw"]
             }
-          }
+          },
+          "response": []
         },
         {
           "name": "List Company Applications (Company)",
@@ -627,7 +867,8 @@
               "host": ["{{baseUrl}}"],
               "path": ["api", "v1", "applications", "company"]
             }
-          }
+          },
+          "response": []
         },
         {
           "name": "Update Application Status (Company)",
@@ -652,244 +893,13 @@
               "host": ["{{baseUrl}}"],
               "path": ["api", "v1", "applications", "1", "status"]
             }
-          }
+          },
+          "response": []
         }
       ]
     },
     {
-      "name": "CV/Profile",
-      "item": [
-        {
-          "name": "Get CV (Job Seeker)",
-          "request": {
-            "method": "GET",
-            "header": [
-              {
-                "key": "Authorization",
-                "value": "Bearer {{token}}"
-              }
-            ],
-            "url": {
-              "raw": "{{baseUrl}}/api/v1/cv",
-              "host": ["{{baseUrl}}"],
-              "path": ["api", "v1", "cv"]
-            }
-          }
-        },
-        {
-          "name": "Create/Update CV (Job Seeker)",
-          "request": {
-            "method": "POST",
-            "header": [
-              {
-                "key": "Authorization",
-                "value": "Bearer {{token}}"
-              },
-              {
-                "key": "Content-Type",
-                "value": "application/json"
-              }
-            ],
-            "body": {
-              "mode": "raw",
-              "raw": "{\n  \"summary\": \"Experienced developer with 5+ years\",\n  \"experiences\": [\n    {\n      \"company\": \"Company A\",\n      \"position\": \"Developer\",\n      \"start_date\": \"2020-01-01\",\n      \"end_date\": \"2023-12-31\",\n      \"description\": \"Worked on web applications\"\n    }\n  ],\n  \"educations\": [\n    {\n      \"institution\": \"University\",\n      \"field_of_study\": \"Computer Science\",\n      \"graduation_date\": \"2019-06-15\"\n    }\n  ],\n  \"skills\": [\"Go\", \"TypeScript\", \"React\", \"PostgreSQL\"]\n}"
-            },
-            "url": {
-              "raw": "{{baseUrl}}/api/v1/cv",
-              "host": ["{{baseUrl}}"],
-              "path": ["api", "v1", "cv"]
-            }
-          }
-        },
-        {
-          "name": "Delete CV (Job Seeker)",
-          "request": {
-            "method": "DELETE",
-            "header": [
-              {
-                "key": "Authorization",
-                "value": "Bearer {{token}}"
-              }
-            ],
-            "url": {
-              "raw": "{{baseUrl}}/api/v1/cv",
-              "host": ["{{baseUrl}}"],
-              "path": ["api", "v1", "cv"]
-            }
-          }
-        },
-        {
-          "name": "Get Profile (Job Seeker)",
-          "request": {
-            "method": "GET",
-            "header": [
-              {
-                "key": "Authorization",
-                "value": "Bearer {{token}}"
-              }
-            ],
-            "url": {
-              "raw": "{{baseUrl}}/api/v1/profile",
-              "host": ["{{baseUrl}}"],
-              "path": ["api", "v1", "profile"]
-            }
-          }
-        },
-        {
-          "name": "Update Profile (Job Seeker)",
-          "request": {
-            "method": "PUT",
-            "header": [
-              {
-                "key": "Authorization",
-                "value": "Bearer {{token}}"
-              },
-              {
-                "key": "Content-Type",
-                "value": "application/json"
-              }
-            ],
-            "body": {
-              "mode": "raw",
-              "raw": "{\n  \"full_name\": \"John Doe\",\n  \"phone\": \"081234567890\",\n  \"location\": \"Jakarta\",\n  \"bio\": \"Senior Developer\"\n}"
-            },
-            "url": {
-              "raw": "{{baseUrl}}/api/v1/profile",
-              "host": ["{{baseUrl}}"],
-              "path": ["api", "v1", "profile"]
-            }
-          }
-        },
-        {
-          "name": "Delete Profile (Job Seeker)",
-          "request": {
-            "method": "DELETE",
-            "header": [
-              {
-                "key": "Authorization",
-                "value": "Bearer {{token}}"
-              }
-            ],
-            "url": {
-              "raw": "{{baseUrl}}/api/v1/profile",
-              "host": ["{{baseUrl}}"],
-              "path": ["api", "v1", "profile"]
-            }
-          }
-        },
-        {
-          "name": "Upload Avatar (Job Seeker)",
-          "request": {
-            "method": "POST",
-            "header": [
-              {
-                "key": "Authorization",
-                "value": "Bearer {{token}}"
-              }
-            ],
-            "body": {
-              "mode": "formdata",
-              "formdata": [
-                {
-                  "key": "avatar",
-                  "type": "file",
-                  "src": []
-                }
-              ]
-            },
-            "url": {
-              "raw": "{{baseUrl}}/api/v1/profile/avatar",
-              "host": ["{{baseUrl}}"],
-              "path": ["api", "v1", "profile", "avatar"]
-            }
-          }
-        },
-        {
-          "name": "Get Documents (Job Seeker)",
-          "request": {
-            "method": "GET",
-            "header": [
-              {
-                "key": "Authorization",
-                "value": "Bearer {{token}}"
-              }
-            ],
-            "url": {
-              "raw": "{{baseUrl}}/api/v1/profile/documents",
-              "host": ["{{baseUrl}}"],
-              "path": ["api", "v1", "profile", "documents"]
-            }
-          }
-        },
-        {
-          "name": "Upload Document (Job Seeker)",
-          "request": {
-            "method": "POST",
-            "header": [
-              {
-                "key": "Authorization",
-                "value": "Bearer {{token}}"
-              }
-            ],
-            "body": {
-              "mode": "formdata",
-              "formdata": [
-                {
-                  "key": "document",
-                  "type": "file",
-                  "src": []
-                },
-                {
-                  "key": "document_type",
-                  "value": "portfolio"
-                }
-              ]
-            },
-            "url": {
-              "raw": "{{baseUrl}}/api/v1/profile/documents",
-              "host": ["{{baseUrl}}"],
-              "path": ["api", "v1", "profile", "documents"]
-            }
-          }
-        },
-        {
-          "name": "Get Document (Job Seeker)",
-          "request": {
-            "method": "GET",
-            "header": [
-              {
-                "key": "Authorization",
-                "value": "Bearer {{token}}"
-              }
-            ],
-            "url": {
-              "raw": "{{baseUrl}}/api/v1/profile/documents/1",
-              "host": ["{{baseUrl}}"],
-              "path": ["api", "v1", "profile", "documents", "1"]
-            }
-          }
-        },
-        {
-          "name": "Delete Document (Job Seeker)",
-          "request": {
-            "method": "DELETE",
-            "header": [
-              {
-                "key": "Authorization",
-                "value": "Bearer {{token}}"
-              }
-            ],
-            "url": {
-              "raw": "{{baseUrl}}/api/v1/profile/documents/1",
-              "host": ["{{baseUrl}}"],
-              "path": ["api", "v1", "profile", "documents", "1"]
-            }
-          }
-        }
-      ]
-    },
-    {
-      "name": "Wishlist/Saved Jobs",
+      "name": "❤️ Wishlist/Saved Jobs",
       "item": [
         {
           "name": "List Saved Jobs (Job Seeker)",
@@ -906,7 +916,8 @@
               "host": ["{{baseUrl}}"],
               "path": ["api", "v1", "wishlist"]
             }
-          }
+          },
+          "response": []
         },
         {
           "name": "Save Job (Job Seeker)",
@@ -931,7 +942,8 @@
               "host": ["{{baseUrl}}"],
               "path": ["api", "v1", "wishlist"]
             }
-          }
+          },
+          "response": []
         },
         {
           "name": "Get Wishlist Stats (Job Seeker)",
@@ -948,7 +960,8 @@
               "host": ["{{baseUrl}}"],
               "path": ["api", "v1", "wishlist", "stats"]
             }
-          }
+          },
+          "response": []
         },
         {
           "name": "Check if Job Saved (Job Seeker)",
@@ -965,7 +978,8 @@
               "host": ["{{baseUrl}}"],
               "path": ["api", "v1", "wishlist", "check", "1"]
             }
-          }
+          },
+          "response": []
         },
         {
           "name": "Remove Saved Job (Job Seeker)",
@@ -982,12 +996,13 @@
               "host": ["{{baseUrl}}"],
               "path": ["api", "v1", "wishlist", "1"]
             }
-          }
+          },
+          "response": []
         }
       ]
     },
     {
-      "name": "Company",
+      "name": "🏢 Company",
       "item": [
         {
           "name": "Get Public Company Profile",
@@ -999,7 +1014,8 @@
               "host": ["{{baseUrl}}"],
               "path": ["api", "v1", "companies", "1"]
             }
-          }
+          },
+          "response": []
         },
         {
           "name": "Get Company Profile (Company)",
@@ -1016,7 +1032,8 @@
               "host": ["{{baseUrl}}"],
               "path": ["api", "v1", "companies", "profile"]
             }
-          }
+          },
+          "response": []
         },
         {
           "name": "Update Company Profile (Company)",
@@ -1041,7 +1058,8 @@
               "host": ["{{baseUrl}}"],
               "path": ["api", "v1", "companies", "profile"]
             }
-          }
+          },
+          "response": []
         },
         {
           "name": "Upload Company Logo (Company)",
@@ -1068,7 +1086,8 @@
               "host": ["{{baseUrl}}"],
               "path": ["api", "v1", "companies", "logo"]
             }
-          }
+          },
+          "response": []
         },
         {
           "name": "Upload Company Document (Company)",
@@ -1099,56 +1118,13 @@
               "host": ["{{baseUrl}}"],
               "path": ["api", "v1", "companies", "documents"]
             }
-          }
+          },
+          "response": []
         }
       ]
     },
     {
-      "name": "Quota",
-      "item": [
-        {
-          "name": "Get Quota (Company)",
-          "request": {
-            "method": "GET",
-            "header": [
-              {
-                "key": "Authorization",
-                "value": "Bearer {{token}}"
-              }
-            ],
-            "url": {
-              "raw": "{{baseUrl}}/api/v1/quota",
-              "host": ["{{baseUrl}}"],
-              "path": ["api", "v1", "quota"]
-            }
-          }
-        }
-      ]
-    },
-    {
-      "name": "Dashboard",
-      "item": [
-        {
-          "name": "Get Dashboard Stats (Company)",
-          "request": {
-            "method": "GET",
-            "header": [
-              {
-                "key": "Authorization",
-                "value": "Bearer {{token}}"
-              }
-            ],
-            "url": {
-              "raw": "{{baseUrl}}/api/v1/dashboard/stats",
-              "host": ["{{baseUrl}}"],
-              "path": ["api", "v1", "dashboard", "stats"]
-            }
-          }
-        }
-      ]
-    },
-    {
-      "name": "Chat",
+      "name": "💬 Chat",
       "item": [
         {
           "name": "Get Conversations",
@@ -1165,7 +1141,8 @@
               "host": ["{{baseUrl}}"],
               "path": ["api", "v1", "conversations"]
             }
-          }
+          },
+          "response": []
         },
         {
           "name": "Get Conversation Messages",
@@ -1182,7 +1159,8 @@
               "host": ["{{baseUrl}}"],
               "path": ["api", "v1", "conversations", "1", "messages"]
             }
-          }
+          },
+          "response": []
         },
         {
           "name": "Send Message",
@@ -1207,7 +1185,8 @@
               "host": ["{{baseUrl}}"],
               "path": ["api", "v1", "conversations", "1", "messages"]
             }
-          }
+          },
+          "response": []
         },
         {
           "name": "Update Conversation Status",
@@ -1232,7 +1211,8 @@
               "host": ["{{baseUrl}}"],
               "path": ["api", "v1", "conversations", "1", "status"]
             }
-          }
+          },
+          "response": []
         },
         {
           "name": "Download Conversation PDF",
@@ -1249,12 +1229,13 @@
               "host": ["{{baseUrl}}"],
               "path": ["api", "v1", "conversations", "1", "pdf"]
             }
-          }
+          },
+          "response": []
         }
       ]
     },
     {
-      "name": "Recommendations",
+      "name": "⭐ Recommendations",
       "item": [
         {
           "name": "Get Job Recommendations (Job Seeker)",
@@ -1271,12 +1252,13 @@
               "host": ["{{baseUrl}}"],
               "path": ["api", "v1", "recommendations"]
             }
-          }
+          },
+          "response": []
         }
       ]
     },
     {
-      "name": "Support Tickets",
+      "name": "🎫 Support Tickets",
       "item": [
         {
           "name": "Create Ticket (Job Seeker)",
@@ -1301,7 +1283,8 @@
               "host": ["{{baseUrl}}"],
               "path": ["api", "v1", "tickets"]
             }
-          }
+          },
+          "response": []
         },
         {
           "name": "Get My Tickets (Job Seeker)",
@@ -1318,7 +1301,8 @@
               "host": ["{{baseUrl}}"],
               "path": ["api", "v1", "tickets"]
             }
-          }
+          },
+          "response": []
         },
         {
           "name": "Get Ticket (Job Seeker)",
@@ -1335,7 +1319,8 @@
               "host": ["{{baseUrl}}"],
               "path": ["api", "v1", "tickets", "1"]
             }
-          }
+          },
+          "response": []
         },
         {
           "name": "Add Ticket Response (Job Seeker)",
@@ -1360,7 +1345,8 @@
               "host": ["{{baseUrl}}"],
               "path": ["api", "v1", "tickets", "1", "responses"]
             }
-          }
+          },
+          "response": []
         },
         {
           "name": "Check Ticket Cooldown (Job Seeker)",
@@ -1377,12 +1363,13 @@
               "host": ["{{baseUrl}}"],
               "path": ["api", "v1", "tickets", "cooldown"]
             }
-          }
+          },
+          "response": []
         }
       ]
     },
     {
-      "name": "Policies",
+      "name": "📜 Policies",
       "item": [
         {
           "name": "Get Privacy Policy PDF",
@@ -1394,7 +1381,8 @@
               "host": ["{{baseUrl}}"],
               "path": ["api", "v1", "policies", "privacy-policy", "pdf"]
             }
-          }
+          },
+          "response": []
         },
         {
           "name": "Get Terms of Service PDF",
@@ -1406,12 +1394,13 @@
               "host": ["{{baseUrl}}"],
               "path": ["api", "v1", "policies", "terms-of-service", "pdf"]
             }
-          }
+          },
+          "response": []
         }
       ]
     },
     {
-      "name": "Admin",
+      "name": "👨‍💼 Admin",
       "item": [
         {
           "name": "Admin Login",
@@ -1432,7 +1421,8 @@
               "host": ["{{baseUrl}}"],
               "path": ["api", "v1", "admin", "auth", "login"]
             }
-          }
+          },
+          "response": []
         },
         {
           "name": "Get Current Admin",
@@ -1449,7 +1439,8 @@
               "host": ["{{baseUrl}}"],
               "path": ["api", "v1", "admin", "auth", "me"]
             }
-          }
+          },
+          "response": []
         },
         {
           "name": "Get Dashboard Stats (Admin)",
@@ -1466,7 +1457,8 @@
               "host": ["{{baseUrl}}"],
               "path": ["api", "v1", "admin", "dashboard", "stats"]
             }
-          }
+          },
+          "response": []
         },
         {
           "name": "Get Companies (Admin)",
@@ -1489,7 +1481,8 @@
                 }
               ]
             }
-          }
+          },
+          "response": []
         },
         {
           "name": "Get Company by ID (Admin)",
@@ -1506,7 +1499,8 @@
               "host": ["{{baseUrl}}"],
               "path": ["api", "v1", "admin", "companies", "1"]
             }
-          }
+          },
+          "response": []
         },
         {
           "name": "Verify Company (Admin)",
@@ -1531,7 +1525,8 @@
               "host": ["{{baseUrl}}"],
               "path": ["api", "v1", "admin", "companies", "1", "verify"]
             }
-          }
+          },
+          "response": []
         },
         {
           "name": "Get Jobs (Admin)",
@@ -1548,7 +1543,8 @@
               "host": ["{{baseUrl}}"],
               "path": ["api", "v1", "admin", "jobs"]
             }
-          }
+          },
+          "response": []
         },
         {
           "name": "Get Job by ID (Admin)",
@@ -1565,7 +1561,8 @@
               "host": ["{{baseUrl}}"],
               "path": ["api", "v1", "admin", "jobs", "1"]
             }
-          }
+          },
+          "response": []
         },
         {
           "name": "Moderate Job (Admin)",
@@ -1590,7 +1587,8 @@
               "host": ["{{baseUrl}}"],
               "path": ["api", "v1", "admin", "jobs", "1", "moderate"]
             }
-          }
+          },
+          "response": []
         },
         {
           "name": "Get Payments (Admin)",
@@ -1607,7 +1605,8 @@
               "host": ["{{baseUrl}}"],
               "path": ["api", "v1", "admin", "payments"]
             }
-          }
+          },
+          "response": []
         },
         {
           "name": "Get Payment by ID (Admin)",
@@ -1624,7 +1623,8 @@
               "host": ["{{baseUrl}}"],
               "path": ["api", "v1", "admin", "payments", "1"]
             }
-          }
+          },
+          "response": []
         },
         {
           "name": "Process Payment (Admin)",
@@ -1649,7 +1649,8 @@
               "host": ["{{baseUrl}}"],
               "path": ["api", "v1", "admin", "payments", "1", "process"]
             }
-          }
+          },
+          "response": []
         },
         {
           "name": "Get Job Seekers (Admin)",
@@ -1666,7 +1667,8 @@
               "host": ["{{baseUrl}}"],
               "path": ["api", "v1", "admin", "job-seekers"]
             }
-          }
+          },
+          "response": []
         },
         {
           "name": "Get Job Seeker by ID (Admin)",
@@ -1683,7 +1685,54 @@
               "host": ["{{baseUrl}}"],
               "path": ["api", "v1", "admin", "job-seekers", "1"]
             }
-          }
+          },
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "📊 Dashboard",
+      "item": [
+        {
+          "name": "Get Dashboard Stats (Company)",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token}}"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/v1/dashboard/stats",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "v1", "dashboard", "stats"]
+            }
+          },
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "📋 Quota",
+      "item": [
+        {
+          "name": "Get Quota (Company)",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token}}"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/v1/quota",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "v1", "quota"]
+            }
+          },
+          "response": []
         }
       ]
     }
