@@ -162,6 +162,11 @@ func main() {
 		// Admin module routes
 		adminModule := admin.NewModuleWithQuota(db, cfg, authMiddleware, quotaService, emailService, invoiceService)
 		adminModule.RegisterRoutes(r)
+
+		// Public announcements routes (for all frontends: company, partners, job seekers)
+		if announcementsModule := adminModule.GetAnnouncementsModule(); announcementsModule != nil {
+			announcementsModule.RegisterRoutes(r)
+		}
 	})
 
 	// 404 handler

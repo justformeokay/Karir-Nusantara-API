@@ -6,6 +6,7 @@ import (
 
 	"github.com/karirnusantara/api/internal/config"
 	"github.com/karirnusantara/api/internal/middleware"
+	"github.com/karirnusantara/api/internal/modules/announcements"
 	"github.com/karirnusantara/api/internal/modules/quota"
 	"github.com/karirnusantara/api/internal/shared/email"
 	"github.com/karirnusantara/api/internal/shared/invoice"
@@ -13,8 +14,9 @@ import (
 
 // Module represents the admin module
 type Module struct {
-	handler        *Handler
-	authMiddleware *middleware.AuthMiddleware
+	handler             *Handler
+	authMiddleware      *middleware.AuthMiddleware
+	announcementsModule *announcements.Module
 }
 
 // NewModule creates a new admin module
@@ -35,9 +37,13 @@ func NewModuleWithQuota(db *sqlx.DB, cfg *config.Config, authMiddleware *middlew
 	service := NewServiceComplete(repo, cfg, quotaSvc, emailSvc, invoiceSvc)
 	handler := NewHandler(service)
 
+	// Initialize announcements module
+	announcementsModule := announcements.NewModule(db, authMiddleware)
+
 	return &Module{
-		handler:        handler,
-		authMiddleware: authMiddleware,
+		handler:             handler,
+		authMiddleware:      authMiddleware,
+		announcementsModule: announcementsModule,
 	}
 }
 
@@ -93,6 +99,16 @@ func (m *Module) RegisterRoutes(r chi.Router) {
 				r.Get("/{id}", m.handler.GetJobSeekerByID)
 				r.Patch("/{id}/status", m.handler.UpdateJobSeekerStatus)
 			})
+
+			// Announcements management (notifications, banners, information)
+			if m.announcementsModule != nil {
+				m.announcementsModule.RegisterAdminRoutes(r)
+			}
 		})
 	})
+}
+
+// GetAnnouncementsModule returns the announcements module for public routes registration
+func (m *Module) GetAnnouncementsModule() *announcements.Module {
+	return m.announcementsModule
 }
