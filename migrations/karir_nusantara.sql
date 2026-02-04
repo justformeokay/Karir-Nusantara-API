@@ -3,7 +3,7 @@
 -- https://www.phpmyadmin.net/
 --
 -- Host: localhost
--- Generation Time: Jan 31, 2026 at 03:06 AM
+-- Generation Time: Feb 04, 2026 at 12:19 AM
 -- Server version: 10.4.28-MariaDB
 -- PHP Version: 8.0.28
 
@@ -20,6 +20,52 @@ SET time_zone = "+00:00";
 --
 -- Database: `karir_nusantara`
 --
+
+-- --------------------------------------------------------
+
+--
+-- Table structure for table `announcements`
+--
+
+CREATE TABLE `announcements` (
+  `id` bigint(20) UNSIGNED NOT NULL,
+  `title` varchar(255) NOT NULL COMMENT 'Title of the announcement',
+  `content` text NOT NULL COMMENT 'Content/body of the announcement',
+  `type` enum('notification','banner','information') NOT NULL DEFAULT 'notification' COMMENT 'Type of announcement',
+  `target_audience` enum('all','company','candidate','partner') NOT NULL DEFAULT 'all' COMMENT 'Target audience',
+  `is_active` tinyint(1) NOT NULL DEFAULT 1 COMMENT 'Whether the announcement is active',
+  `priority` int(11) NOT NULL DEFAULT 0 COMMENT 'Priority for ordering (higher = more important)',
+  `start_date` timestamp NULL DEFAULT NULL COMMENT 'When to start showing the announcement',
+  `end_date` timestamp NULL DEFAULT NULL COMMENT 'When to stop showing the announcement',
+  `created_by` bigint(20) UNSIGNED DEFAULT NULL COMMENT 'Admin who created this',
+  `updated_by` bigint(20) UNSIGNED DEFAULT NULL COMMENT 'Admin who last updated this',
+  `created_at` timestamp NOT NULL DEFAULT current_timestamp(),
+  `updated_at` timestamp NOT NULL DEFAULT current_timestamp() ON UPDATE current_timestamp()
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+--
+-- Dumping data for table `announcements`
+--
+
+INSERT INTO `announcements` (`id`, `title`, `content`, `type`, `target_audience`, `is_active`, `priority`, `start_date`, `end_date`, `created_by`, `updated_by`, `created_at`, `updated_at`) VALUES
+(1, 'Pemeliharaan Sistem', 'Sistem akan mengalami maintenance pada tanggal 15 Februari 2026 pukul 00:00 - 04:00 WIB. Mohon maaf atas ketidaknyamanannya.', 'notification', 'all', 1, 10, NULL, NULL, NULL, NULL, '2026-02-03 16:13:25', '2026-02-03 16:13:25'),
+(2, 'Promo Khusus', 'Dapatkan diskon 20% untuk pembelian paket premium selama bulan Februari 2026!', 'notification', 'company', 1, 5, NULL, NULL, NULL, NULL, '2026-02-03 16:13:25', '2026-02-03 16:13:25'),
+(3, 'Fitur Baru Tersedia', 'Kami telah meluncurkan fitur baru untuk membantu Anda dalam proses rekrutmen. Cek sekarang!', 'notification', 'company', 1, 3, NULL, NULL, NULL, NULL, '2026-02-03 16:13:25', '2026-02-03 16:13:25'),
+(4, 'Selamat Datang di Karir Nusantara', 'Platform job portal terbaik di Indonesia. Temukan pekerjaan impian Anda bersama kami.', 'banner', 'all', 1, 10, NULL, NULL, NULL, NULL, '2026-02-03 16:13:25', '2026-02-03 16:13:25'),
+(5, 'Update Kebijakan Privasi', 'Kami telah memperbarui kebijakan privasi kami. Silakan baca lebih lanjut untuk informasi lebih detail.', 'information', 'all', 1, 5, NULL, NULL, NULL, NULL, '2026-02-03 16:13:25', '2026-02-03 16:13:25'),
+(6, 'Panduan Membuat CV yang Menarik', 'Tips dan trik membuat CV yang menarik perhatian perekrut. Pelajari cara menonjolkan kelebihan Anda.', 'information', 'candidate', 1, 3, NULL, NULL, NULL, NULL, '2026-02-03 16:13:25', '2026-02-03 16:13:25'),
+(7, 'Pemeliharaan Sistem', 'Sistem akan mengalami maintenance pada tanggal 15 Februari 2026 pukul 00:00 - 04:00 WIB. Mohon maaf atas ketidaknyamanannya.', 'notification', 'all', 1, 10, NULL, NULL, NULL, NULL, '2026-02-03 16:13:59', '2026-02-03 16:13:59'),
+(8, 'Promo Khusus', 'Dapatkan diskon 20% untuk pembelian paket premium selama bulan Februari 2026!', 'notification', 'company', 1, 5, NULL, NULL, NULL, NULL, '2026-02-03 16:13:59', '2026-02-03 16:13:59'),
+(9, 'Fitur Baru Tersedia', 'Kami telah meluncurkan fitur baru untuk membantu Anda dalam proses rekrutmen. Cek sekarang!', 'notification', 'company', 1, 3, NULL, NULL, NULL, NULL, '2026-02-03 16:13:59', '2026-02-03 16:13:59'),
+(10, 'Selamat Datang di Karir Nusantara', 'Platform job portal terbaik di Indonesia. Temukan pekerjaan impian Anda bersama kami.', 'banner', 'all', 1, 10, NULL, NULL, NULL, NULL, '2026-02-03 16:13:59', '2026-02-03 16:13:59'),
+(11, 'Update Kebijakan Privasi', 'Kami telah memperbarui kebijakan privasi kami. Silakan baca lebih lanjut untuk informasi lebih detail.', 'information', 'all', 1, 5, NULL, NULL, NULL, NULL, '2026-02-03 16:13:59', '2026-02-03 16:13:59'),
+(12, 'Panduan Membuat CV yang Menarik', 'Tips dan trik membuat CV yang menarik perhatian perekrut. Pelajari cara menonjolkan kelebihan Anda.', 'information', 'candidate', 1, 3, NULL, NULL, NULL, NULL, '2026-02-03 16:13:59', '2026-02-03 16:13:59'),
+(13, 'Pemeliharaan Sistem', 'Sistem akan mengalami maintenance pada tanggal 15 Februari 2026 pukul 00:00 - 04:00 WIB. Mohon maaf atas ketidaknyamanannya.', 'notification', 'all', 1, 10, NULL, NULL, NULL, NULL, '2026-02-03 16:14:10', '2026-02-03 16:14:10'),
+(14, 'Promo Khusus', 'Dapatkan diskon 20% untuk pembelian paket premium selama bulan Februari 2026!', 'notification', 'company', 1, 5, NULL, NULL, NULL, NULL, '2026-02-03 16:14:10', '2026-02-03 16:14:10'),
+(15, 'Fitur Baru Tersedia', 'Kami telah meluncurkan fitur baru untuk membantu Anda dalam proses rekrutmen. Cek sekarang!', 'notification', 'company', 1, 3, NULL, NULL, NULL, NULL, '2026-02-03 16:14:10', '2026-02-03 16:14:10'),
+(16, 'Selamat Datang di Karir Nusantara', 'Platform job portal terbaik di Indonesia. Temukan pekerjaan impian Anda bersama kami.', 'banner', 'all', 1, 10, NULL, NULL, NULL, NULL, '2026-02-03 16:14:10', '2026-02-03 16:14:10'),
+(17, 'Update Kebijakan Privasi', 'Kami telah memperbarui kebijakan privasi kami. Silakan baca lebih lanjut untuk informasi lebih detail.', 'information', 'all', 1, 5, NULL, NULL, NULL, NULL, '2026-02-03 16:14:10', '2026-02-03 16:14:10'),
+(18, 'Panduan Membuat CV yang Menarik', 'Tips dan trik membuat CV yang menarik perhatian perekrut. Pelajari cara menonjolkan kelebihan Anda.', 'information', 'candidate', 1, 3, NULL, NULL, NULL, NULL, '2026-02-03 16:14:10', '2026-02-03 16:14:10');
 
 -- --------------------------------------------------------
 
@@ -236,7 +282,13 @@ INSERT INTO `chat_messages` (`id`, `conversation_id`, `sender_id`, `sender_type`
 (7, 3, 7, 'company', '🎤 Pesan Suara', '/uploads/chat/7_1769048557.webm', 'audio', 'voice_1769048553734.webm', 0, '2026-01-22 02:22:37'),
 (8, 3, 7, 'company', 'test bang', '/uploads/chat/7_1769048600.png', 'image', 'Screenshot 2026-01-21 at 6.20.01 PM.png', 0, '2026-01-22 02:23:20'),
 (9, 3, 7, 'company', 'sdas', NULL, NULL, NULL, 0, '2026-01-22 02:42:59'),
-(10, 4, 7, 'company', 'hello bang', NULL, NULL, NULL, 0, '2026-01-22 03:14:46');
+(10, 4, 7, 'company', 'hello bang', NULL, NULL, NULL, 0, '2026-01-22 03:14:46'),
+(11, 5, 7, 'company', 'hello bang', NULL, NULL, NULL, 1, '2026-02-02 13:20:52'),
+(12, 6, 7, 'company', 'Permisi bang', NULL, NULL, NULL, 1, '2026-02-02 14:14:23'),
+(13, 6, 1, 'admin', 'iya ada yang bisa dibantu?', NULL, NULL, NULL, 1, '2026-02-02 14:14:44'),
+(14, 6, 7, 'company', '🎤 Pesan Suara', '/docs/chat/7_1770043583.webm', 'audio', 'voice_1770043581844.webm', 1, '2026-02-02 14:46:23'),
+(15, 6, 1, 'admin', 'ini error ya?', '/docs/chat/1_1770043816.jpeg', 'image', 'WhatsApp Image 2026-02-02 at 11.30.32 AM.jpeg', 1, '2026-02-02 14:50:16'),
+(16, 6, 1, 'admin', '🎤 Pesan Suara', '/docs/chat/1_1770043836.webm', 'audio', 'voice_1770043835401.webm', 1, '2026-02-02 14:50:36');
 
 -- --------------------------------------------------------
 
@@ -281,10 +333,10 @@ CREATE TABLE `companies` (
 
 INSERT INTO `companies` (`id`, `user_id`, `company_name`, `company_description`, `company_website`, `company_logo_url`, `company_industry`, `company_size`, `company_location`, `company_phone`, `company_email`, `company_address`, `company_city`, `company_province`, `company_postal_code`, `established_year`, `employee_count`, `company_status`, `ktp_founder_url`, `akta_pendirian_url`, `npwp_url`, `nib_url`, `documents_verified_at`, `documents_verified_by`, `verification_notes`, `created_at`, `updated_at`, `deleted_at`) VALUES
 (1, 7, 'PT Karya Developer indonesia', 'Perusahaan yang bergerak dibidang industri teknogi informasi', 'https://karyadeveloperindonesia.com', '/docs/companies/1/logo_1768832403.png', 'Teknologi Informasi', '1-10', 'Sidaorjo, Jawa Timur', '+62881036480285', 'info@karyadeveloperindonesia.com', 'Perumahan Griya Bhayangkara blok i5/07 Desa Masangan Kulon, Kecamatan Sukodono, Kabupaten Sidoarjo, Kode Pos 61258', 'Sidoarjo', 'Jawa Timur', '61258', '2025', 8, 'verified', '/docs/companies/1/ktp_1768832313.jpg', '/docs/companies/1/akta_1768832354.pdf', '/docs/companies/1/npwp_1768832371.jpg', '/docs/companies/1/nib_1768832386.pdf', '2026-01-20 04:42:11', NULL, NULL, '2026-01-19 13:58:37', '2026-01-20 04:42:11', NULL),
-(2, 2, 'PT TechCorp Indonesia', 'Perusahaan teknologi terkemuka yang menyediakan solusi IT', 'https://techcorp.id', NULL, 'Teknologi Informasi', '11-50', 'Jakarta Selatan', '021-123-4567', 'hr@techcorp.id', 'Jl. Sudirman No. 123, Jakarta Selatan', 'Jakarta', 'Jakarta', '12190', '2020', 25, 'pending', NULL, NULL, NULL, NULL, NULL, NULL, NULL, '2026-01-25 03:15:30', '2026-01-25 03:15:30', NULL),
+(2, 2, 'PT TechCorp Indonesia', 'Perusahaan teknologi terkemuka yang menyediakan solusi IT', 'https://techcorp.id', NULL, 'Teknologi Informasi', '11-50', 'Jakarta Selatan', '021-123-4567', 'hr@techcorp.id', 'Jl. Sudirman No. 123, Jakarta Selatan', 'Jakarta', 'Jakarta', '12190', '2020', 25, 'verified', NULL, NULL, NULL, NULL, '2026-02-02 13:16:03', NULL, NULL, '2026-01-25 03:15:30', '2026-02-02 13:16:03', NULL),
 (3, 4, 'CV Baru Startup', 'Startup muda yang mengembangkan aplikasi mobile', 'https://baristartup.com', NULL, 'Teknologi Informasi', '1-10', 'Bandung', '0274-555-6789', 'testcompany@test.com', 'Jl. Gatot Subroto No. 45, Bandung', 'Bandung', 'Jawa Barat', '40271', '2024', 5, 'rejected', NULL, NULL, NULL, NULL, NULL, NULL, 'Dokumen tidak lengkap', '2026-01-22 07:30:00', '2026-01-23 02:00:00', NULL),
 (4, 5, 'PT Manufacturing Plus', 'Perusahaan manufaktur dengan standar internasional', 'https://manfacturingplus.co.id', NULL, 'Manufaktur', '51-200', 'Surabaya', '031-777-8888', 'company2@test.com', 'Jl. Ahmad Yani No. 888, Surabaya', 'Surabaya', 'Jawa Timur', '60188', '2018', 120, 'suspended', NULL, NULL, NULL, NULL, NULL, NULL, 'Melanggar kebijakan platform', '2026-01-15 01:00:00', '2026-01-24 08:45:00', NULL),
-(5, 6, 'PT Konsultan HR Jaya', 'Perusahaan konsultasi sumber daya manusia', 'https://hrjaya.com', NULL, 'Konsultasi', '11-50', 'Medan', '061-444-5555', 'company3@test.com', 'Jl. Diponegoro No. 222, Medan', 'Medan', 'Sumatera Utara', '20212', '2019', 35, 'pending', NULL, NULL, NULL, NULL, NULL, NULL, NULL, '2026-01-26 09:20:00', '2026-01-26 09:20:00', NULL);
+(5, 6, 'PT Konsultan HR Jaya', 'Perusahaan konsultasi sumber daya manusia', 'https://hrjaya.com', NULL, 'Konsultasi', '11-50', 'Medan', '061-444-5555', 'company3@test.com', 'Jl. Diponegoro No. 222, Medan', 'Medan', 'Sumatera Utara', '20212', '2019', 35, 'rejected', NULL, NULL, NULL, NULL, NULL, NULL, NULL, '2026-01-26 09:20:00', '2026-02-02 13:18:24', NULL);
 
 -- --------------------------------------------------------
 
@@ -307,8 +359,10 @@ CREATE TABLE `company_quotas` (
 
 INSERT INTO `company_quotas` (`id`, `company_id`, `free_quota_used`, `paid_quota`, `created_at`, `updated_at`) VALUES
 (1, 4, 0, 0, '2026-01-18 07:15:18', '2026-01-18 07:15:18'),
-(2, 7, 10, 9, '2026-01-18 09:14:40', '2026-01-22 06:45:16'),
-(3, 1, 2, 0, '2026-01-20 07:33:46', '2026-01-20 07:34:26');
+(3, 1, 10, 31, '2026-01-20 07:33:46', '2026-02-02 04:09:31'),
+(4, 2, 0, 0, '2026-02-02 04:06:57', '2026-02-02 04:06:57'),
+(5, 5, 0, 0, '2026-02-02 04:06:57', '2026-02-02 04:06:57'),
+(6, 3, 0, 3, '2026-02-02 04:06:57', '2026-02-02 04:07:05');
 
 -- --------------------------------------------------------
 
@@ -335,8 +389,10 @@ CREATE TABLE `conversations` (
 INSERT INTO `conversations` (`id`, `company_id`, `title`, `subject`, `category`, `status`, `created_at`, `updated_at`, `closed_at`) VALUES
 (1, 7, 'Help Desk: Tidak bisa posting lowongan baru', 'Tidak bisa posting lowongan baru', 'helpdesk', 'closed', '2026-01-21 17:42:17', '2026-01-22 03:15:05', '2026-01-22 03:15:05'),
 (2, 7, 'Help Desk: Tidak bisa posting lowongan baru', 'Tidak bisa posting lowongan baru', 'helpdesk', 'resolved', '2026-01-21 17:42:27', '2026-01-21 17:49:26', NULL),
-(3, 7, 'Pertanyaan: Test dari curl', 'Test dari curl', 'general', 'closed', '2026-01-22 01:38:43', '2026-01-22 03:03:32', '2026-01-22 03:03:32'),
-(4, 7, 'Help Desk: Test E2E Chat', 'Test E2E Chat', 'helpdesk', 'closed', '2026-01-22 01:39:48', '2026-01-22 03:14:59', '2026-01-22 03:14:59');
+(3, 7, 'Pertanyaan: Test dari curl', 'Test dari curl', 'general', 'resolved', '2026-01-22 01:38:43', '2026-02-02 02:12:48', '2026-01-22 03:03:32'),
+(4, 7, 'Help Desk: Test E2E Chat', 'Test E2E Chat', 'helpdesk', 'closed', '2026-01-22 01:39:48', '2026-01-22 03:14:59', '2026-01-22 03:14:59'),
+(5, 7, 'Help Desk: Pesan Website', 'Pesan Website', 'helpdesk', 'closed', '2026-02-02 13:20:47', '2026-02-02 14:02:44', '2026-02-02 14:02:44'),
+(6, 7, 'Komplain: Komplain', 'Komplain', 'complaint', 'closed', '2026-02-02 14:14:16', '2026-02-02 14:51:00', '2026-02-02 14:51:00');
 
 -- --------------------------------------------------------
 
@@ -736,11 +792,21 @@ CREATE TABLE `payments` (
 --
 
 INSERT INTO `payments` (`id`, `company_id`, `job_id`, `package_id`, `quota_amount`, `amount`, `proof_image_url`, `status`, `note`, `confirmed_by_id`, `submitted_at`, `confirmed_at`, `created_at`, `updated_at`) VALUES
-(1, 7, NULL, NULL, 1, 15000, '/docs/payments/7/proof_1768893950.png', 'confirmed', 'Pembayaran telah diverifikasi', 1, '2026-01-20 07:25:50', '2026-01-20 07:29:01', '2026-01-20 07:25:50', '2026-01-20 07:29:01'),
-(2, 7, NULL, NULL, 1, 15000, '/docs/payments/7/proof_1768894335.png', 'pending', NULL, NULL, '2026-01-20 07:32:15', NULL, '2026-01-20 07:32:15', '2026-01-20 07:32:15'),
-(3, 7, NULL, NULL, 1, 15000, '/docs/payments/7/proof_1768894343.png', 'confirmed', 'Pembayaran diterima', 1, '2026-01-20 07:32:23', '2026-01-20 07:32:32', '2026-01-20 07:32:23', '2026-01-20 07:32:32'),
-(4, 7, NULL, 'pack10', 12, 100000, '/docs/payments/7/proof_1768918594.txt', 'confirmed', 'Pack10 verified - 12 quota will be added', 1, '2026-01-20 14:16:34', '2026-01-20 14:20:48', '2026-01-20 14:16:34', '2026-01-20 14:20:48'),
-(5, 7, NULL, 'pack5', 5, 50000, '/docs/payments/7/proof_1769003589.png', 'confirmed', 'Pembayaran telah diverifikasi dan disetujui. Terima kasih!', 1, '2026-01-21 13:53:09', '2026-01-21 16:40:27', '2026-01-21 13:53:09', '2026-01-21 16:40:27');
+(1, 1, NULL, NULL, 2, 15000, '/docs/payments/7/proof_1768893950.png', 'confirmed', 'Pembayaran telah diverifikasi', 1, '2026-01-20 07:25:50', '2026-01-20 07:29:01', '2026-01-20 07:25:50', '2026-02-02 04:05:51'),
+(2, 1, NULL, NULL, 2, 15000, '/docs/payments/7/proof_1768894335.png', 'pending', NULL, NULL, '2026-01-20 07:32:15', NULL, '2026-01-20 07:32:15', '2026-02-02 04:05:51'),
+(3, 1, NULL, NULL, 2, 15000, '/docs/payments/7/proof_1768894343.png', 'confirmed', 'Pembayaran diterima', 1, '2026-01-20 07:32:23', '2026-01-20 07:32:32', '2026-01-20 07:32:23', '2026-02-02 04:05:51'),
+(4, 1, NULL, 'pack10', 12, 100000, '/docs/payments/7/proof_1768918594.txt', 'confirmed', 'Pack10 verified - 12 quota will be added', 1, '2026-01-20 14:16:34', '2026-01-20 14:20:48', '2026-01-20 14:16:34', '2026-02-02 03:43:55'),
+(5, 1, NULL, 'pack5', 5, 50000, '/docs/payments/7/proof_1769003589.png', 'confirmed', 'Pembayaran telah diverifikasi dan disetujui. Terima kasih!', 1, '2026-01-21 13:53:09', '2026-01-21 16:40:27', '2026-01-21 13:53:09', '2026-02-02 03:43:55'),
+(6, 2, NULL, NULL, 5, 50000, NULL, 'pending', NULL, NULL, '2026-02-02 03:44:14', NULL, '2026-02-02 03:44:14', '2026-02-02 04:05:51'),
+(7, 3, NULL, NULL, 3, 30000, NULL, 'confirmed', 'Test approval via API', 1, '2026-02-01 03:44:14', '2026-02-02 03:45:53', '2026-02-02 03:44:14', '2026-02-02 04:05:51'),
+(8, 4, NULL, NULL, 10, 100000, NULL, 'rejected', 'Payment proof is invalid', 1, '2026-01-31 03:44:14', '2026-02-02 03:46:07', '2026-02-02 03:44:14', '2026-02-02 04:05:51'),
+(9, 5, NULL, NULL, 8, 75000, NULL, 'pending', NULL, NULL, '2026-02-02 03:46:46', NULL, '2026-02-02 03:46:46', '2026-02-02 04:05:51'),
+(10, 1, NULL, NULL, 20, 200000, NULL, 'confirmed', 'Approved with 20 quota(s)', 1, '2026-02-02 00:46:46', '2026-02-02 03:54:16', '2026-02-02 03:46:46', '2026-02-02 04:05:51'),
+(11, 2, NULL, NULL, 4, 40000, NULL, 'pending', NULL, NULL, '2026-02-01 22:46:46', NULL, '2026-02-02 03:46:46', '2026-02-02 04:05:51'),
+(12, 1, NULL, 'pack5', 5, 50000, '/docs/payments/1/proof_1770005254.txt', 'pending', NULL, NULL, '2026-02-02 04:07:34', NULL, '2026-02-02 04:07:34', '2026-02-02 04:07:34'),
+(13, 1, NULL, 'pack5', 5, 50000, '/docs/payments/1/proof_1770005261.txt', 'confirmed', 'Approved - 5 quota package', 1, '2026-02-02 04:07:41', '2026-02-02 04:08:25', '2026-02-02 04:07:41', '2026-02-02 04:08:25'),
+(14, 1, NULL, 'pack10', 12, 100000, '/docs/payments/1/proof_1770005343.txt', 'pending', NULL, NULL, '2026-02-02 04:09:03', NULL, '2026-02-02 04:09:03', '2026-02-02 04:09:03'),
+(15, 1, NULL, 'pack10', 12, 100000, '/docs/payments/1/proof_1770005356.txt', 'confirmed', 'Pack 10+2 approved', 1, '2026-02-02 04:09:16', '2026-02-02 04:09:31', '2026-02-02 04:09:16', '2026-02-02 04:09:31');
 
 -- --------------------------------------------------------
 
@@ -1114,6 +1180,38 @@ INSERT INTO `refresh_tokens` (`id`, `user_id`, `token_hash`, `expires_at`, `revo
 (357, 7, 'b32e0d2dcf5a75ad4ef8f01646b599eee916b35f7464835c3d49ecc56145c69a', '2026-02-06 04:18:59', NULL, '', '', '2026-01-30 04:18:59'),
 (358, 7, '360da15c72433e59aa7698560dc0c78767102ba1447376d3251675b83f2f3f7e', '2026-02-07 01:36:40', NULL, '', '', '2026-01-31 01:36:40'),
 (359, 7, 'ee1dcb327902686dd0ec877a65c976d060dc7ddfc20478489b7a46413aa7490b', '2026-02-07 01:59:59', NULL, '', '', '2026-01-31 01:59:59');
+INSERT INTO `refresh_tokens` (`id`, `user_id`, `token_hash`, `expires_at`, `revoked_at`, `device_info`, `ip_address`, `created_at`) VALUES
+(360, 7, '9d5ba8dae79c95241f4514f4550ab7661bd70b21617f7a8b4dd819c188b3ee57', '2026-02-08 00:38:54', NULL, '', '', '2026-02-01 00:38:54'),
+(361, 7, '313f4e207021a86a07b1efe48c2153f5b04c055b35a7a5802627053ffb70ab91', '2026-02-08 00:56:58', NULL, '', '', '2026-02-01 00:56:58'),
+(362, 7, '607d6e87c15de351b2faa8ce972c7a8eee47f42e8a955223a724f68696843004', '2026-02-08 01:00:01', NULL, '', '', '2026-02-01 01:00:01'),
+(363, 1, '0dab125fe9b95d94c9a56f187f8a3cbec5ca7a33f656a8cead97af2004553660', '2026-02-09 01:55:20', NULL, '', '', '2026-02-02 01:55:20'),
+(364, 1, '8134b8ea94b4d42820de99bdfacc22f32b92069d58fbdf19aae774befd5dcb2b', '2026-02-09 01:55:30', NULL, '', '', '2026-02-02 01:55:30'),
+(365, 1, '59dc1532ea95b007dff9023bb26d1b827ec764e88c7523ac1459f804ccca5019', '2026-02-09 01:55:35', NULL, '', '', '2026-02-02 01:55:35'),
+(366, 1, 'da9440d483a15c781481cc235bd4f9a188675637f7d3ed674f2196361dbfa46c', '2026-02-09 01:55:40', NULL, '', '', '2026-02-02 01:55:40'),
+(367, 1, '54994e5ce6b68bb0e78c9aaf852c3abd138a6ad4b526ddf34b29823b31091313', '2026-02-09 01:55:49', NULL, '', '', '2026-02-02 01:55:49'),
+(368, 1, 'cfda9284d301b0a005d4742a03a8a0c7e93dd8bfa5e80392f59feb6b9d8bf06b', '2026-02-09 02:08:39', NULL, '', '', '2026-02-02 02:08:39'),
+(369, 1, '770edad672790115fa18026ab30f90832bcbffa29a8339200e5b6938aa189b00', '2026-02-09 02:10:51', NULL, '', '', '2026-02-02 02:10:51'),
+(370, 1, '12c77e9c99d60425a24b0c6bae536114ab5e3d2245f6b4e33fc87714d5d99990', '2026-02-09 02:12:39', NULL, '', '', '2026-02-02 02:12:39'),
+(371, 1, 'dc08f81903066b1a2cb570f4854339498a5bdbe822c1e55e6e1fdda843276d71', '2026-02-09 02:12:48', NULL, '', '', '2026-02-02 02:12:48'),
+(372, 1, 'f62a59d2e140a0dd1a0c84e330e727d18956751536a912be273f7a3f87d50d13', '2026-02-09 02:12:57', NULL, '', '', '2026-02-02 02:12:57'),
+(373, 1, '77445f6ccaeb2dfb463f62035cfd69156759c873d8d6a78e4f1aa99ee3e27d80', '2026-02-09 02:14:35', NULL, '', '', '2026-02-02 02:14:35'),
+(374, 1, '7079815374c3fa589d447644518fbf04af285fb34fb1e3b07fdbfa6e3e66d492', '2026-02-09 03:41:25', NULL, '', '', '2026-02-02 03:41:25'),
+(375, 1, '2a57efac4d5f939ba9502ce8cbac16cc1fd0e3b8e94d301d2215117485ee9972', '2026-02-09 03:41:53', NULL, '', '', '2026-02-02 03:41:53'),
+(376, 7, 'bdc7d3f6571da6593da7ae4d54fc8912a0335c18125f49288ac433af7439c07b', '2026-02-09 03:57:09', NULL, '', '', '2026-02-02 03:57:09'),
+(377, 7, 'efe2cf2f4daf5c58020fb39a5f6d003940c73e04a397ab5ef368ae3893321695', '2026-02-09 04:03:21', NULL, '', '', '2026-02-02 04:03:21'),
+(378, 7, 'f59edb9ff94ffbd2335d2a5016bdf1b8f6c5b04f60d892b43578d01d7f41475a', '2026-02-09 04:03:28', NULL, '', '', '2026-02-02 04:03:28'),
+(379, 1, 'c7e4fc27446591c59902c5bd57b5eba049f11ba3f62de1a95d26b811b9db184e', '2026-02-09 04:04:27', NULL, '', '', '2026-02-02 04:04:27'),
+(380, 1, '68350a6243f729b1215e6284ddd8c7e50ada658447a2193df3769a124d81e389', '2026-02-09 04:04:33', NULL, '', '', '2026-02-02 04:04:33'),
+(381, 7, '32778bc04f0ec8134320757c310fbb0e0d1d4e72a242c7583979180019ff9fa5', '2026-02-09 04:04:49', NULL, '', '', '2026-02-02 04:04:49'),
+(382, 7, '86056abb50f1a0098a1b695d39675a504b49457d1d258a7f1ea9be21242f3870', '2026-02-09 04:07:21', NULL, '', '', '2026-02-02 04:07:21'),
+(383, 7, 'd1f4a5d994bfc80c0d40ddc8d70be98fc2739ba68cab3958a69d4d2694482cbf', '2026-02-09 04:07:26', NULL, '', '', '2026-02-02 04:07:26'),
+(384, 1, '0817b12ef0bb71a1558fe6d584dca1fd7ac5aa22eb5803283b41e95bdb89fd12', '2026-02-09 04:07:50', NULL, '', '', '2026-02-02 04:07:50'),
+(385, 1, 'fc414666a8a324b14b10aaa345cf2c5760cef549f7a578ff08bb08b04e3e8e21', '2026-02-09 04:07:57', NULL, '', '', '2026-02-02 04:07:57'),
+(386, 7, 'dce99fdef5dbf57b637c5322e19fa61a28545e875aad070809da4dadc7883955', '2026-02-09 04:12:25', NULL, '', '', '2026-02-02 04:12:25'),
+(387, 7, 'dd014bc644d44b13dc69ff99aeefcdc4662f4d8ffbc2b9da454b71f9ec06d457', '2026-02-09 13:20:31', NULL, '', '', '2026-02-02 13:20:31'),
+(388, 7, '55c7a011479c79f08e9053ea286f45d22f6fd2854dea5dccd5ab2d5953434066', '2026-02-09 14:14:01', NULL, '', '', '2026-02-02 14:14:01'),
+(389, 7, 'd2fb3aed3e20821b0f54bbb5e3984f7bc7eefc2881677e12756d5608e0e5319b', '2026-02-09 14:45:49', NULL, '', '', '2026-02-02 14:45:49'),
+(390, 1, 'dd0a08d9789328573a159c36bf9d59097569e1948bd19b57597e2b3f709c4fe7', '2026-02-10 16:22:03', NULL, '', '', '2026-02-03 16:22:03');
 
 -- --------------------------------------------------------
 
@@ -1231,11 +1329,22 @@ INSERT INTO `users` (`id`, `email`, `password_hash`, `role`, `full_name`, `phone
 (18, 'debug.test@example.com', '$2a$10$GUhOXJgQDIqJxRw.irMOa.D1NLbxjIe9aNgUDacALSB1mCzNBgwoe', 'job_seeker', 'Debug Test', NULL, NULL, 1, 0, NULL, '2026-01-23 03:22:05', '2026-01-23 03:22:05', NULL),
 (19, 'emailtest123@example.com', '$2a$10$uCnPcKmTLE2C5nyPUMWmReEUr0o.D1eJKke5iAn7ArvyLeWL1THoW', 'job_seeker', 'Email Test User', NULL, NULL, 1, 0, NULL, '2026-01-23 03:25:21', '2026-01-23 03:25:21', NULL),
 (20, 'jastiska14@gmail.com', '$2a$10$aIiXz6C49XHFpRSS9pILOeqIycow/uRlAaeLp6WtXFPF6P7PAgXui', 'job_seeker', 'Jastiska Dwi Wanda Sari', '08893011438', '/docs/avatars/avatar_20_1769167905.png', 1, 0, NULL, '2026-01-23 03:55:52', '2026-01-23 11:31:45', NULL),
-(21, 'craftgirlsssshopping@gmail.com', '$2a$10$3NfsAYR/Sm5lhYYnXSCRC.ZG1DIaLC2sD3FBdtioJqqDrLYjEAFES', 'job_seeker', 'Saputra Budianto', '0881036480285', '/docs/avatars/avatar_21_1769148776.jpg', 1, 0, NULL, '2026-01-23 03:57:01', '2026-01-23 06:12:56', NULL);
+(21, 'craftgirlsssshopping@gmail.com', '$2a$10$3NfsAYR/Sm5lhYYnXSCRC.ZG1DIaLC2sD3FBdtioJqqDrLYjEAFES', 'job_seeker', 'Saputra Budianto', '0881036480285', '/docs/avatars/avatar_21_1769148776.jpg', 1, 0, NULL, '2026-01-23 03:57:01', '2026-02-01 15:15:59', NULL);
 
 --
 -- Indexes for dumped tables
 --
+
+--
+-- Indexes for table `announcements`
+--
+ALTER TABLE `announcements`
+  ADD PRIMARY KEY (`id`),
+  ADD KEY `idx_type` (`type`),
+  ADD KEY `idx_target_audience` (`target_audience`),
+  ADD KEY `idx_is_active` (`is_active`),
+  ADD KEY `idx_created_at` (`created_at`),
+  ADD KEY `idx_start_end_date` (`start_date`,`end_date`);
 
 --
 -- Indexes for table `applicant_documents`
@@ -1475,6 +1584,12 @@ ALTER TABLE `users`
 --
 
 --
+-- AUTO_INCREMENT for table `announcements`
+--
+ALTER TABLE `announcements`
+  MODIFY `id` bigint(20) UNSIGNED NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=20;
+
+--
 -- AUTO_INCREMENT for table `applicant_documents`
 --
 ALTER TABLE `applicant_documents`
@@ -1508,7 +1623,7 @@ ALTER TABLE `audit_logs`
 -- AUTO_INCREMENT for table `chat_messages`
 --
 ALTER TABLE `chat_messages`
-  MODIFY `id` bigint(20) UNSIGNED NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=11;
+  MODIFY `id` bigint(20) UNSIGNED NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=17;
 
 --
 -- AUTO_INCREMENT for table `companies`
@@ -1520,13 +1635,13 @@ ALTER TABLE `companies`
 -- AUTO_INCREMENT for table `company_quotas`
 --
 ALTER TABLE `company_quotas`
-  MODIFY `id` bigint(20) UNSIGNED NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=4;
+  MODIFY `id` bigint(20) UNSIGNED NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=7;
 
 --
 -- AUTO_INCREMENT for table `conversations`
 --
 ALTER TABLE `conversations`
-  MODIFY `id` bigint(20) UNSIGNED NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=5;
+  MODIFY `id` bigint(20) UNSIGNED NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=7;
 
 --
 -- AUTO_INCREMENT for table `cvs`
@@ -1580,13 +1695,13 @@ ALTER TABLE `password_reset_tokens`
 -- AUTO_INCREMENT for table `payments`
 --
 ALTER TABLE `payments`
-  MODIFY `id` bigint(20) UNSIGNED NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=6;
+  MODIFY `id` bigint(20) UNSIGNED NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=16;
 
 --
 -- AUTO_INCREMENT for table `refresh_tokens`
 --
 ALTER TABLE `refresh_tokens`
-  MODIFY `id` bigint(20) UNSIGNED NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=360;
+  MODIFY `id` bigint(20) UNSIGNED NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=391;
 
 --
 -- AUTO_INCREMENT for table `saved_jobs`

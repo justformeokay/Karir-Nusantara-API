@@ -24,6 +24,7 @@ import (
 	"github.com/karirnusantara/api/internal/modules/cvs"
 	"github.com/karirnusantara/api/internal/modules/dashboard"
 	"github.com/karirnusantara/api/internal/modules/jobs"
+	"github.com/karirnusantara/api/internal/modules/partner"
 	"github.com/karirnusantara/api/internal/modules/passwordreset"
 	"github.com/karirnusantara/api/internal/modules/policies"
 	"github.com/karirnusantara/api/internal/modules/profile"
@@ -79,6 +80,7 @@ func main() {
 	profileRepo := profile.NewRepository(db)
 	ticketsRepo := tickets.NewRepository(db)
 	passwordResetRepo := passwordreset.NewRepository(db)
+	partnerRepo := partner.NewRepository(db)
 
 	// Initialize other services
 	quotaService := quota.NewService(quotaRepo)
@@ -92,6 +94,7 @@ func main() {
 	profileService := profile.NewService(profileRepo)
 	passwordResetService := passwordreset.NewService(passwordResetRepo, emailService)
 	ticketsService := tickets.NewService(ticketsRepo)
+	partnerService := partner.NewService(partnerRepo, &cfg.JWT, "https://karirnusantara.id")
 
 	// Initialize invoice service
 	invoiceService := invoice.NewService("./docs/invoices")
@@ -112,6 +115,10 @@ func main() {
 	// Initialize recommendations module
 	recommendationsService := recommendations.NewService()
 	recommendationsHandler := recommendations.NewHandler(recommendationsService, jobsService, cvsService, profileService)
+
+	// Initialize partner module
+	partnerHandler := partner.NewHandler(partnerService, v)
+	partnerMiddleware := partner.NewPartnerMiddleware(partnerService)
 
 	// Initialize company file service
 	companyFileService := company.NewFileService("./docs/companies")
@@ -158,6 +165,9 @@ func main() {
 		recommendations.RegisterRoutes(r, recommendationsHandler, authMiddleware.Authenticate)
 		passwordreset.RegisterRoutes(r, passwordResetHandler)
 		tickets.RegisterRoutes(r, ticketsHandler, authMiddleware)
+
+		// Partner module routes
+		partner.RegisterRoutes(r, partnerHandler, partnerMiddleware)
 
 		// Admin module routes
 		adminModule := admin.NewModuleWithQuota(db, cfg, authMiddleware, quotaService, emailService, invoiceService)
