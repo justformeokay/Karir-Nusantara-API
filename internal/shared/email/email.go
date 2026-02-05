@@ -853,3 +853,181 @@ func getEnv(key, defaultValue string) string {
 	}
 	return value
 }
+
+// SendPartnerWelcomeEmail sends welcome email to new partner
+func (s *Service) SendPartnerWelcomeEmail(to, partnerName, referralCode string) error {
+	subject := "Selamat Bergabung Sebagai Partner Karir Nusantara!"
+
+	tmpl := `
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Selamat Bergabung</title>
+    <style>
+        body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; line-height: 1.6; color: #333; background-color: #f4f4f4; margin: 0; padding: 0; }
+        .container { max-width: 600px; margin: 0 auto; background-color: #ffffff; }
+        .header { background: linear-gradient(135deg, #059669 0%, #10B981 100%); color: white; padding: 30px; text-align: center; }
+        .header h1 { margin: 0; font-size: 28px; }
+        .content { padding: 30px; }
+        .welcome-box { background-color: #ECFDF5; border-left: 4px solid #10B981; padding: 20px; margin: 20px 0; border-radius: 0 8px 8px 0; }
+        .referral-box { background-color: #F0FDF4; border: 2px dashed #059669; padding: 20px; margin: 20px 0; text-align: center; border-radius: 8px; }
+        .referral-code { font-size: 32px; font-weight: bold; color: #059669; letter-spacing: 2px; margin: 10px 0; }
+        .button { display: inline-block; background: linear-gradient(135deg, #059669 0%, #10B981 100%); color: white; padding: 14px 28px; text-decoration: none; border-radius: 8px; font-weight: bold; margin: 20px 0; }
+        .footer { background-color: #374151; color: #9CA3AF; padding: 20px; text-align: center; font-size: 12px; }
+        .benefits { margin: 20px 0; }
+        .benefits li { margin: 10px 0; padding-left: 10px; }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>🎉 Selamat Bergabung!</h1>
+        </div>
+        <div class="content">
+            <p>Halo <strong>{{.PartnerName}}</strong>,</p>
+            
+            <div class="welcome-box">
+                <p>Terima kasih telah mendaftar sebagai Partner Karir Nusantara! Akun Anda sedang dalam proses verifikasi oleh tim kami.</p>
+            </div>
+
+            <p>Berikut adalah kode referral unik Anda:</p>
+            
+            <div class="referral-box">
+                <p style="margin: 0; color: #6B7280;">Kode Referral Anda</p>
+                <div class="referral-code">{{.ReferralCode}}</div>
+                <p style="margin: 0; color: #6B7280; font-size: 14px;">Bagikan kode ini untuk mendapatkan komisi!</p>
+            </div>
+
+            <h3>Keuntungan Menjadi Partner:</h3>
+            <ul class="benefits">
+                <li>💰 Komisi hingga 40% dari setiap transaksi perusahaan yang Anda referensikan</li>
+                <li>📊 Dashboard lengkap untuk tracking performa</li>
+                <li>💳 Pencairan dana mudah dan cepat</li>
+                <li>🤝 Dukungan penuh dari tim Karir Nusantara</li>
+            </ul>
+
+            <p><strong>Status Akun:</strong> Menunggu Verifikasi</p>
+            <p>Tim kami akan memverifikasi akun Anda dalam 1-2 hari kerja. Anda akan menerima email konfirmasi setelah akun diaktifkan.</p>
+
+            <div style="text-align: center;">
+                <a href="https://partner.karirnusantara.com" class="button">Kunjungi Dashboard Partner</a>
+            </div>
+
+            <p>Jika ada pertanyaan, jangan ragu untuk menghubungi tim support kami.</p>
+            
+            <p>Salam sukses,<br><strong>Tim Karir Nusantara</strong></p>
+        </div>
+        <div class="footer">
+            <p>&copy; 2026 Karir Nusantara. All rights reserved.</p>
+            <p>Email ini dikirim secara otomatis, mohon untuk tidak membalas.</p>
+        </div>
+    </div>
+</body>
+</html>
+`
+
+	t, err := template.New("partner_welcome").Parse(tmpl)
+	if err != nil {
+		return fmt.Errorf("failed to parse template: %w", err)
+	}
+
+	data := struct {
+		PartnerName  string
+		ReferralCode string
+	}{
+		PartnerName:  partnerName,
+		ReferralCode: referralCode,
+	}
+
+	var body bytes.Buffer
+	if err := t.Execute(&body, data); err != nil {
+		return fmt.Errorf("failed to execute template: %w", err)
+	}
+
+	return s.SendEmail(to, subject, body.String())
+}
+
+// SendPartnerPasswordResetEmail sends password reset email to partner
+func (s *Service) SendPartnerPasswordResetEmail(to, partnerName, resetLink string) error {
+	subject := "Reset Password Akun Partner Karir Nusantara"
+
+	tmpl := `
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Reset Password</title>
+    <style>
+        body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; line-height: 1.6; color: #333; background-color: #f4f4f4; margin: 0; padding: 0; }
+        .container { max-width: 600px; margin: 0 auto; background-color: #ffffff; }
+        .header { background: linear-gradient(135deg, #059669 0%, #10B981 100%); color: white; padding: 30px; text-align: center; }
+        .header h1 { margin: 0; font-size: 24px; }
+        .content { padding: 30px; }
+        .warning-box { background-color: #FEF3C7; border-left: 4px solid #F59E0B; padding: 15px; margin: 20px 0; border-radius: 0 8px 8px 0; }
+        .button { display: inline-block; background: linear-gradient(135deg, #059669 0%, #10B981 100%); color: white; padding: 14px 28px; text-decoration: none; border-radius: 8px; font-weight: bold; margin: 20px 0; }
+        .footer { background-color: #374151; color: #9CA3AF; padding: 20px; text-align: center; font-size: 12px; }
+        .link-box { background-color: #F3F4F6; padding: 15px; border-radius: 8px; word-break: break-all; font-size: 12px; margin: 15px 0; }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>🔐 Reset Password</h1>
+        </div>
+        <div class="content">
+            <p>Halo <strong>{{.PartnerName}}</strong>,</p>
+            
+            <p>Kami menerima permintaan untuk reset password akun Partner Karir Nusantara Anda.</p>
+
+            <div style="text-align: center;">
+                <a href="{{.ResetLink}}" class="button">Reset Password Sekarang</a>
+            </div>
+
+            <p>Atau salin link berikut ke browser Anda:</p>
+            <div class="link-box">{{.ResetLink}}</div>
+
+            <div class="warning-box">
+                <p style="margin: 0;"><strong>⚠️ Penting:</strong></p>
+                <ul style="margin: 5px 0;">
+                    <li>Link ini akan kadaluarsa dalam <strong>1 jam</strong></li>
+                    <li>Jika Anda tidak meminta reset password, abaikan email ini</li>
+                    <li>Jangan bagikan link ini kepada siapapun</li>
+                </ul>
+            </div>
+
+            <p>Jika Anda tidak merasa melakukan permintaan ini, silakan abaikan email ini atau hubungi tim support kami jika Anda khawatir tentang keamanan akun Anda.</p>
+            
+            <p>Salam,<br><strong>Tim Karir Nusantara</strong></p>
+        </div>
+        <div class="footer">
+            <p>&copy; 2026 Karir Nusantara. All rights reserved.</p>
+            <p>Email ini dikirim secara otomatis, mohon untuk tidak membalas.</p>
+        </div>
+    </div>
+</body>
+</html>
+`
+
+	t, err := template.New("partner_reset").Parse(tmpl)
+	if err != nil {
+		return fmt.Errorf("failed to parse template: %w", err)
+	}
+
+	data := struct {
+		PartnerName string
+		ResetLink   string
+	}{
+		PartnerName: partnerName,
+		ResetLink:   resetLink,
+	}
+
+	var body bytes.Buffer
+	if err := t.Execute(&body, data); err != nil {
+		return fmt.Errorf("failed to execute template: %w", err)
+	}
+
+	return s.SendEmail(to, subject, body.String())
+}

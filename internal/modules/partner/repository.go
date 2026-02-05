@@ -19,6 +19,16 @@ type Repository interface {
 	UpdateUserPassword(ctx context.Context, userID uint64, passwordHash string) error
 	UpdateUserName(ctx context.Context, userID uint64, name string) error
 
+	// Registration
+	CreatePartnerUser(ctx context.Context, fullName, email, phone, passwordHash, referralCode string) (uint64, uint64, error)
+	CheckEmailExists(ctx context.Context, email string) (bool, error)
+
+	// Password Reset
+	CreatePasswordResetToken(ctx context.Context, userID uint64, token string, expiresAt time.Time) error
+	GetPasswordResetToken(ctx context.Context, token string) (uint64, time.Time, error)
+	DeletePasswordResetToken(ctx context.Context, token string) error
+	GetUserEmailByID(ctx context.Context, userID uint64) (string, error)
+
 	// Dashboard
 	GetDashboardStats(ctx context.Context, partnerID uint64) (*DashboardStatsResponse, error)
 	GetMonthlyData(ctx context.Context, partnerID uint64, months int) ([]MonthlyDataResponse, error)
@@ -605,4 +615,111 @@ func (r *repository) GetLastPayoutDate(ctx context.Context, partnerID uint64) (*
 	}
 
 	return &completedAt, nil
+}
+
+// CreatePartnerUser creates a new partner user and referral_partner record
+func (r *repository) CreatePartnerUser(ctx context.Context, fullName, email, phone, passwordHash, referralCode string) (uint64, uint64, error) {
+	tx, err := r.db.BeginTxx(ctx, nil)
+	if err != nil {
+		return 0, 0, fmt.Errorf("failed to start transaction: %w", err)
+	}
+	defer tx.Rollback()
+
+	// Insert user
+	userQuery := `
+		INSERT INTO users (email, password_hash, full_name, phone, role, is_active, is_verified, created_at, updated_at)
+		VALUES (?, ?, ?, ?, 'partner', 1, 0, NOW(), NOW())
+	`
+	result, err := tx.ExecContext(ctx, userQuery, email, passwordHash, fullName, phone)
+	if err != nil {
+		return 0, 0, fmt.Errorf("failed to insert user: %w", err)
+	}
+
+	userID, err := result.LastInsertId()
+	if err != nil {
+		return 0, 0, fmt.Errorf("failed to get user id: %w", err)
+	}
+
+	// Insert referral_partner with pending status
+	partnerQuery := `
+		INSERT INTO referral_partners (user_id, referral_code, commission_rate, status, created_at, updated_at)
+		VALUES (?, ?, 40.00, 'pending', NOW(), NOW())
+	`
+	result, err = tx.ExecContext(ctx, partnerQuery, userID, referralCode)
+	if err != nil {
+		return 0, 0, fmt.Errorf("failed to insert partner: %w", err)
+	}
+
+	partnerID, err := result.LastInsertId()
+	if err != nil {
+		return 0, 0, fmt.Errorf("failed to get partner id: %w", err)
+	}
+
+	if err := tx.Commit(); err != nil {
+		return 0, 0, fmt.Errorf("failed to commit transaction: %w", err)
+	}
+
+	return uint64(userID), uint64(partnerID), nil
+}
+
+// CheckEmailExists checks if email already exists
+func (r *repository) CheckEmailExists(ctx context.Context, email string) (bool, error) {
+	query := `SELECT EXISTS(SELECT 1 FROM users WHERE email = ? AND deleted_at IS NULL)`
+	var exists bool
+	err := r.db.QueryRowContext(ctx, query, email).Scan(&exists)
+	if err != nil {
+		return false, fmt.Errorf("failed to check email: %w", err)
+	}
+	return exists, nil
+}
+
+// CreatePasswordResetToken creates a password reset token
+func (r *repository) CreatePasswordResetToken(ctx context.Context, userID uint64, token string, expiresAt time.Time) error {
+	// Delete any existing tokens for this user
+	_, _ = r.db.ExecContext(ctx, `DELETE FROM password_resets WHERE user_id = ?`, userID)
+
+	query := `
+		INSERT INTO password_resets (user_id, token, expires_at, created_at)
+		VALUES (?, ?, ?, NOW())
+	`
+	_, err := r.db.ExecContext(ctx, query, userID, token, expiresAt)
+	if err != nil {
+		return fmt.Errorf("failed to create password reset token: %w", err)
+	}
+	return nil
+}
+
+// GetPasswordResetToken retrieves password reset token info
+func (r *repository) GetPasswordResetToken(ctx context.Context, token string) (uint64, time.Time, error) {
+	query := `
+		SELECT user_id, expires_at 
+		FROM password_resets 
+		WHERE token = ?
+	`
+	var userID uint64
+	var expiresAt time.Time
+	err := r.db.QueryRowContext(ctx, query, token).Scan(&userID, &expiresAt)
+	if err == sql.ErrNoRows {
+		return 0, time.Time{}, fmt.Errorf("token not found")
+	}
+	if err != nil {
+		return 0, time.Time{}, fmt.Errorf("failed to get token: %w", err)
+	}
+	return userID, expiresAt, nil
+}
+
+// DeletePasswordResetToken deletes a password reset token
+func (r *repository) DeletePasswordResetToken(ctx context.Context, token string) error {
+	_, err := r.db.ExecContext(ctx, `DELETE FROM password_resets WHERE token = ?`, token)
+	return err
+}
+
+// GetUserEmailByID retrieves user email by ID
+func (r *repository) GetUserEmailByID(ctx context.Context, userID uint64) (string, error) {
+	var email string
+	err := r.db.QueryRowContext(ctx, `SELECT email FROM users WHERE id = ?`, userID).Scan(&email)
+	if err != nil {
+		return "", fmt.Errorf("failed to get user email: %w", err)
+	}
+	return email, nil
 }

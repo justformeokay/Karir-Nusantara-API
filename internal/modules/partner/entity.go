@@ -136,6 +136,31 @@ type PartnerUser struct {
 // DTOs (Request/Response)
 // ========================
 
+// RegisterRequest for partner registration
+type RegisterRequest struct {
+	FullName string `json:"full_name" validate:"required,min=2,max=100"`
+	Email    string `json:"email" validate:"required,email"`
+	Phone    string `json:"phone" validate:"required,min=10,max=15"`
+	Password string `json:"password" validate:"required,min=8"`
+}
+
+// RegisterResponse for partner registration
+type RegisterResponse struct {
+	User    *PartnerUserResponse `json:"user"`
+	Message string               `json:"message"`
+}
+
+// ForgotPasswordRequest for forgot password
+type ForgotPasswordRequest struct {
+	Email string `json:"email" validate:"required,email"`
+}
+
+// ResetPasswordRequest for reset password
+type ResetPasswordRequest struct {
+	Token       string `json:"token" validate:"required"`
+	NewPassword string `json:"new_password" validate:"required,min=8"`
+}
+
 // LoginRequest for partner login
 type LoginRequest struct {
 	Email    string `json:"email" validate:"required,email"`

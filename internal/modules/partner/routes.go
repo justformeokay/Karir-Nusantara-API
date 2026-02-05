@@ -70,7 +70,10 @@ func RegisterRoutes(r chi.Router, h *Handler, middleware *PartnerMiddleware) {
 	r.Route("/partner", func(r chi.Router) {
 		// Public routes (no authentication required)
 		r.Route("/auth", func(r chi.Router) {
+			r.Post("/register", h.Register)
 			r.Post("/login", h.Login)
+			r.Post("/forgot-password", h.ForgotPassword)
+			r.Post("/reset-password", h.ResetPassword)
 		})
 
 		// Protected routes (authentication required)

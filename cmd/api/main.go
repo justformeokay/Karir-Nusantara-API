@@ -94,7 +94,10 @@ func main() {
 	profileService := profile.NewService(profileRepo)
 	passwordResetService := passwordreset.NewService(passwordResetRepo, emailService)
 	ticketsService := tickets.NewService(ticketsRepo)
-	partnerService := partner.NewService(partnerRepo, &cfg.JWT, "https://karirnusantara.id")
+
+	// Create partner email adapter
+	partnerEmailAdapter := &PartnerEmailAdapter{emailService: emailService}
+	partnerService := partner.NewServiceWithEmail(partnerRepo, &cfg.JWT, "https://partner.karirnusantara.com", partnerEmailAdapter)
 
 	// Initialize invoice service
 	invoiceService := invoice.NewService("./docs/invoices")
@@ -229,4 +232,17 @@ func main() {
 	}
 
 	log.Println("Server stopped gracefully")
+}
+
+// PartnerEmailAdapter adapts email.Service to partner.EmailSender interface
+type PartnerEmailAdapter struct {
+	emailService *email.Service
+}
+
+func (a *PartnerEmailAdapter) SendPartnerWelcomeEmail(to, partnerName, referralCode string) error {
+	return a.emailService.SendPartnerWelcomeEmail(to, partnerName, referralCode)
+}
+
+func (a *PartnerEmailAdapter) SendPartnerPasswordResetEmail(to, partnerName, resetLink string) error {
+	return a.emailService.SendPartnerPasswordResetEmail(to, partnerName, resetLink)
 }

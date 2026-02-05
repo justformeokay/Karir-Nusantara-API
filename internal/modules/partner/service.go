@@ -2,9 +2,11 @@ package partner
 
 import (
 	"context"
+	"crypto/rand"
 	"crypto/sha256"
 	"encoding/hex"
 	"fmt"
+	"strings"
 	"time"
 
 	"github.com/golang-jwt/jwt/v5"
@@ -16,7 +18,10 @@ import (
 // Service defines the partner service interface
 type Service interface {
 	// Authentication
+	Register(ctx context.Context, req *RegisterRequest) (*RegisterResponse, error)
 	Login(ctx context.Context, req *LoginRequest) (*LoginResponse, error)
+	ForgotPassword(ctx context.Context, req *ForgotPasswordRequest) error
+	ResetPassword(ctx context.Context, req *ResetPasswordRequest) error
 	ValidateAccessToken(tokenString string) (*TokenClaims, error)
 
 	// Profile
@@ -44,6 +49,12 @@ type Service interface {
 	GetPayoutHistory(ctx context.Context, partnerID uint64, page, limit int) ([]PayoutHistoryResponse, *PaginationResponse, error)
 }
 
+// EmailSender interface for sending emails
+type EmailSender interface {
+	SendPartnerWelcomeEmail(to, name, referralCode string) error
+	SendPartnerPasswordResetEmail(to, name, resetLink string) error
+}
+
 // TokenClaims represents JWT claims for partner tokens
 type TokenClaims struct {
 	UserID       uint64 `json:"user_id"`
@@ -56,9 +67,10 @@ type TokenClaims struct {
 
 // service implements Service
 type service struct {
-	repo    Repository
-	config  *config.JWTConfig
-	baseURL string
+	repo        Repository
+	config      *config.JWTConfig
+	baseURL     string
+	emailSender EmailSender
 }
 
 // NewService creates a new partner service
@@ -68,6 +80,155 @@ func NewService(repo Repository, cfg *config.JWTConfig, baseURL string) Service 
 		config:  cfg,
 		baseURL: baseURL,
 	}
+}
+
+// NewServiceWithEmail creates a new partner service with email support
+func NewServiceWithEmail(repo Repository, cfg *config.JWTConfig, baseURL string, emailSender EmailSender) Service {
+	return &service{
+		repo:        repo,
+		config:      cfg,
+		baseURL:     baseURL,
+		emailSender: emailSender,
+	}
+}
+
+// Register creates a new partner account
+func (s *service) Register(ctx context.Context, req *RegisterRequest) (*RegisterResponse, error) {
+	// Check if email already exists
+	exists, err := s.repo.CheckEmailExists(ctx, req.Email)
+	if err != nil {
+		return nil, apperrors.NewInternalError("Failed to check email", err)
+	}
+	if exists {
+		return nil, apperrors.NewValidationError("Email already registered", nil)
+	}
+
+	// Hash password
+	passwordHash, err := bcrypt.GenerateFromPassword([]byte(req.Password), bcrypt.DefaultCost)
+	if err != nil {
+		return nil, apperrors.NewInternalError("Failed to hash password", err)
+	}
+
+	// Generate unique referral code
+	referralCode := s.generateReferralCode(req.FullName)
+
+	// Create partner user
+	userID, partnerID, err := s.repo.CreatePartnerUser(ctx, req.FullName, req.Email, req.Phone, string(passwordHash), referralCode)
+	if err != nil {
+		return nil, apperrors.NewInternalError("Failed to create partner", err)
+	}
+
+	// Create response
+	response := &RegisterResponse{
+		User: &PartnerUserResponse{
+			ID:            userID,
+			Name:          req.FullName,
+			Email:         req.Email,
+			ReferralCode:  referralCode,
+			AccountStatus: StatusPending,
+			CreatedAt:     time.Now().Format(time.RFC3339),
+		},
+		Message: "Registration successful! Your account is pending approval. You will receive an email once your account is activated.",
+	}
+
+	// Send welcome email (async, don't fail if email fails)
+	if s.emailSender != nil {
+		go func() {
+			_ = s.emailSender.SendPartnerWelcomeEmail(req.Email, req.FullName, referralCode)
+		}()
+	}
+
+	_ = partnerID // Used for future reference
+
+	return response, nil
+}
+
+// ForgotPassword sends password reset email
+func (s *service) ForgotPassword(ctx context.Context, req *ForgotPasswordRequest) error {
+	// Check if user exists
+	partnerUser, err := s.repo.GetPartnerUserByEmail(ctx, req.Email)
+	if err != nil {
+		return apperrors.NewInternalError("Failed to get user", err)
+	}
+	if partnerUser == nil {
+		// Don't reveal if email exists
+		return nil
+	}
+
+	// Generate reset token
+	token := s.generateResetToken()
+	expiresAt := time.Now().Add(1 * time.Hour)
+
+	// Save token
+	if err := s.repo.CreatePasswordResetToken(ctx, partnerUser.ID, token, expiresAt); err != nil {
+		return apperrors.NewInternalError("Failed to create reset token", err)
+	}
+
+	// Send reset email
+	if s.emailSender != nil {
+		resetLink := fmt.Sprintf("%s/reset-password?token=%s", s.baseURL, token)
+		go func() {
+			_ = s.emailSender.SendPartnerPasswordResetEmail(req.Email, partnerUser.FullName, resetLink)
+		}()
+	}
+
+	return nil
+}
+
+// ResetPassword resets password using token
+func (s *service) ResetPassword(ctx context.Context, req *ResetPasswordRequest) error {
+	// Get token info
+	userID, expiresAt, err := s.repo.GetPasswordResetToken(ctx, req.Token)
+	if err != nil {
+		return apperrors.NewValidationError("Invalid or expired token", nil)
+	}
+
+	// Check if token expired
+	if time.Now().After(expiresAt) {
+		_ = s.repo.DeletePasswordResetToken(ctx, req.Token)
+		return apperrors.NewValidationError("Token has expired", nil)
+	}
+
+	// Hash new password
+	passwordHash, err := bcrypt.GenerateFromPassword([]byte(req.NewPassword), bcrypt.DefaultCost)
+	if err != nil {
+		return apperrors.NewInternalError("Failed to hash password", err)
+	}
+
+	// Update password
+	if err := s.repo.UpdateUserPassword(ctx, userID, string(passwordHash)); err != nil {
+		return apperrors.NewInternalError("Failed to update password", err)
+	}
+
+	// Delete token
+	_ = s.repo.DeletePasswordResetToken(ctx, req.Token)
+
+	return nil
+}
+
+// generateReferralCode generates a unique referral code
+func (s *service) generateReferralCode(name string) string {
+	// Take first 4 letters of name (uppercase)
+	prefix := strings.ToUpper(name)
+	if len(prefix) > 4 {
+		prefix = prefix[:4]
+	}
+	// Remove spaces and special chars
+	prefix = strings.ReplaceAll(prefix, " ", "")
+
+	// Add random suffix
+	b := make([]byte, 3)
+	rand.Read(b)
+	suffix := fmt.Sprintf("%X", b)[:4]
+
+	return prefix + suffix
+}
+
+// generateResetToken generates a secure reset token
+func (s *service) generateResetToken() string {
+	b := make([]byte, 32)
+	rand.Read(b)
+	return hex.EncodeToString(b)
 }
 
 // Login authenticates a partner

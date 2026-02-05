@@ -24,6 +24,31 @@ func NewHandler(service Service, validator *validator.Validator) *Handler {
 	}
 }
 
+// Register handles partner registration
+// POST /api/v1/partner/auth/register
+func (h *Handler) Register(w http.ResponseWriter, r *http.Request) {
+	var req RegisterRequest
+	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
+		response.BadRequest(w, "Invalid request body")
+		return
+	}
+
+	// Validate request
+	if errors := h.validator.Validate(&req); errors != nil {
+		response.UnprocessableEntity(w, "Validation failed", errors)
+		return
+	}
+
+	// Register
+	authResp, err := h.service.Register(r.Context(), &req)
+	if err != nil {
+		handleError(w, err)
+		return
+	}
+
+	response.Created(w, "Registration successful", authResp)
+}
+
 // Login handles partner login
 // POST /api/v1/partner/auth/login
 func (h *Handler) Login(w http.ResponseWriter, r *http.Request) {
@@ -55,6 +80,54 @@ func (h *Handler) Logout(w http.ResponseWriter, r *http.Request) {
 	// In a full implementation, we would revoke the refresh token
 	// For now, just return success (frontend will clear tokens)
 	response.OK(w, "Logged out successfully", nil)
+}
+
+// ForgotPassword handles forgot password request
+// POST /api/v1/partner/auth/forgot-password
+func (h *Handler) ForgotPassword(w http.ResponseWriter, r *http.Request) {
+	var req ForgotPasswordRequest
+	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
+		response.BadRequest(w, "Invalid request body")
+		return
+	}
+
+	// Validate request
+	if errors := h.validator.Validate(&req); errors != nil {
+		response.UnprocessableEntity(w, "Validation failed", errors)
+		return
+	}
+
+	// Send reset email
+	if err := h.service.ForgotPassword(r.Context(), &req); err != nil {
+		handleError(w, err)
+		return
+	}
+
+	response.OK(w, "If an account with that email exists, a password reset link has been sent", nil)
+}
+
+// ResetPassword handles password reset
+// POST /api/v1/partner/auth/reset-password
+func (h *Handler) ResetPassword(w http.ResponseWriter, r *http.Request) {
+	var req ResetPasswordRequest
+	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
+		response.BadRequest(w, "Invalid request body")
+		return
+	}
+
+	// Validate request
+	if errors := h.validator.Validate(&req); errors != nil {
+		response.UnprocessableEntity(w, "Validation failed", errors)
+		return
+	}
+
+	// Reset password
+	if err := h.service.ResetPassword(r.Context(), &req); err != nil {
+		handleError(w, err)
+		return
+	}
+
+	response.OK(w, "Password reset successfully", nil)
 }
 
 // GetProfile handles get profile request
