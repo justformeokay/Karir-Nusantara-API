@@ -15,6 +15,7 @@ import (
 // Module represents the admin module
 type Module struct {
 	handler             *Handler
+	partnerHandler      *PartnerHandler
 	authMiddleware      *middleware.AuthMiddleware
 	announcementsModule *announcements.Module
 }
@@ -37,11 +38,17 @@ func NewModuleWithQuota(db *sqlx.DB, cfg *config.Config, authMiddleware *middlew
 	service := NewServiceComplete(repo, cfg, quotaSvc, emailSvc, invoiceSvc)
 	handler := NewHandler(service)
 
+	// Initialize partner management for admin
+	partnerRepo := NewPartnerRepository(db)
+	partnerService := NewPartnerService(partnerRepo)
+	partnerHandler := NewPartnerHandler(partnerService)
+
 	// Initialize announcements module
 	announcementsModule := announcements.NewModule(db, authMiddleware)
 
 	return &Module{
 		handler:             handler,
+		partnerHandler:      partnerHandler,
 		authMiddleware:      authMiddleware,
 		announcementsModule: announcementsModule,
 	}
@@ -103,6 +110,32 @@ func (m *Module) RegisterRoutes(r chi.Router) {
 			// Announcements management (notifications, banners, information)
 			if m.announcementsModule != nil {
 				m.announcementsModule.RegisterAdminRoutes(r)
+			}
+
+			// Partner management (referral & affiliate)
+			if m.partnerHandler != nil {
+				// Partner management
+				r.Route("/partners", func(r chi.Router) {
+					r.Get("/", m.partnerHandler.GetPartners)
+					r.Get("/{id}", m.partnerHandler.GetPartnerByID)
+					r.Patch("/{id}/status", m.partnerHandler.UpdatePartnerStatus)
+					r.Post("/{id}/approve", m.partnerHandler.ApprovePartner)
+				})
+
+				// Referral management
+				r.Route("/referrals", func(r chi.Router) {
+					r.Get("/companies", m.partnerHandler.GetReferredCompanies)
+					r.Get("/stats", m.partnerHandler.GetReferralStats)
+				})
+
+				// Payout management
+				r.Route("/payouts", func(r chi.Router) {
+					r.Get("/", m.partnerHandler.GetPayouts)
+					r.Get("/stats", m.partnerHandler.GetPayoutStats)
+					r.Get("/balances", m.partnerHandler.GetPartnerBalances)
+					r.Post("/", m.partnerHandler.CreatePayout)
+					r.Post("/{id}/process", m.partnerHandler.ProcessPayout)
+				})
 			}
 		})
 	})
