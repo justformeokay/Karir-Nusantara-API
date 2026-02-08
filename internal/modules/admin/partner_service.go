@@ -14,6 +14,9 @@ type PartnerService interface {
 	GetPartnerByID(ctx context.Context, id uint64) (*AdminPartnerDetailResponse, error)
 	UpdatePartnerStatus(ctx context.Context, id uint64, req UpdatePartnerStatusRequest) error
 	ApprovePartner(ctx context.Context, id uint64, approvedBy uint64, req ApprovePartnerRequest) error
+	EditPartner(ctx context.Context, id uint64, req EditPartnerRequest) error
+	RejectPartner(ctx context.Context, id uint64, rejectedBy uint64, req RejectPartnerRequest) error
+	DeletePartner(ctx context.Context, id uint64, deletedBy uint64, req DeletePartnerRequest) error
 
 	// Referred companies
 	GetReferredCompanies(ctx context.Context, search string, page, limit int) (*AdminReferredCompanyListResponse, error)
@@ -172,6 +175,69 @@ func (s *partnerService) ApprovePartner(ctx context.Context, id uint64, approved
 	}
 
 	return s.repo.ApprovePartner(ctx, id, approvedBy, commissionRate, req.Notes)
+}
+
+// EditPartner updates partner details
+func (s *partnerService) EditPartner(ctx context.Context, id uint64, req EditPartnerRequest) error {
+	// Check partner exists
+	p, err := s.repo.GetPartnerByID(ctx, id)
+	if err != nil {
+		return fmt.Errorf("failed to get partner: %w", err)
+	}
+	if p == nil {
+		return errors.New("partner not found")
+	}
+
+	// Validate commission rate if provided
+	if req.CommissionRate != nil {
+		if *req.CommissionRate < 0 || *req.CommissionRate > 100 {
+			return errors.New("commission rate must be between 0 and 100")
+		}
+	}
+
+	return s.repo.EditPartner(ctx, id, req)
+}
+
+// RejectPartner rejects a pending partner
+func (s *partnerService) RejectPartner(ctx context.Context, id uint64, rejectedBy uint64, req RejectPartnerRequest) error {
+	// Check partner exists
+	p, err := s.repo.GetPartnerByID(ctx, id)
+	if err != nil {
+		return fmt.Errorf("failed to get partner: %w", err)
+	}
+	if p == nil {
+		return errors.New("partner not found")
+	}
+
+	// Check partner is pending
+	if p.Status != "pending" {
+		return errors.New("only pending partners can be rejected")
+	}
+
+	if req.Reason == "" {
+		return errors.New("rejection reason is required")
+	}
+
+	return s.repo.RejectPartner(ctx, id, rejectedBy, req.Reason)
+}
+
+// DeletePartner soft-deletes a partner
+func (s *partnerService) DeletePartner(ctx context.Context, id uint64, deletedBy uint64, req DeletePartnerRequest) error {
+	// Check partner exists
+	p, err := s.repo.GetPartnerByID(ctx, id)
+	if err != nil {
+		return fmt.Errorf("failed to get partner: %w", err)
+	}
+	if p == nil {
+		return errors.New("partner not found")
+	}
+
+	// Check if partner has pending balance
+	if p.AvailableBalance > 0 {
+		return errors.New("cannot delete partner with available balance, please process payout first")
+	}
+
+	return s.repo.DeletePartner(ctx, id, deletedBy, req.Reason)
 }
 
 // GetReferredCompanies returns paginated list of referred companies

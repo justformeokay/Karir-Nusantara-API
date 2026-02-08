@@ -179,6 +179,137 @@ func (h *PartnerHandler) ApprovePartner(w http.ResponseWriter, r *http.Request) 
 	})
 }
 
+// EditPartner godoc
+// @Summary Edit partner
+// @Description Update partner details (bank info, commission rate, notes)
+// @Tags Admin Partners
+// @Accept json
+// @Produce json
+// @Param id path int true "Partner ID"
+// @Param body body EditPartnerRequest true "Edit request"
+// @Success 200 {object} map[string]interface{}
+// @Security BearerAuth
+// @Router /admin/partners/{id} [put]
+func (h *PartnerHandler) EditPartner(w http.ResponseWriter, r *http.Request) {
+	idStr := chi.URLParam(r, "id")
+	id, err := strconv.ParseUint(idStr, 10, 64)
+	if err != nil {
+		respondWithError(w, http.StatusBadRequest, "invalid partner ID")
+		return
+	}
+
+	var req EditPartnerRequest
+	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
+		respondWithError(w, http.StatusBadRequest, "invalid request body")
+		return
+	}
+
+	if err := h.service.EditPartner(r.Context(), id, req); err != nil {
+		if err.Error() == "partner not found" {
+			respondWithError(w, http.StatusNotFound, err.Error())
+			return
+		}
+		respondWithError(w, http.StatusBadRequest, err.Error())
+		return
+	}
+
+	respondWithJSON(w, http.StatusOK, map[string]interface{}{
+		"success": true,
+		"message": "Partner updated successfully",
+	})
+}
+
+// RejectPartner godoc
+// @Summary Reject partner
+// @Description Reject a pending partner application
+// @Tags Admin Partners
+// @Accept json
+// @Produce json
+// @Param id path int true "Partner ID"
+// @Param body body RejectPartnerRequest true "Rejection request"
+// @Success 200 {object} map[string]interface{}
+// @Security BearerAuth
+// @Router /admin/partners/{id}/reject [post]
+func (h *PartnerHandler) RejectPartner(w http.ResponseWriter, r *http.Request) {
+	idStr := chi.URLParam(r, "id")
+	id, err := strconv.ParseUint(idStr, 10, 64)
+	if err != nil {
+		respondWithError(w, http.StatusBadRequest, "invalid partner ID")
+		return
+	}
+
+	var req RejectPartnerRequest
+	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
+		respondWithError(w, http.StatusBadRequest, "invalid request body")
+		return
+	}
+
+	if req.Reason == "" {
+		respondWithError(w, http.StatusBadRequest, "rejection reason is required")
+		return
+	}
+
+	// Get admin ID from context
+	adminID := middleware.GetUserID(r.Context())
+
+	if err := h.service.RejectPartner(r.Context(), id, adminID, req); err != nil {
+		if err.Error() == "partner not found" {
+			respondWithError(w, http.StatusNotFound, err.Error())
+			return
+		}
+		respondWithError(w, http.StatusBadRequest, err.Error())
+		return
+	}
+
+	respondWithJSON(w, http.StatusOK, map[string]interface{}{
+		"success": true,
+		"message": "Partner rejected successfully",
+	})
+}
+
+// DeletePartner godoc
+// @Summary Delete partner
+// @Description Soft-delete a partner (deactivate account)
+// @Tags Admin Partners
+// @Accept json
+// @Produce json
+// @Param id path int true "Partner ID"
+// @Param body body DeletePartnerRequest true "Delete request"
+// @Success 200 {object} map[string]interface{}
+// @Security BearerAuth
+// @Router /admin/partners/{id} [delete]
+func (h *PartnerHandler) DeletePartner(w http.ResponseWriter, r *http.Request) {
+	idStr := chi.URLParam(r, "id")
+	id, err := strconv.ParseUint(idStr, 10, 64)
+	if err != nil {
+		respondWithError(w, http.StatusBadRequest, "invalid partner ID")
+		return
+	}
+
+	var req DeletePartnerRequest
+	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
+		// Allow empty body
+		req = DeletePartnerRequest{}
+	}
+
+	// Get admin ID from context
+	adminID := middleware.GetUserID(r.Context())
+
+	if err := h.service.DeletePartner(r.Context(), id, adminID, req); err != nil {
+		if err.Error() == "partner not found" {
+			respondWithError(w, http.StatusNotFound, err.Error())
+			return
+		}
+		respondWithError(w, http.StatusBadRequest, err.Error())
+		return
+	}
+
+	respondWithJSON(w, http.StatusOK, map[string]interface{}{
+		"success": true,
+		"message": "Partner deleted successfully",
+	})
+}
+
 // GetReferredCompanies godoc
 // @Summary Get referred companies
 // @Description Get paginated list of companies referred by partners

@@ -118,8 +118,11 @@ func (m *Module) RegisterRoutes(r chi.Router) {
 				r.Route("/partners", func(r chi.Router) {
 					r.Get("/", m.partnerHandler.GetPartners)
 					r.Get("/{id}", m.partnerHandler.GetPartnerByID)
+					r.Put("/{id}", m.partnerHandler.EditPartner)
+					r.Delete("/{id}", m.partnerHandler.DeletePartner)
 					r.Patch("/{id}/status", m.partnerHandler.UpdatePartnerStatus)
 					r.Post("/{id}/approve", m.partnerHandler.ApprovePartner)
+					r.Post("/{id}/reject", m.partnerHandler.RejectPartner)
 				})
 
 				// Referral management

@@ -29,6 +29,27 @@ type CreatePayoutRequest struct {
 	Notes     *string `json:"notes,omitempty"`
 }
 
+// EditPartnerRequest for updating partner details
+type EditPartnerRequest struct {
+	FullName          *string  `json:"full_name,omitempty"`
+	Phone             *string  `json:"phone,omitempty"`
+	CommissionRate    *float64 `json:"commission_rate,omitempty" validate:"omitempty,min=0,max=100"`
+	BankName          *string  `json:"bank_name,omitempty"`
+	BankAccountNumber *string  `json:"bank_account_number,omitempty"`
+	BankAccountHolder *string  `json:"bank_account_holder,omitempty"`
+	Notes             *string  `json:"notes,omitempty"`
+}
+
+// RejectPartnerRequest for rejecting a pending partner
+type RejectPartnerRequest struct {
+	Reason string `json:"reason" validate:"required"`
+}
+
+// DeletePartnerRequest for soft-deleting a partner
+type DeletePartnerRequest struct {
+	Reason string `json:"reason,omitempty"`
+}
+
 // Response types for admin APIs
 
 // AdminReferralStatsResponse represents referral program statistics

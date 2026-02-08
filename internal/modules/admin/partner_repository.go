@@ -16,6 +16,9 @@ type PartnerRepository interface {
 	GetPartnerByID(ctx context.Context, id uint64) (*PartnerDBRow, error)
 	UpdatePartnerStatus(ctx context.Context, id uint64, status string, notes *string) error
 	ApprovePartner(ctx context.Context, id uint64, approvedBy uint64, commissionRate float64, notes *string) error
+	EditPartner(ctx context.Context, id uint64, req EditPartnerRequest) error
+	RejectPartner(ctx context.Context, id uint64, rejectedBy uint64, reason string) error
+	DeletePartner(ctx context.Context, id uint64, deletedBy uint64, reason string) error
 
 	// Referred companies
 	GetReferredCompanies(ctx context.Context, search string, page, limit int) ([]ReferredCompanyDBRow, int, error)
@@ -564,4 +567,142 @@ func (r *partnerRepository) GetLastPayoutDate(ctx context.Context, partnerID uin
 		return nil, fmt.Errorf("failed to get last payout date: %w", err)
 	}
 	return paidAt, nil
+}
+
+// EditPartner updates partner details
+func (r *partnerRepository) EditPartner(ctx context.Context, id uint64, req EditPartnerRequest) error {
+	// Build dynamic update query
+	updates := []string{}
+	args := []interface{}{}
+
+	if req.CommissionRate != nil {
+		updates = append(updates, "commission_rate = ?")
+		args = append(args, *req.CommissionRate)
+	}
+	if req.BankName != nil {
+		updates = append(updates, "bank_name = ?")
+		args = append(args, *req.BankName)
+	}
+	if req.BankAccountNumber != nil {
+		updates = append(updates, "bank_account_number = ?")
+		args = append(args, *req.BankAccountNumber)
+	}
+	if req.BankAccountHolder != nil {
+		updates = append(updates, "bank_account_holder = ?")
+		args = append(args, *req.BankAccountHolder)
+	}
+	if req.Notes != nil {
+		updates = append(updates, "notes = ?")
+		args = append(args, *req.Notes)
+	}
+
+	if len(updates) > 0 {
+		updates = append(updates, "updated_at = NOW()")
+		args = append(args, id)
+
+		query := fmt.Sprintf("UPDATE referral_partners SET %s WHERE id = ?",
+			joinStrings(updates, ", "))
+
+		_, err := r.db.ExecContext(ctx, query, args...)
+		if err != nil {
+			return fmt.Errorf("failed to update partner: %w", err)
+		}
+	}
+
+	// Update user info (full_name, phone) if provided
+	if req.FullName != nil || req.Phone != nil {
+		// Get user_id from partner
+		var userID uint64
+		err := r.db.QueryRowContext(ctx, "SELECT user_id FROM referral_partners WHERE id = ?", id).Scan(&userID)
+		if err != nil {
+			return fmt.Errorf("failed to get user_id: %w", err)
+		}
+
+		userUpdates := []string{}
+		userArgs := []interface{}{}
+
+		if req.FullName != nil {
+			userUpdates = append(userUpdates, "full_name = ?")
+			userArgs = append(userArgs, *req.FullName)
+		}
+		if req.Phone != nil {
+			userUpdates = append(userUpdates, "phone = ?")
+			userArgs = append(userArgs, *req.Phone)
+		}
+
+		if len(userUpdates) > 0 {
+			userUpdates = append(userUpdates, "updated_at = NOW()")
+			userArgs = append(userArgs, userID)
+
+			userQuery := fmt.Sprintf("UPDATE users SET %s WHERE id = ?",
+				joinStrings(userUpdates, ", "))
+
+			_, err := r.db.ExecContext(ctx, userQuery, userArgs...)
+			if err != nil {
+				return fmt.Errorf("failed to update user: %w", err)
+			}
+		}
+	}
+
+	return nil
+}
+
+// RejectPartner rejects a pending partner
+func (r *partnerRepository) RejectPartner(ctx context.Context, id uint64, rejectedBy uint64, reason string) error {
+	query := `
+		UPDATE referral_partners 
+		SET status = 'rejected', 
+			notes = ?,
+			updated_at = NOW()
+		WHERE id = ?
+	`
+	_, err := r.db.ExecContext(ctx, query, reason, id)
+	if err != nil {
+		return fmt.Errorf("failed to reject partner: %w", err)
+	}
+	return nil
+}
+
+// DeletePartner soft-deletes a partner (sets user deleted_at)
+func (r *partnerRepository) DeletePartner(ctx context.Context, id uint64, deletedBy uint64, reason string) error {
+	// Get user_id from partner
+	var userID uint64
+	err := r.db.QueryRowContext(ctx, "SELECT user_id FROM referral_partners WHERE id = ?", id).Scan(&userID)
+	if err != nil {
+		return fmt.Errorf("failed to get user_id: %w", err)
+	}
+
+	// Add deletion note to partner
+	noteUpdate := `
+		UPDATE referral_partners 
+		SET status = 'inactive', 
+			notes = CONCAT(COALESCE(notes, ''), '\n[DELETED] ', ?),
+			updated_at = NOW()
+		WHERE id = ?
+	`
+	_, err = r.db.ExecContext(ctx, noteUpdate, reason, id)
+	if err != nil {
+		return fmt.Errorf("failed to update partner notes: %w", err)
+	}
+
+	// Soft delete the user
+	query := `UPDATE users SET deleted_at = NOW(), updated_at = NOW() WHERE id = ?`
+	_, err = r.db.ExecContext(ctx, query, userID)
+	if err != nil {
+		return fmt.Errorf("failed to delete user: %w", err)
+	}
+
+	return nil
+}
+
+// Helper function to join strings
+func joinStrings(strs []string, sep string) string {
+	result := ""
+	for i, s := range strs {
+		if i > 0 {
+			result += sep
+		}
+		result += s
+	}
+	return result
 }
