@@ -13,8 +13,8 @@ import (
 	"github.com/golang-jwt/jwt/v5"
 	"github.com/google/uuid"
 	"github.com/karirnusantara/api/internal/config"
-	apperrors "github.com/karirnusantara/api/internal/shared/errors"
 	"github.com/karirnusantara/api/internal/shared/email"
+	apperrors "github.com/karirnusantara/api/internal/shared/errors"
 	"golang.org/x/crypto/bcrypt"
 )
 
@@ -67,6 +67,21 @@ func (s *service) Register(ctx context.Context, req *RegisterRequest) (*AuthResp
 		return nil, apperrors.NewDuplicateEntryError("Email")
 	}
 
+	// Validate referral code if provided (only for company registrations)
+	var referralPartner *ReferralPartnerInfo
+	if req.Role == RoleCompany && req.ReferralCode != "" {
+		referralPartner, err = s.repo.GetReferralPartnerByCode(ctx, req.ReferralCode)
+		if err != nil {
+			return nil, apperrors.NewInternalError("Failed to validate referral code", err)
+		}
+		// Note: We don't fail if referral code is invalid, just ignore it
+		if referralPartner == nil {
+			log.Printf("[REFERRAL] Invalid referral code '%s' provided during registration for %s", req.ReferralCode, req.Email)
+		} else {
+			log.Printf("[REFERRAL] Valid referral code '%s' used by %s (Partner ID: %d)", req.ReferralCode, req.Email, referralPartner.ID)
+		}
+	}
+
 	// Hash password
 	hashedPassword, err := bcrypt.GenerateFromPassword([]byte(req.Password), bcrypt.DefaultCost)
 	if err != nil {
@@ -86,6 +101,31 @@ func (s *service) Register(ctx context.Context, req *RegisterRequest) (*AuthResp
 
 	if err := s.repo.CreateUser(ctx, user); err != nil {
 		return nil, apperrors.NewInternalError("Failed to create user", err)
+	}
+
+	// For company registrations, create company record with referral info
+	if req.Role == RoleCompany {
+		var partnerID *uint64
+		if referralPartner != nil {
+			partnerID = &referralPartner.ID
+		}
+
+		companyID, err := s.repo.CreateCompanyWithReferral(ctx, user.ID, req.CompanyName, partnerID, req.ReferralCode)
+		if err != nil {
+			// Log error but don't fail - user is created, company can be created later
+			log.Printf("[REGISTER] Failed to create company record for user %d: %v", user.ID, err)
+		} else if referralPartner != nil {
+			// Create partner_referrals record to link partner with company
+			if err := s.repo.CreatePartnerReferral(ctx, referralPartner.ID, companyID, req.ReferralCode); err != nil {
+				log.Printf("[REFERRAL] Failed to create partner referral record: %v", err)
+			} else {
+				// Increment partner's total_referrals count
+				if err := s.repo.IncrementPartnerReferralCount(ctx, referralPartner.ID); err != nil {
+					log.Printf("[REFERRAL] Failed to increment partner referral count: %v", err)
+				}
+				log.Printf("[REFERRAL] Successfully linked company %d to partner %d", companyID, referralPartner.ID)
+			}
+		}
 	}
 
 	// Send welcome email for job seekers (in background to not block response)
@@ -225,7 +265,7 @@ func (s *service) UpdateProfile(ctx context.Context, userID uint64, req *UpdateP
 	// Note: Company information is now managed through the companies table
 	// These fields are kept in UpdateProfileRequest for API compatibility
 	// but are not stored in the users table anymore
-	
+
 	user.UpdatedAt = time.Now()
 
 	// Update user in database
@@ -353,7 +393,7 @@ func (s *service) ForgotPassword(ctx context.Context, req *ForgotPasswordRequest
 	if err != nil {
 		return nil, "", apperrors.NewInternalError("Failed to check user", err)
 	}
-	
+
 	// Don't reveal if email exists or not for security
 	if user == nil {
 		return nil, "", nil

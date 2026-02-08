@@ -14,19 +14,19 @@ const (
 
 // User represents a user entity
 type User struct {
-	ID            uint64         `db:"id" json:"id"`
-	Email         string         `db:"email" json:"email"`
-	PasswordHash  string         `db:"password_hash" json:"-"`
-	Role          string         `db:"role" json:"role"`
-	FullName      string         `db:"full_name" json:"full_name"`
-	Phone         sql.NullString `db:"phone" json:"phone,omitempty"`
-	AvatarURL     sql.NullString `db:"avatar_url" json:"avatar_url,omitempty"`
-	IsActive      bool           `db:"is_active" json:"is_active"`
-	IsVerified    bool           `db:"is_verified" json:"is_verified"`
+	ID              uint64         `db:"id" json:"id"`
+	Email           string         `db:"email" json:"email"`
+	PasswordHash    string         `db:"password_hash" json:"-"`
+	Role            string         `db:"role" json:"role"`
+	FullName        string         `db:"full_name" json:"full_name"`
+	Phone           sql.NullString `db:"phone" json:"phone,omitempty"`
+	AvatarURL       sql.NullString `db:"avatar_url" json:"avatar_url,omitempty"`
+	IsActive        bool           `db:"is_active" json:"is_active"`
+	IsVerified      bool           `db:"is_verified" json:"is_verified"`
 	EmailVerifiedAt sql.NullTime   `db:"email_verified_at" json:"email_verified_at,omitempty"`
-	CreatedAt     time.Time      `db:"created_at" json:"created_at"`
-	UpdatedAt     time.Time      `db:"updated_at" json:"updated_at"`
-	DeletedAt     sql.NullTime   `db:"deleted_at" json:"-"`
+	CreatedAt       time.Time      `db:"created_at" json:"created_at"`
+	UpdatedAt       time.Time      `db:"updated_at" json:"updated_at"`
+	DeletedAt       sql.NullTime   `db:"deleted_at" json:"-"`
 }
 
 // UserResponse represents the user response (safe for public exposure)
@@ -44,35 +44,35 @@ type UserResponse struct {
 
 // UserWithCompanyResponse includes user data and company information
 type UserWithCompanyResponse struct {
-	ID                  uint64 `json:"id"`
-	Email               string `json:"email"`
-	Role                string `json:"role"`
-	FullName            string `json:"full_name"`
-	Phone               string `json:"phone,omitempty"`
-	AvatarURL           string `json:"avatar_url,omitempty"`
-	IsActive            bool   `json:"is_active"`
-	IsVerified          bool   `json:"is_verified"`
-	CreatedAt           string `json:"created_at"`
-	CompanyName         string `json:"company_name,omitempty"`
-	CompanyLogoURL      string `json:"company_logo_url,omitempty"`
-	CompanyDescription  string `json:"company_description,omitempty"`
-	CompanyWebsite      string `json:"company_website,omitempty"`
-	CompanyIndustry     string `json:"company_industry,omitempty"`
-	CompanySize         string `json:"company_size,omitempty"`
-	CompanyLocation     string `json:"company_location,omitempty"`
-	CompanyPhone        string `json:"company_phone,omitempty"`
-	CompanyEmail        string `json:"company_email,omitempty"`
-	CompanyAddress      string `json:"company_address,omitempty"`
-	CompanyCity         string `json:"company_city,omitempty"`
-	CompanyProvince     string `json:"company_province,omitempty"`
-	CompanyPostalCode   string `json:"company_postal_code,omitempty"`
-	EstablishedYear     int64  `json:"established_year,omitempty"`
-	EmployeeCount       int64  `json:"employee_count,omitempty"`
-	CompanyStatus       string `json:"company_status,omitempty"`
-	KTPFounderURL       string `json:"ktp_founder_url,omitempty"`
-	AktaPendirianURL    string `json:"akta_pendirian_url,omitempty"`
-	NPWPURL             string `json:"npwp_url,omitempty"`
-	NIBURL              string `json:"nib_url,omitempty"`
+	ID                 uint64 `json:"id"`
+	Email              string `json:"email"`
+	Role               string `json:"role"`
+	FullName           string `json:"full_name"`
+	Phone              string `json:"phone,omitempty"`
+	AvatarURL          string `json:"avatar_url,omitempty"`
+	IsActive           bool   `json:"is_active"`
+	IsVerified         bool   `json:"is_verified"`
+	CreatedAt          string `json:"created_at"`
+	CompanyName        string `json:"company_name,omitempty"`
+	CompanyLogoURL     string `json:"company_logo_url,omitempty"`
+	CompanyDescription string `json:"company_description,omitempty"`
+	CompanyWebsite     string `json:"company_website,omitempty"`
+	CompanyIndustry    string `json:"company_industry,omitempty"`
+	CompanySize        string `json:"company_size,omitempty"`
+	CompanyLocation    string `json:"company_location,omitempty"`
+	CompanyPhone       string `json:"company_phone,omitempty"`
+	CompanyEmail       string `json:"company_email,omitempty"`
+	CompanyAddress     string `json:"company_address,omitempty"`
+	CompanyCity        string `json:"company_city,omitempty"`
+	CompanyProvince    string `json:"company_province,omitempty"`
+	CompanyPostalCode  string `json:"company_postal_code,omitempty"`
+	EstablishedYear    int64  `json:"established_year,omitempty"`
+	EmployeeCount      int64  `json:"employee_count,omitempty"`
+	CompanyStatus      string `json:"company_status,omitempty"`
+	KTPFounderURL      string `json:"ktp_founder_url,omitempty"`
+	AktaPendirianURL   string `json:"akta_pendirian_url,omitempty"`
+	NPWPURL            string `json:"npwp_url,omitempty"`
+	NIBURL             string `json:"nib_url,omitempty"`
 }
 
 // CompanyData represents company information from companies table
@@ -233,12 +233,13 @@ type PasswordResetToken struct {
 
 // RegisterRequest represents a registration request
 type RegisterRequest struct {
-	Email       string `json:"email" validate:"required,email"`
-	Password    string `json:"password" validate:"required,min=8,password"`
-	FullName    string `json:"full_name" validate:"required,min=2,max=255"`
-	Phone       string `json:"phone,omitempty" validate:"omitempty,phone"`
-	Role        string `json:"role" validate:"required,oneof=job_seeker company"`
-	CompanyName string `json:"company_name,omitempty" validate:"required_if=Role company"`
+	Email        string `json:"email" validate:"required,email"`
+	Password     string `json:"password" validate:"required,min=8,password"`
+	FullName     string `json:"full_name" validate:"required,min=2,max=255"`
+	Phone        string `json:"phone,omitempty" validate:"omitempty,phone"`
+	Role         string `json:"role" validate:"required,oneof=job_seeker company"`
+	CompanyName  string `json:"company_name,omitempty" validate:"required_if=Role company"`
+	ReferralCode string `json:"referral_code,omitempty"` // Partner referral code (optional)
 }
 
 // LoginRequest represents a login request
@@ -293,9 +294,9 @@ type AuthResponse struct {
 
 // TokenClaims represents JWT token claims
 type TokenClaims struct {
-	UserID   uint64 `json:"user_id"`
-	Email    string `json:"email"`
-	Role     string `json:"role"`
+	UserID    uint64 `json:"user_id"`
+	Email     string `json:"email"`
+	Role      string `json:"role"`
 	TokenType string `json:"token_type"`
 }
 
@@ -312,4 +313,12 @@ func (u *User) IsCompany() bool {
 // IsAdmin checks if user is an admin
 func (u *User) IsAdmin() bool {
 	return u.Role == RoleAdmin
+}
+
+// ReferralPartnerInfo represents minimal partner info for referral validation
+type ReferralPartnerInfo struct {
+	ID           uint64 `db:"id" json:"id"`
+	UserID       uint64 `db:"user_id" json:"user_id"`
+	ReferralCode string `db:"referral_code" json:"referral_code"`
+	Status       string `db:"status" json:"status"`
 }

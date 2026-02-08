@@ -20,6 +20,12 @@ type Repository interface {
 	EmailExists(ctx context.Context, email string) (bool, error)
 	GetCompanyByUserID(ctx context.Context, userID uint64) (*CompanyData, error)
 
+	// Referral operations
+	GetReferralPartnerByCode(ctx context.Context, code string) (*ReferralPartnerInfo, error)
+	CreateCompanyWithReferral(ctx context.Context, userID uint64, companyName string, partnerID *uint64, referralCode string) (uint64, error)
+	CreatePartnerReferral(ctx context.Context, partnerID, companyID uint64, referralCode string) error
+	IncrementPartnerReferralCount(ctx context.Context, partnerID uint64) error
+
 	// Refresh token operations
 	CreateRefreshToken(ctx context.Context, token *RefreshToken) error
 	GetRefreshTokenByHash(ctx context.Context, hash string) (*RefreshToken, error)
@@ -306,5 +312,93 @@ func (r *mysqlRepository) DeleteExpiredResetTokens(ctx context.Context) error {
 	if err != nil {
 		return fmt.Errorf("failed to delete expired reset tokens: %w", err)
 	}
+	return nil
+}
+
+// GetReferralPartnerByCode retrieves a referral partner by their code
+func (r *mysqlRepository) GetReferralPartnerByCode(ctx context.Context, code string) (*ReferralPartnerInfo, error) {
+	query := `
+		SELECT rp.id, rp.user_id, rp.referral_code, rp.status
+		FROM referral_partners rp
+		JOIN users u ON rp.user_id = u.id
+		WHERE rp.referral_code = ? AND rp.status = 'active' AND u.deleted_at IS NULL
+	`
+
+	var partner ReferralPartnerInfo
+	if err := r.db.GetContext(ctx, &partner, query, code); err != nil {
+		if errors.Is(err, sql.ErrNoRows) {
+			return nil, nil
+		}
+		return nil, fmt.Errorf("failed to get referral partner by code: %w", err)
+	}
+
+	return &partner, nil
+}
+
+// CreateCompanyWithReferral creates a new company record with optional referral info
+func (r *mysqlRepository) CreateCompanyWithReferral(ctx context.Context, userID uint64, companyName string, partnerID *uint64, referralCode string) (uint64, error) {
+	var query string
+	var args []interface{}
+
+	if partnerID != nil {
+		query = `
+			INSERT INTO companies (
+				user_id, company_name, company_status, referred_by_partner_id, referral_code_used,
+				created_at, updated_at
+			) VALUES (?, ?, 'pending', ?, ?, NOW(), NOW())
+		`
+		args = []interface{}{userID, companyName, *partnerID, referralCode}
+	} else {
+		query = `
+			INSERT INTO companies (
+				user_id, company_name, company_status,
+				created_at, updated_at
+			) VALUES (?, ?, 'pending', NOW(), NOW())
+		`
+		args = []interface{}{userID, companyName}
+	}
+
+	result, err := r.db.ExecContext(ctx, query, args...)
+	if err != nil {
+		return 0, fmt.Errorf("failed to create company with referral: %w", err)
+	}
+
+	id, err := result.LastInsertId()
+	if err != nil {
+		return 0, fmt.Errorf("failed to get last insert id: %w", err)
+	}
+
+	return uint64(id), nil
+}
+
+// CreatePartnerReferral creates a record linking partner to referred company
+func (r *mysqlRepository) CreatePartnerReferral(ctx context.Context, partnerID, companyID uint64, referralCode string) error {
+	query := `
+		INSERT INTO partner_referrals (
+			partner_id, company_id, referral_code_used, registered_at
+		) VALUES (?, ?, ?, NOW())
+	`
+
+	_, err := r.db.ExecContext(ctx, query, partnerID, companyID, referralCode)
+	if err != nil {
+		return fmt.Errorf("failed to create partner referral: %w", err)
+	}
+
+	return nil
+}
+
+// IncrementPartnerReferralCount increments the total_referrals count for a partner
+func (r *mysqlRepository) IncrementPartnerReferralCount(ctx context.Context, partnerID uint64) error {
+	query := `
+		UPDATE referral_partners 
+		SET total_referrals = total_referrals + 1, updated_at = NOW()
+		WHERE id = ?
+	`
+
+	_, err := r.db.ExecContext(ctx, query, partnerID)
+	if err != nil {
+		return fmt.Errorf("failed to increment partner referral count: %w", err)
+	}
+
 	return nil
 }
