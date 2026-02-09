@@ -54,7 +54,7 @@ func NewPartnerRepository(db *sqlx.DB) PartnerRepository {
 func (r *partnerRepository) GetPartners(ctx context.Context, status string, search string, page, limit int) ([]PartnerDBRow, int, error) {
 	offset := (page - 1) * limit
 
-	// Base query with LEFT JOIN to count actual referrals
+	// Base query with LEFT JOIN to count actual referrals and calculate actual commission
 	baseQuery := `
 		FROM referral_partners rp
 		JOIN users u ON rp.user_id = u.id
@@ -63,6 +63,11 @@ func (r *partnerRepository) GetPartners(ctx context.Context, status string, sear
 			FROM partner_referrals
 			GROUP BY partner_id
 		) pr_count ON rp.id = pr_count.partner_id
+		LEFT JOIN (
+			SELECT partner_id, COALESCE(SUM(commission_amount), 0) as total_commission_calc
+			FROM partner_commissions
+			GROUP BY partner_id
+		) pc_sum ON rp.id = pc_sum.partner_id
 		WHERE u.deleted_at IS NULL
 	`
 	args := []interface{}{}
@@ -85,13 +90,14 @@ func (r *partnerRepository) GetPartners(ctx context.Context, status string, sear
 		return nil, 0, fmt.Errorf("failed to count partners: %w", err)
 	}
 
-	// Data query - use actual count from partner_referrals instead of cached total_referrals
+	// Data query - use actual count from partner_referrals and actual commission from partner_commissions
 	dataQuery := `
 		SELECT 
 			rp.id, rp.user_id, u.full_name, u.email, u.phone,
 			rp.referral_code, rp.commission_rate, rp.status,
 			rp.bank_name, rp.bank_account_number, rp.bank_account_holder,
-			rp.is_bank_verified, COALESCE(pr_count.referral_count, 0) as total_referrals, rp.total_commission,
+			rp.is_bank_verified, COALESCE(pr_count.referral_count, 0) as total_referrals, 
+			COALESCE(pc_sum.total_commission_calc, 0) as total_commission,
 			rp.available_balance, rp.pending_balance, rp.paid_amount,
 			rp.approved_by, rp.approved_at, rp.notes,
 			rp.created_at, rp.updated_at
@@ -135,7 +141,8 @@ func (r *partnerRepository) GetPartnerByID(ctx context.Context, id uint64) (*Par
 			rp.id, rp.user_id, u.full_name, u.email, u.phone,
 			rp.referral_code, rp.commission_rate, rp.status,
 			rp.bank_name, rp.bank_account_number, rp.bank_account_holder,
-			rp.is_bank_verified, COALESCE(pr_count.referral_count, 0) as total_referrals, rp.total_commission,
+			rp.is_bank_verified, COALESCE(pr_count.referral_count, 0) as total_referrals, 
+			COALESCE(pc_sum.total_commission_calc, 0) as total_commission,
 			rp.available_balance, rp.pending_balance, rp.paid_amount,
 			rp.approved_by, rp.approved_at, rp.notes,
 			rp.created_at, rp.updated_at
@@ -146,6 +153,11 @@ func (r *partnerRepository) GetPartnerByID(ctx context.Context, id uint64) (*Par
 			FROM partner_referrals
 			GROUP BY partner_id
 		) pr_count ON rp.id = pr_count.partner_id
+		LEFT JOIN (
+			SELECT partner_id, COALESCE(SUM(commission_amount), 0) as total_commission_calc
+			FROM partner_commissions
+			GROUP BY partner_id
+		) pc_sum ON rp.id = pc_sum.partner_id
 		WHERE rp.id = ? AND u.deleted_at IS NULL
 	`
 
@@ -518,7 +530,7 @@ func (r *partnerRepository) GetReferralStats(ctx context.Context) (*AdminReferra
 			(SELECT COUNT(*) FROM referral_partners rp JOIN users u ON rp.user_id = u.id WHERE rp.status = 'active' AND u.deleted_at IS NULL) as active_partners,
 			(SELECT COUNT(*) FROM referral_partners rp JOIN users u ON rp.user_id = u.id WHERE rp.status = 'pending' AND u.deleted_at IS NULL) as pending_partners,
 			(SELECT COUNT(*) FROM partner_referrals) as total_referred_companies,
-			(SELECT COALESCE(SUM(total_commission), 0) FROM referral_partners) as total_commission,
+			(SELECT COALESCE(SUM(commission_amount), 0) FROM partner_commissions) as total_commission,
 			(SELECT COALESCE(SUM(amount), 0) FROM partner_payouts WHERE status IN ('pending', 'processing')) as pending_payouts,
 			(SELECT COALESCE(SUM(paid_amount), 0) FROM referral_partners) as total_paid_out,
 			(SELECT COUNT(*) FROM referral_partners rp JOIN users u ON rp.user_id = u.id WHERE rp.available_balance > 0 AND u.deleted_at IS NULL) as partners_with_balance
@@ -546,7 +558,7 @@ func (r *partnerRepository) GetReferralStats(ctx context.Context) (*AdminReferra
 func (r *partnerRepository) GetPayoutStats(ctx context.Context) (*AdminPayoutStatsResponse, error) {
 	query := `
 		SELECT 
-			(SELECT COALESCE(SUM(total_commission), 0) FROM referral_partners) as total_commission,
+			(SELECT COALESCE(SUM(commission_amount), 0) FROM partner_commissions) as total_commission,
 			(SELECT COALESCE(SUM(amount), 0) FROM partner_payouts WHERE status IN ('pending', 'processing')) as pending_payouts,
 			(SELECT COALESCE(SUM(paid_amount), 0) FROM referral_partners) as total_paid_out,
 			(SELECT COUNT(*) FROM referral_partners rp JOIN users u ON rp.user_id = u.id WHERE rp.available_balance > 0 AND u.deleted_at IS NULL) as partners_with_balance
