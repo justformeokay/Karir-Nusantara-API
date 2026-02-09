@@ -224,7 +224,7 @@ func (r *partnerRepository) GetReferredCompanies(ctx context.Context, search str
 			pr.id, pr.company_id, c.company_name,
 			pr.partner_id, u.full_name as partner_name,
 			rp.referral_code, pr.registered_at as registration_date,
-			c.verification_status as company_status
+			c.company_status
 	` + baseQuery + `
 		ORDER BY pr.registered_at DESC
 		LIMIT ? OFFSET ?
