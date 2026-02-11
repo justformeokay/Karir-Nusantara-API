@@ -3,7 +3,7 @@
 -- https://www.phpmyadmin.net/
 --
 -- Host: localhost
--- Generation Time: Feb 04, 2026 at 12:19 AM
+-- Generation Time: Feb 11, 2026 at 04:12 PM
 -- Server version: 10.4.28-MariaDB
 -- PHP Version: 8.0.28
 
@@ -171,7 +171,8 @@ INSERT INTO `applications` (`id`, `user_id`, `job_id`, `cv_snapshot_id`, `cover_
 (8, 21, 40, 8, NULL, 'submitted', '2026-01-23 14:55:13', '2026-01-23 14:55:13', '2026-01-23 14:55:13', '2026-01-23 14:55:13'),
 (9, 21, 42, 9, NULL, 'interview_scheduled', '2026-01-23 14:58:52', '2026-01-26 05:09:34', '2026-01-23 14:58:52', '2026-01-26 05:09:34'),
 (10, 21, 43, 10, NULL, 'interview_scheduled', '2026-01-23 15:04:57', '2026-01-25 21:52:49', '2026-01-23 15:04:57', '2026-01-25 21:52:49'),
-(11, 20, 56, 11, NULL, 'interview_scheduled', '2026-01-25 09:07:38', '2026-01-25 21:21:39', '2026-01-25 09:07:38', '2026-01-25 21:21:39');
+(11, 20, 56, 11, NULL, 'interview_scheduled', '2026-01-25 09:07:38', '2026-01-25 21:21:39', '2026-01-25 09:07:38', '2026-01-25 21:21:39'),
+(12, 20, 57, 12, NULL, 'submitted', '2026-02-11 14:56:30', '2026-02-11 14:56:30', '2026-02-11 14:56:30', '2026-02-11 14:56:30');
 
 -- --------------------------------------------------------
 
@@ -228,7 +229,8 @@ INSERT INTO `application_timelines` (`id`, `application_id`, `status`, `note`, `
 (23, 10, 'shortlisted', NULL, 1, 'company', 1, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, '2026-01-25 21:52:48'),
 (24, 10, 'interview_scheduled', 'Test interview', 1, 'company', 1, '2026-01-30 10:00:00', NULL, NULL, 'offline', NULL, NULL, 'Jl. Test No. 123', 'John Doe', '081234567890', '2026-01-25 21:52:49'),
 (25, 3, 'interview_scheduled', NULL, 1, 'company', 1, '2026-01-30 11:30:00', NULL, 'Berpakaian Rapi celana gelap', 'offline', NULL, NULL, 'Perumahan Griya Bhayangkara blok i5/07 Desa Masangan Kulon', 'Saputra Budianto', '0881036480285', '2026-01-26 04:47:59'),
-(26, 9, 'interview_scheduled', 'Test Interview', 1, 'company', 1, '2025-01-20 10:00:00', NULL, NULL, 'online', 'https://zoom.us/test', 'Zoom', NULL, NULL, NULL, '2026-01-26 05:09:34');
+(26, 9, 'interview_scheduled', 'Test Interview', 1, 'company', 1, '2025-01-20 10:00:00', NULL, NULL, 'online', 'https://zoom.us/test', 'Zoom', NULL, NULL, NULL, '2026-01-26 05:09:34'),
+(27, 12, 'submitted', 'Lamaran berhasil dikirim', 1, 'system', NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, '2026-02-11 14:56:30');
 
 -- --------------------------------------------------------
 
@@ -324,19 +326,22 @@ CREATE TABLE `companies` (
   `verification_notes` longtext DEFAULT NULL,
   `created_at` timestamp NOT NULL DEFAULT current_timestamp(),
   `updated_at` timestamp NOT NULL DEFAULT current_timestamp() ON UPDATE current_timestamp(),
-  `deleted_at` timestamp NULL DEFAULT NULL
+  `deleted_at` timestamp NULL DEFAULT NULL,
+  `referred_by_partner_id` bigint(20) UNSIGNED DEFAULT NULL COMMENT 'referral_partners.id',
+  `referral_code_used` varchar(20) DEFAULT NULL COMMENT 'Referral code used at registration'
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
 --
 -- Dumping data for table `companies`
 --
 
-INSERT INTO `companies` (`id`, `user_id`, `company_name`, `company_description`, `company_website`, `company_logo_url`, `company_industry`, `company_size`, `company_location`, `company_phone`, `company_email`, `company_address`, `company_city`, `company_province`, `company_postal_code`, `established_year`, `employee_count`, `company_status`, `ktp_founder_url`, `akta_pendirian_url`, `npwp_url`, `nib_url`, `documents_verified_at`, `documents_verified_by`, `verification_notes`, `created_at`, `updated_at`, `deleted_at`) VALUES
-(1, 7, 'PT Karya Developer indonesia', 'Perusahaan yang bergerak dibidang industri teknogi informasi', 'https://karyadeveloperindonesia.com', '/docs/companies/1/logo_1768832403.png', 'Teknologi Informasi', '1-10', 'Sidaorjo, Jawa Timur', '+62881036480285', 'info@karyadeveloperindonesia.com', 'Perumahan Griya Bhayangkara blok i5/07 Desa Masangan Kulon, Kecamatan Sukodono, Kabupaten Sidoarjo, Kode Pos 61258', 'Sidoarjo', 'Jawa Timur', '61258', '2025', 8, 'verified', '/docs/companies/1/ktp_1768832313.jpg', '/docs/companies/1/akta_1768832354.pdf', '/docs/companies/1/npwp_1768832371.jpg', '/docs/companies/1/nib_1768832386.pdf', '2026-01-20 04:42:11', NULL, NULL, '2026-01-19 13:58:37', '2026-01-20 04:42:11', NULL),
-(2, 2, 'PT TechCorp Indonesia', 'Perusahaan teknologi terkemuka yang menyediakan solusi IT', 'https://techcorp.id', NULL, 'Teknologi Informasi', '11-50', 'Jakarta Selatan', '021-123-4567', 'hr@techcorp.id', 'Jl. Sudirman No. 123, Jakarta Selatan', 'Jakarta', 'Jakarta', '12190', '2020', 25, 'verified', NULL, NULL, NULL, NULL, '2026-02-02 13:16:03', NULL, NULL, '2026-01-25 03:15:30', '2026-02-02 13:16:03', NULL),
-(3, 4, 'CV Baru Startup', 'Startup muda yang mengembangkan aplikasi mobile', 'https://baristartup.com', NULL, 'Teknologi Informasi', '1-10', 'Bandung', '0274-555-6789', 'testcompany@test.com', 'Jl. Gatot Subroto No. 45, Bandung', 'Bandung', 'Jawa Barat', '40271', '2024', 5, 'rejected', NULL, NULL, NULL, NULL, NULL, NULL, 'Dokumen tidak lengkap', '2026-01-22 07:30:00', '2026-01-23 02:00:00', NULL),
-(4, 5, 'PT Manufacturing Plus', 'Perusahaan manufaktur dengan standar internasional', 'https://manfacturingplus.co.id', NULL, 'Manufaktur', '51-200', 'Surabaya', '031-777-8888', 'company2@test.com', 'Jl. Ahmad Yani No. 888, Surabaya', 'Surabaya', 'Jawa Timur', '60188', '2018', 120, 'suspended', NULL, NULL, NULL, NULL, NULL, NULL, 'Melanggar kebijakan platform', '2026-01-15 01:00:00', '2026-01-24 08:45:00', NULL),
-(5, 6, 'PT Konsultan HR Jaya', 'Perusahaan konsultasi sumber daya manusia', 'https://hrjaya.com', NULL, 'Konsultasi', '11-50', 'Medan', '061-444-5555', 'company3@test.com', 'Jl. Diponegoro No. 222, Medan', 'Medan', 'Sumatera Utara', '20212', '2019', 35, 'rejected', NULL, NULL, NULL, NULL, NULL, NULL, NULL, '2026-01-26 09:20:00', '2026-02-02 13:18:24', NULL);
+INSERT INTO `companies` (`id`, `user_id`, `company_name`, `company_description`, `company_website`, `company_logo_url`, `company_industry`, `company_size`, `company_location`, `company_phone`, `company_email`, `company_address`, `company_city`, `company_province`, `company_postal_code`, `established_year`, `employee_count`, `company_status`, `ktp_founder_url`, `akta_pendirian_url`, `npwp_url`, `nib_url`, `documents_verified_at`, `documents_verified_by`, `verification_notes`, `created_at`, `updated_at`, `deleted_at`, `referred_by_partner_id`, `referral_code_used`) VALUES
+(1, 7, 'PT Karya Developer indonesia', 'Perusahaan yang bergerak dibidang industri teknogi informasi', 'https://karyadeveloperindonesia.com', '/docs/companies/1/logo_1768832403.png', 'Teknologi Informasi', '1-10', 'Sidaorjo, Jawa Timur', '+62881036480285', 'info@karyadeveloperindonesia.com', 'Perumahan Griya Bhayangkara blok i5/07 Desa Masangan Kulon, Kecamatan Sukodono, Kabupaten Sidoarjo, Kode Pos 61258', 'Sidoarjo', 'Jawa Timur', '61258', '2025', 8, 'verified', '/docs/companies/1/ktp_1768832313.jpg', '/docs/companies/1/akta_1768832354.pdf', '/docs/companies/1/npwp_1768832371.jpg', '/docs/companies/1/nib_1768832386.pdf', '2026-01-20 04:42:11', NULL, NULL, '2026-01-19 13:58:37', '2026-01-20 04:42:11', NULL, NULL, NULL),
+(2, 2, 'PT TechCorp Indonesia', 'Perusahaan teknologi terkemuka yang menyediakan solusi IT', 'https://techcorp.id', NULL, 'Teknologi Informasi', '11-50', 'Jakarta Selatan', '021-123-4567', 'hr@techcorp.id', 'Jl. Sudirman No. 123, Jakarta Selatan', 'Jakarta', 'Jakarta', '12190', '2020', 25, 'verified', NULL, NULL, NULL, NULL, '2026-02-02 13:16:03', NULL, NULL, '2026-01-25 03:15:30', '2026-02-02 13:16:03', NULL, NULL, NULL),
+(3, 4, 'CV Baru Startup', 'Startup muda yang mengembangkan aplikasi mobile', 'https://baristartup.com', NULL, 'Teknologi Informasi', '1-10', 'Bandung', '0274-555-6789', 'testcompany@test.com', 'Jl. Gatot Subroto No. 45, Bandung', 'Bandung', 'Jawa Barat', '40271', '2024', 5, 'rejected', NULL, NULL, NULL, NULL, NULL, NULL, 'Dokumen tidak lengkap', '2026-01-22 07:30:00', '2026-01-23 02:00:00', NULL, NULL, NULL),
+(4, 5, 'PT Manufacturing Plus', 'Perusahaan manufaktur dengan standar internasional', 'https://manfacturingplus.co.id', NULL, 'Manufaktur', '51-200', 'Surabaya', '031-777-8888', 'company2@test.com', 'Jl. Ahmad Yani No. 888, Surabaya', 'Surabaya', 'Jawa Timur', '60188', '2018', 120, 'suspended', NULL, NULL, NULL, NULL, NULL, NULL, 'Melanggar kebijakan platform', '2026-01-15 01:00:00', '2026-01-24 08:45:00', NULL, NULL, NULL),
+(5, 6, 'PT Konsultan HR Jaya', 'Perusahaan konsultasi sumber daya manusia', 'https://hrjaya.com', NULL, 'Konsultasi', '11-50', 'Medan', '061-444-5555', 'company3@test.com', 'Jl. Diponegoro No. 222, Medan', 'Medan', 'Sumatera Utara', '20212', '2019', 35, 'rejected', NULL, NULL, NULL, NULL, NULL, NULL, NULL, '2026-01-26 09:20:00', '2026-02-02 13:18:24', NULL, NULL, NULL),
+(7, 26, 'PT Nusa Persada', 'PT Nusa Persada adalah perusahaan yang bergerak di bidang penyediaan peralatan medis yang berdiri sejak tahun 2012 dan berlokasi di Surabaya, tepatnya di kawasan Ngagel. Sejak awal berdirinya, PT Nusa Persada berkomitmen untuk mendukung peningkatan kualitas layanan kesehatan di Indonesia melalui penyediaan produk-produk medis yang berkualitas, aman, dan terpercaya.\n\nKami menyediakan berbagai jenis peralatan dan perlengkapan medis untuk rumah sakit, klinik, puskesmas, laboratorium, serta fasilitas layanan kesehatan lainnya. Seluruh produk yang kami distribusikan telah melalui proses seleksi dan memenuhi standar mutu yang berlaku, sehingga dapat menunjang operasional tenaga medis secara optimal.\n\nDengan pengalaman lebih dari satu dekade, PT Nusa Persada terus mengembangkan jaringan distribusi serta meningkatkan kualitas layanan, baik dari segi kecepatan pengiriman, ketepatan produk, maupun pelayanan purna jual. Didukung oleh tim yang profesional dan berpengalaman, kami senantiasa berupaya menjadi mitra terpercaya dalam memenuhi kebutuhan peralatan medis di wilayah Surabaya dan seluruh Indonesia.\n\nPT Nusa Persada berkomitmen untuk tumbuh bersama pelanggan dengan mengedepankan integritas, profesionalisme, dan kepuasan pelanggan sebagai prioritas utama.', 'https://nusapersada.co.id', '/docs/companies/7/logo_1770811199.png', 'Kesehatan', '51-200', 'Ngagel, Surabaya', '+62881036480285', 'info@nusapersada.com', 'Jl. Kertajaya No.164, Kertajaya, Kec. Gubeng, Surabaya, Jawa Timur 60282', 'Surabaya', 'Jawa Timur', '60282', '2012', 430, 'verified', '/docs/companies/7/ktp_1770811244.jpg', '/docs/companies/7/akta_1770811337.png', '/docs/companies/7/npwp_1770811477.pdf', '/docs/companies/7/nib_1770811465.pdf', '2026-02-11 12:05:28', NULL, NULL, '2026-02-09 13:08:22', '2026-02-11 12:05:28', NULL, 3, 'SAPUC4EB');
 
 -- --------------------------------------------------------
 
@@ -362,7 +367,9 @@ INSERT INTO `company_quotas` (`id`, `company_id`, `free_quota_used`, `paid_quota
 (3, 1, 10, 31, '2026-01-20 07:33:46', '2026-02-02 04:09:31'),
 (4, 2, 0, 0, '2026-02-02 04:06:57', '2026-02-02 04:06:57'),
 (5, 5, 0, 0, '2026-02-02 04:06:57', '2026-02-02 04:06:57'),
-(6, 3, 0, 3, '2026-02-02 04:06:57', '2026-02-02 04:07:05');
+(6, 3, 0, 3, '2026-02-02 04:06:57', '2026-02-02 04:07:05'),
+(7, 7, 0, 0, '2026-02-09 13:08:28', '2026-02-09 13:08:28'),
+(8, 26, 1, 0, '2026-02-11 14:54:30', '2026-02-11 14:54:30');
 
 -- --------------------------------------------------------
 
@@ -422,7 +429,7 @@ CREATE TABLE `cvs` (
 
 INSERT INTO `cvs` (`id`, `user_id`, `personal_info`, `education`, `experience`, `skills`, `certifications`, `languages`, `projects`, `last_updated_at`, `completeness_score`, `created_at`, `updated_at`) VALUES
 (2, 3, '{\"full_name\":\"Budi Santoso\",\"email\":\"budi@gmail.com\",\"phone\":\"+6281234567890\"}', 'null', '[{\"company\":\"PT Software House\",\"position\":\"Backend Developer\",\"start_date\":\"2019-08-01\",\"is_current\":true,\"description\":\"Developing REST APIs\"}]', '[{\"name\":\"Go\",\"level\":\"advanced\"}]', 'null', 'null', 'null', '2026-01-17 03:12:22', 45, '2026-01-17 02:51:16', '2026-01-17 03:12:22'),
-(3, 20, '{\"full_name\":\"Jastiska Dwi Wanda Sari\",\"email\":\"jastiska14@gmail.com\",\"phone\":\"08893011438\",\"address\":\"Dusun Sumber Pandan, Desa Bulusari, Kecamatan Gempol, Kabupaten Pasuruan, Provinsi Jawa Timur\",\"summary\":\"Saya memiliki pengalaman dibidang Sales Marketing Jasa pada salah satu perusahaan asuransi terkenal di Indonesia dan memiliki pengalaman kurang lebih 5 tahun.\"}', '[{\"institution\":\"Universitas Islam Malang\",\"degree\":\"S1\",\"field_of_study\":\"PGSD\",\"start_date\":\"2025-01-01\",\"end_date\":\"2026-12-31\"}]', '[{\"company\":\"PT Bank Nasional Indonesia Life\",\"position\":\"Product Marketing\",\"start_date\":\"2025-11-13\",\"is_current\":true,\"description\":\"Melakukan pemasaran produk kepada calon nasabah atau nasabah BNI\"}]', '[{\"name\":\"SQL\",\"level\":\"intermediate\"},{\"name\":\"Node.js\",\"level\":\"intermediate\"},{\"name\":\"React\",\"level\":\"intermediate\"},{\"name\":\"Python\",\"level\":\"intermediate\"},{\"name\":\"Leadership\",\"level\":\"intermediate\"},{\"name\":\"Teamwork\",\"level\":\"intermediate\"},{\"name\":\"Problem Solving\",\"level\":\"intermediate\"}]', '[]', '[]', 'null', '2026-01-26 07:12:03', 80, '2026-01-23 03:55:55', '2026-01-26 07:12:03'),
+(3, 20, '{\"full_name\":\"Jastiska Dwi Wanda Sari\",\"email\":\"jastiska14@gmail.com\",\"phone\":\"08893011438\",\"address\":\"Dusun Sumber Pandan, Desa Bulusari, Kecamatan Gempol, Kabupaten Pasuruan, Provinsi Jawa Timur\",\"summary\":\"Saya memiliki pengalaman dibidang Sales Marketing Jasa pada salah satu perusahaan asuransi terkenal di Indonesia dan memiliki pengalaman kurang lebih 5 tahun.\"}', '[{\"institution\":\"Universitas Islam Malang\",\"degree\":\"S1\",\"field_of_study\":\"PGSD\",\"start_date\":\"2025-01-01\",\"end_date\":\"2026-12-31\"}]', '[{\"company\":\"PT Bank Nasional Indonesia Life\",\"position\":\"Product Marketing\",\"start_date\":\"2025-11-13\",\"is_current\":true,\"description\":\"Melakukan pemasaran produk kepada calon nasabah atau nasabah BNI\"}]', '[{\"name\":\"SQL\",\"level\":\"intermediate\"},{\"name\":\"Node.js\",\"level\":\"intermediate\"},{\"name\":\"React\",\"level\":\"intermediate\"},{\"name\":\"Python\",\"level\":\"intermediate\"},{\"name\":\"Leadership\",\"level\":\"intermediate\"},{\"name\":\"Teamwork\",\"level\":\"intermediate\"},{\"name\":\"Problem Solving\",\"level\":\"intermediate\"}]', '[]', '[]', 'null', '2026-02-11 14:56:25', 80, '2026-01-23 03:55:55', '2026-02-11 14:56:25'),
 (4, 21, '{\"full_name\":\"Saputra Budianto\",\"email\":\"craftgirlsssshopping@gmail.com\",\"phone\":\"0881036480285\",\"address\":\"Perumahan Griya Bhayangkara blok i5/07 Desa Masangan Kulon, Kecamatan Sukodono, Kabupaten Sidoarjo, Kode Pos 61258\",\"summary\":\"Saya adalah seorang profesional yang berdedikasi di bidang Mobile Apps Developer dengan pengalaman selama 3 tahun dalam mengembangkan cross platform mobile apps. Saya merupakan lulusan dari Universitas Muhammdiyah Sidoarjo, di mana saya mengasah kemampuan analitis dan teknis yang menjadi fondasi karier saya saat ini.\\n\\nSepanjang perjalanan profesional saya, saya telah berhasil mengembangkan dan mendistribusikan beberapa aplikasi ke marketplace dan web publik. Saya dikenal sebagai pribadi yang adaptif, komunikatif, dan memiliki orientasi kuat terhadap hasil. Saya selalu antusias untuk mempelajari teknologi baru dan berkontribusi dalam proyek-proyek inovatif yang memberikan dampak positif bagi organisasi.\",\"linkedin\":\"https://www.linkedin.com/in/saputra-budianto23/\"}', '[]', '[{\"company\":\"PT Adi Karya Media\",\"position\":\"Mobile Apps Developer\",\"start_date\":\"2023-03-23\",\"end_date\":\"2023-09-30\",\"is_current\":false,\"description\":\"Membuat aplikasi berbasis moble app menggunakan framework flutter dan integrasi API menggunakan Supabase dan Firebase\"},{\"company\":\"PT. All Media Indo\",\"position\":\"Mobile Apps Developer\",\"start_date\":\"2023-11-23\",\"is_current\":true,\"description\":\"Membuat aplikasi berbasis moble app menggunakan framework flutter dan integrasi API menggunakan Supabase dan Firebase, serta membuat API\"}]', '[{\"name\":\"JavaScript\",\"level\":\"intermediate\"},{\"name\":\"React\",\"level\":\"intermediate\"},{\"name\":\"SQL\",\"level\":\"intermediate\"},{\"name\":\"Marketing\",\"level\":\"intermediate\"}]', '[{\"name\":\"AWS Certificate\",\"issuer\":\"Amazon Web Server\",\"issue_date\":\"2025-01-01\",\"credential_id\":\"XWXIS23AO\"}]', '[]', 'null', '2026-01-26 02:55:46', 70, '2026-01-23 03:57:04', '2026-01-26 02:55:46');
 
 -- --------------------------------------------------------
@@ -461,7 +468,8 @@ INSERT INTO `cv_snapshots` (`id`, `cv_id`, `user_id`, `personal_info`, `educatio
 (8, 4, 21, '{\"full_name\":\"Saputra Budianto\",\"email\":\"craftgirlsssshopping@gmail.com\",\"phone\":\"0881036480285\",\"address\":\"Perumahan Griya Bhayangkara blok i5/07 Desa Masangan Kulon, Kecamatan Sukodono, Kabupaten Sidoarjo, Kode Pos 61258\",\"summary\":\"Saya adalah seorang profesional yang berdedikasi di bidang Mobile Apps Developer dengan pengalaman selama 3 tahun dalam mengembangkan cross platform mobile apps. Saya merupakan lulusan dari Universitas Muhammdiyah Sidoarjo, di mana saya mengasah kemampuan analitis dan teknis yang menjadi fondasi karier saya saat ini.\\n\\nSepanjang perjalanan profesional saya, saya telah berhasil mengembangkan dan mendistribusikan beberapa aplikasi ke marketplace dan web publik. Saya dikenal sebagai pribadi yang adaptif, komunikatif, dan memiliki orientasi kuat terhadap hasil. Saya selalu antusias untuk mempelajari teknologi baru dan berkontribusi dalam proyek-proyek inovatif yang memberikan dampak positif bagi organisasi.\",\"linkedin\":\"https://www.linkedin.com/in/saputra-budianto23/\"}', '[]', '[{\"company\":\"PT Adi Karya Media\",\"position\":\"Mobile Apps Developer\",\"start_date\":\"2023-03-23\",\"end_date\":\"2023-09-30\",\"is_current\":false,\"description\":\"Membuat aplikasi berbasis moble app menggunakan framework flutter dan integrasi API menggunakan Supabase dan Firebase\"},{\"company\":\"PT. All Media Indo\",\"position\":\"Mobile Apps Developer\",\"start_date\":\"2023-11-23\",\"is_current\":true,\"description\":\"Membuat aplikasi berbasis moble app menggunakan framework flutter dan integrasi API menggunakan Supabase dan Firebase, serta membuat API\"}]', '[{\"name\":\"JavaScript\",\"level\":\"intermediate\"},{\"name\":\"React\",\"level\":\"intermediate\"},{\"name\":\"SQL\",\"level\":\"intermediate\"},{\"name\":\"Marketing\",\"level\":\"intermediate\"}]', '[{\"name\":\"AWS Certificate\",\"issuer\":\"Amazon Web Server\",\"issue_date\":\"2025-01-01\",\"credential_id\":\"XWXIS23AO\"}]', '[]', 'null', 'b137c6afadfa033a8916006e673e571d68bbb867f342cfd7631f12f2ab68d54e', 70, '2026-01-23 14:55:13'),
 (9, 4, 21, '{\"full_name\":\"Saputra Budianto\",\"email\":\"craftgirlsssshopping@gmail.com\",\"phone\":\"0881036480285\",\"address\":\"Perumahan Griya Bhayangkara blok i5/07 Desa Masangan Kulon, Kecamatan Sukodono, Kabupaten Sidoarjo, Kode Pos 61258\",\"summary\":\"Saya adalah seorang profesional yang berdedikasi di bidang Mobile Apps Developer dengan pengalaman selama 3 tahun dalam mengembangkan cross platform mobile apps. Saya merupakan lulusan dari Universitas Muhammdiyah Sidoarjo, di mana saya mengasah kemampuan analitis dan teknis yang menjadi fondasi karier saya saat ini.\\n\\nSepanjang perjalanan profesional saya, saya telah berhasil mengembangkan dan mendistribusikan beberapa aplikasi ke marketplace dan web publik. Saya dikenal sebagai pribadi yang adaptif, komunikatif, dan memiliki orientasi kuat terhadap hasil. Saya selalu antusias untuk mempelajari teknologi baru dan berkontribusi dalam proyek-proyek inovatif yang memberikan dampak positif bagi organisasi.\",\"linkedin\":\"https://www.linkedin.com/in/saputra-budianto23/\"}', '[]', '[{\"company\":\"PT Adi Karya Media\",\"position\":\"Mobile Apps Developer\",\"start_date\":\"2023-03-23\",\"end_date\":\"2023-09-30\",\"is_current\":false,\"description\":\"Membuat aplikasi berbasis moble app menggunakan framework flutter dan integrasi API menggunakan Supabase dan Firebase\"},{\"company\":\"PT. All Media Indo\",\"position\":\"Mobile Apps Developer\",\"start_date\":\"2023-11-23\",\"is_current\":true,\"description\":\"Membuat aplikasi berbasis moble app menggunakan framework flutter dan integrasi API menggunakan Supabase dan Firebase, serta membuat API\"}]', '[{\"name\":\"JavaScript\",\"level\":\"intermediate\"},{\"name\":\"React\",\"level\":\"intermediate\"},{\"name\":\"SQL\",\"level\":\"intermediate\"},{\"name\":\"Marketing\",\"level\":\"intermediate\"}]', '[{\"name\":\"AWS Certificate\",\"issuer\":\"Amazon Web Server\",\"issue_date\":\"2025-01-01\",\"credential_id\":\"XWXIS23AO\"}]', '[]', 'null', 'b137c6afadfa033a8916006e673e571d68bbb867f342cfd7631f12f2ab68d54e', 70, '2026-01-23 14:58:52'),
 (10, 4, 21, '{\"full_name\":\"Saputra Budianto\",\"email\":\"craftgirlsssshopping@gmail.com\",\"phone\":\"0881036480285\",\"address\":\"Perumahan Griya Bhayangkara blok i5/07 Desa Masangan Kulon, Kecamatan Sukodono, Kabupaten Sidoarjo, Kode Pos 61258\",\"summary\":\"Saya adalah seorang profesional yang berdedikasi di bidang Mobile Apps Developer dengan pengalaman selama 3 tahun dalam mengembangkan cross platform mobile apps. Saya merupakan lulusan dari Universitas Muhammdiyah Sidoarjo, di mana saya mengasah kemampuan analitis dan teknis yang menjadi fondasi karier saya saat ini.\\n\\nSepanjang perjalanan profesional saya, saya telah berhasil mengembangkan dan mendistribusikan beberapa aplikasi ke marketplace dan web publik. Saya dikenal sebagai pribadi yang adaptif, komunikatif, dan memiliki orientasi kuat terhadap hasil. Saya selalu antusias untuk mempelajari teknologi baru dan berkontribusi dalam proyek-proyek inovatif yang memberikan dampak positif bagi organisasi.\",\"linkedin\":\"https://www.linkedin.com/in/saputra-budianto23/\"}', '[]', '[{\"company\":\"PT Adi Karya Media\",\"position\":\"Mobile Apps Developer\",\"start_date\":\"2023-03-23\",\"end_date\":\"2023-09-30\",\"is_current\":false,\"description\":\"Membuat aplikasi berbasis moble app menggunakan framework flutter dan integrasi API menggunakan Supabase dan Firebase\"},{\"company\":\"PT. All Media Indo\",\"position\":\"Mobile Apps Developer\",\"start_date\":\"2023-11-23\",\"is_current\":true,\"description\":\"Membuat aplikasi berbasis moble app menggunakan framework flutter dan integrasi API menggunakan Supabase dan Firebase, serta membuat API\"}]', '[{\"name\":\"JavaScript\",\"level\":\"intermediate\"},{\"name\":\"React\",\"level\":\"intermediate\"},{\"name\":\"SQL\",\"level\":\"intermediate\"},{\"name\":\"Marketing\",\"level\":\"intermediate\"}]', '[{\"name\":\"AWS Certificate\",\"issuer\":\"Amazon Web Server\",\"issue_date\":\"2025-01-01\",\"credential_id\":\"XWXIS23AO\"}]', '[]', 'null', 'b137c6afadfa033a8916006e673e571d68bbb867f342cfd7631f12f2ab68d54e', 70, '2026-01-23 15:04:57'),
-(11, 3, 20, '{\"full_name\":\"Jastiska Dwi Wanda Sari\",\"email\":\"jastiska14@gmail.com\",\"phone\":\"08893011438\",\"address\":\"Dusun Sumber Pandan, Desa Bulusari, Kecamatan Gempol, Kabupaten Pasuruan, Provinsi Jawa Timur\",\"summary\":\"Saya memiliki pengalaman dibidang Sales Marketing Jasa pada salah satu perusahaan asuransi terkenal di Indonesia dan memiliki pengalaman kurang lebih 5 tahun.\"}', '[{\"institution\":\"Universitas Islam Malang\",\"degree\":\"S1\",\"field_of_study\":\"PGSD\",\"start_date\":\"2025-01-01\",\"end_date\":\"2026-12-31\"}]', '[{\"company\":\"PT Bank Nasional Indonesia Life\",\"position\":\"Product Marketing\",\"start_date\":\"2025-11-13\",\"is_current\":true,\"description\":\"Melakukan pemasaran produk kepada calon nasabah atau nasabah BNI\"}]', '[{\"name\":\"SQL\",\"level\":\"intermediate\"},{\"name\":\"Node.js\",\"level\":\"intermediate\"},{\"name\":\"React\",\"level\":\"intermediate\"},{\"name\":\"Python\",\"level\":\"intermediate\"},{\"name\":\"Leadership\",\"level\":\"intermediate\"},{\"name\":\"Teamwork\",\"level\":\"intermediate\"},{\"name\":\"Problem Solving\",\"level\":\"intermediate\"}]', '[]', '[]', 'null', 'a370fce1c6f49dc80fe4c9510a0d964e00719940f7f64e81a4db01d60a1b52ce', 80, '2026-01-25 09:07:38');
+(11, 3, 20, '{\"full_name\":\"Jastiska Dwi Wanda Sari\",\"email\":\"jastiska14@gmail.com\",\"phone\":\"08893011438\",\"address\":\"Dusun Sumber Pandan, Desa Bulusari, Kecamatan Gempol, Kabupaten Pasuruan, Provinsi Jawa Timur\",\"summary\":\"Saya memiliki pengalaman dibidang Sales Marketing Jasa pada salah satu perusahaan asuransi terkenal di Indonesia dan memiliki pengalaman kurang lebih 5 tahun.\"}', '[{\"institution\":\"Universitas Islam Malang\",\"degree\":\"S1\",\"field_of_study\":\"PGSD\",\"start_date\":\"2025-01-01\",\"end_date\":\"2026-12-31\"}]', '[{\"company\":\"PT Bank Nasional Indonesia Life\",\"position\":\"Product Marketing\",\"start_date\":\"2025-11-13\",\"is_current\":true,\"description\":\"Melakukan pemasaran produk kepada calon nasabah atau nasabah BNI\"}]', '[{\"name\":\"SQL\",\"level\":\"intermediate\"},{\"name\":\"Node.js\",\"level\":\"intermediate\"},{\"name\":\"React\",\"level\":\"intermediate\"},{\"name\":\"Python\",\"level\":\"intermediate\"},{\"name\":\"Leadership\",\"level\":\"intermediate\"},{\"name\":\"Teamwork\",\"level\":\"intermediate\"},{\"name\":\"Problem Solving\",\"level\":\"intermediate\"}]', '[]', '[]', 'null', 'a370fce1c6f49dc80fe4c9510a0d964e00719940f7f64e81a4db01d60a1b52ce', 80, '2026-01-25 09:07:38'),
+(12, 3, 20, '{\"full_name\":\"Jastiska Dwi Wanda Sari\",\"email\":\"jastiska14@gmail.com\",\"phone\":\"08893011438\",\"address\":\"Dusun Sumber Pandan, Desa Bulusari, Kecamatan Gempol, Kabupaten Pasuruan, Provinsi Jawa Timur\",\"summary\":\"Saya memiliki pengalaman dibidang Sales Marketing Jasa pada salah satu perusahaan asuransi terkenal di Indonesia dan memiliki pengalaman kurang lebih 5 tahun.\"}', '[{\"institution\":\"Universitas Islam Malang\",\"degree\":\"S1\",\"field_of_study\":\"PGSD\",\"start_date\":\"2025-01-01\",\"end_date\":\"2026-12-31\"}]', '[{\"company\":\"PT Bank Nasional Indonesia Life\",\"position\":\"Product Marketing\",\"start_date\":\"2025-11-13\",\"is_current\":true,\"description\":\"Melakukan pemasaran produk kepada calon nasabah atau nasabah BNI\"}]', '[{\"name\":\"SQL\",\"level\":\"intermediate\"},{\"name\":\"Node.js\",\"level\":\"intermediate\"},{\"name\":\"React\",\"level\":\"intermediate\"},{\"name\":\"Python\",\"level\":\"intermediate\"},{\"name\":\"Leadership\",\"level\":\"intermediate\"},{\"name\":\"Teamwork\",\"level\":\"intermediate\"},{\"name\":\"Problem Solving\",\"level\":\"intermediate\"}]', '[]', '[]', 'null', 'a370fce1c6f49dc80fe4c9510a0d964e00719940f7f64e81a4db01d60a1b52ce', 80, '2026-02-11 14:56:30');
 
 -- --------------------------------------------------------
 
@@ -562,7 +570,8 @@ INSERT INTO `jobs` (`id`, `company_id`, `title`, `slug`, `description`, `require
 (53, 1, 'DevOps Engineer - Final Email Notification Test', 'devops-engineer-final-email-notification-test', 'Testing email notification dengan background context agar tidak ter-cancel saat request selesai dan email dapat terkirim dengan sempurna', NULL, NULL, NULL, 'Yogyakarta', 'DI Yogyakarta', 0, 'full_time', 'senior', NULL, NULL, 'IDR', 0, NULL, NULL, 'active', NULL, NULL, NULL, 1, 0, 0, '2026-01-22 04:08:45', '2026-01-22 04:08:45', '2026-01-25 10:25:44', NULL),
 (54, 1, 'Accounting', 'accounting', 'Tentang Kami Twister Communications adalah creative agency yang fokus pada brand activation, event management, dan design services untuk brand multinasional dan lokal di Indonesia.\n\nDeskripsi Pekerjaan Kami mencari Accounting Staff yang teliti untuk mendukung Divisi Finance, Accounting and Tax dalam mengelola tugas Accounting secara keseluruhan sesuai dengan standar operasional Perusahaan.\n\nTugas & Tanggungjawab\n\nMelakukan pencatatan transaksi keuangan harian secara akurat dan tepat waktu\n\nMenyusun dan menginput jurnal akuntansi ke dalam sistem\n\nMelakukan rekonsiliasi bank serta memastikan kesesuaian saldo kas dan bank\n\nMembantu proses closing laporan keuangan bulanan dan tahunan\n\nMenyusun dan memeriksa laporan keuangan (Laba Rugi, Neraca, Arus Kas)\n\nMenyiapkan data pendukung untuk kebutuhan audit internal maupun eksternal\n\nMembantu pengelolaan dan pelaporan perpajakan (PPN, PPh 21, PPh 23, dll)\n\nMengarsipkan dokumen keuangan dan perpajakan secara rapi dan sistematis\n\nMengoperasikan dan memastikan data pada software akuntansi selalu update\n\nMemastikan seluruh proses akuntansi berjalan sesuai SOP dan kebijakan perusahaan\n\nTugas terkait lainnya sesuai yang diberikan', 'Pendidikan minimal S1 Akuntansi\n\nMempunyai pengalaman 1 tahun sebagai Accounting Staff lebih diutamakan\n\nMengetahui program Accounting (contoh: Accurate, ERP)\n\nMahir rumus excel seperti vlookup & pivot\n\nMenguasai Ms Office\n\nTeliti, Jujur, Cekatan dan bertanggung jawab\n\nMampu bekerja dalam lingkungan yang dinamis\n\nMampu bekerja dalam team\n\nDiutamakan berpengalaman pada bidang Jasa\n\nFresh Graduate are Welcome', NULL, NULL, 'Sidaorjo', 'Jawa Timur', 0, 'full_time', 'junior', NULL, NULL, 'IDR', 1, '2026-02-22', NULL, 'active', NULL, NULL, NULL, 1, 0, 0, '2026-01-22 05:52:04', '2026-01-22 05:52:04', '2026-01-25 12:11:37', NULL),
 (55, 1, 'Full Stack Developer - Email Test dengan Logging Detail', 'full-stack-developer-email-test-dengan-logging-detail', 'Kami mencari Full Stack Developer yang berpengalaman untuk bergabung dengan tim kami. Posisi ini akan fokus pada pengembangan aplikasi web modern menggunakan teknologi terkini.', 'Minimal 2 tahun pengalaman, menguasai React, Node.js, dan database', NULL, NULL, 'Jakarta', 'DKI Jakarta', 0, 'full_time', 'mid', NULL, NULL, 'IDR', 0, NULL, NULL, 'active', NULL, NULL, NULL, 0, 0, 0, '2026-01-22 06:17:52', '2026-01-22 06:17:52', '2026-01-22 06:17:52', NULL),
-(56, 1, 'Software Engineer SALARY TEST', 'software-engineer-salary-test', 'This is a test job to verify salary display works correctly on the frontend. We are looking for a talented software engineer.', '3 years experience with Go or TypeScript', 'Develop and maintain backend services', 'Health insurance, remote work', 'Jakarta', 'DKI Jakarta', 1, 'full_time', 'mid', 15000000, 25000000, 'IDR', 1, NULL, NULL, 'active', NULL, NULL, NULL, 2, 1, 1, '2026-01-22 06:45:16', '2026-01-22 06:45:16', '2026-01-25 12:11:26', NULL);
+(56, 1, 'Software Engineer SALARY TEST', 'software-engineer-salary-test', 'This is a test job to verify salary display works correctly on the frontend. We are looking for a talented software engineer.', '3 years experience with Go or TypeScript', 'Develop and maintain backend services', 'Health insurance, remote work', 'Jakarta', 'DKI Jakarta', 1, 'full_time', 'mid', 15000000, 25000000, 'IDR', 1, NULL, NULL, 'active', NULL, NULL, NULL, 2, 1, 1, '2026-01-22 06:45:16', '2026-01-22 06:45:16', '2026-01-25 12:11:26', NULL),
+(57, 7, 'Senior Flutter Developer', 'senior-flutter-developer', 'Kami mencari Senior Mobile Apps Developer berpengalaman yang memiliki keahlian kuat dalam pengembangan aplikasi mobile menggunakan framework Flutter. Kandidat akan bertanggung jawab dalam merancang, mengembangkan, mengoptimalkan, dan memelihara aplikasi mobile berkualitas tinggi untuk platform Android dan iOS, serta berkolaborasi dengan tim backend, UI/UX, dan product team untuk menghasilkan solusi digital yang scalable dan efisien.\n\nTanggung Jawab:\n\nMengembangkan aplikasi mobile menggunakan Flutter dengan performa tinggi dan UI/UX yang optimal\n\nMendesain arsitektur aplikasi yang scalable, maintainable, dan clean code\n\nMengintegrasikan aplikasi dengan REST API / Web Service\n\nMelakukan debugging, testing, dan optimasi performa aplikasi\n\nMembimbing developer junior dan melakukan code review\n\nBerkolaborasi dengan tim lintas divisi dalam proses pengembangan produk\n\nMengikuti perkembangan teknologi mobile dan best practice industri\n\nKualifikasi:\n\nPengalaman minimal 3–5 tahun dalam pengembangan aplikasi mobile\n\nPengalaman kuat menggunakan Flutter dan Dart\n\nMemahami state management (Bloc, Provider, Riverpod, atau sejenisnya)\n\nBerpengalaman integrasi API, JSON parsing, dan authentication\n\nMemahami prinsip Clean Architecture / MVC / MVVM\n\nTerbiasa menggunakan Git version control\n\nMemiliki kemampuan problem solving dan komunikasi yang baik\n\nNilai tambah jika memiliki pengalaman publikasi aplikasi di Play Store / App Store\n\nNilai Tambah (Optional):\n\nPengalaman dengan Firebase (Auth, Firestore, FCM, Analytics)\n\nPengalaman CI/CD mobile apps\n\nPengalaman native Android (Kotlin/Java) atau iOS (Swift)\n\nPengalaman pengembangan real-time apps (WebSocket / MQTT)', 'Persyaratan:\n\nPendidikan minimal S1 Teknik Informatika, Sistem Informasi, atau bidang terkait (atau pengalaman kerja setara)\n\nPengalaman minimal 3–5 tahun dalam pengembangan aplikasi mobile\n\nPengalaman profesional menggunakan Flutter (Dart) dalam pengembangan production app\n\nMemahami konsep State Management (Bloc, Provider, Riverpod, GetX, atau sejenisnya)\n\nBerpengalaman dalam integrasi REST API / Web Service\n\nMemahami konsep Clean Architecture, SOLID Principle, dan Design Pattern\n\nTerbiasa menggunakan Git Version Control (GitHub / GitLab / Bitbucket)\n\nMemahami proses deployment aplikasi ke Google Play Store dan Apple App Store\n\nMampu melakukan debugging, profiling, dan optimasi performa aplikasi\n\nMemiliki kemampuan analisa dan problem solving yang kuat\n\nMampu bekerja secara tim maupun individu\n\nMemiliki komunikasi yang baik dan mampu bekerja dalam lingkungan agile', NULL, NULL, 'Ngagel', 'Surabaya', 0, 'full_time', 'mid', 4000000, NULL, 'IDR', 1, '2026-03-11', NULL, 'active', NULL, NULL, NULL, 1, 1, 0, '2026-02-11 14:54:30', '2026-02-11 14:54:30', '2026-02-11 14:56:30', NULL);
 
 -- --------------------------------------------------------
 
@@ -715,7 +724,8 @@ INSERT INTO `job_views` (`id`, `job_id`, `user_id`, `viewed_at`) VALUES
 (5, 56, 20, '2026-01-25 09:07:19'),
 (7, 53, 20, '2026-01-25 10:25:44'),
 (12, 56, 21, '2026-01-25 12:11:26'),
-(13, 54, 21, '2026-01-25 12:11:37');
+(13, 54, 21, '2026-01-25 12:11:37'),
+(21, 57, 20, '2026-02-11 14:56:22');
 
 -- --------------------------------------------------------
 
@@ -734,6 +744,186 @@ CREATE TABLE `notifications` (
   `read_at` timestamp NULL DEFAULT NULL,
   `created_at` timestamp NOT NULL DEFAULT current_timestamp()
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+-- --------------------------------------------------------
+
+--
+-- Table structure for table `partner_commissions`
+--
+
+CREATE TABLE `partner_commissions` (
+  `id` bigint(20) UNSIGNED NOT NULL,
+  `partner_id` bigint(20) UNSIGNED NOT NULL,
+  `referral_id` bigint(20) UNSIGNED NOT NULL COMMENT 'partner_referrals.id',
+  `payment_id` bigint(20) UNSIGNED NOT NULL COMMENT 'payments.id',
+  `company_id` bigint(20) UNSIGNED NOT NULL,
+  `transaction_amount` bigint(20) NOT NULL COMMENT 'Original payment amount (IDR)',
+  `commission_rate` decimal(5,2) NOT NULL COMMENT 'Rate at time of transaction (e.g., 40.00)',
+  `commission_amount` bigint(20) NOT NULL COMMENT 'Calculated commission (IDR)',
+  `job_quota` int(11) NOT NULL COMMENT 'Number of job posts purchased',
+  `status` enum('pending','approved','paid','cancelled') NOT NULL DEFAULT 'pending',
+  `approved_by` bigint(20) UNSIGNED DEFAULT NULL,
+  `approved_at` timestamp NULL DEFAULT NULL,
+  `paid_at` timestamp NULL DEFAULT NULL,
+  `payout_id` bigint(20) UNSIGNED DEFAULT NULL COMMENT 'Link to partner_payouts when paid',
+  `notes` text DEFAULT NULL,
+  `created_at` timestamp NOT NULL DEFAULT current_timestamp(),
+  `updated_at` timestamp NOT NULL DEFAULT current_timestamp() ON UPDATE current_timestamp()
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+--
+-- Triggers `partner_commissions`
+--
+DELIMITER $$
+CREATE TRIGGER `after_commission_insert` AFTER INSERT ON `partner_commissions` FOR EACH ROW BEGIN
+  UPDATE `referral_partners`
+  SET 
+    `total_commission` = `total_commission` + NEW.commission_amount,
+    `pending_balance` = CASE 
+      WHEN NEW.status = 'pending' THEN `pending_balance` + NEW.commission_amount
+      ELSE `pending_balance`
+    END,
+    `available_balance` = CASE 
+      WHEN NEW.status = 'approved' THEN `available_balance` + NEW.commission_amount
+      ELSE `available_balance`
+    END,
+    `updated_at` = NOW()
+  WHERE `id` = NEW.partner_id;
+END
+$$
+DELIMITER ;
+DELIMITER $$
+CREATE TRIGGER `after_commission_update` AFTER UPDATE ON `partner_commissions` FOR EACH ROW BEGIN
+  -- When status changes from pending to approved
+  IF OLD.status = 'pending' AND NEW.status = 'approved' THEN
+    UPDATE `referral_partners`
+    SET 
+      `pending_balance` = `pending_balance` - NEW.commission_amount,
+      `available_balance` = `available_balance` + NEW.commission_amount,
+      `updated_at` = NOW()
+    WHERE `id` = NEW.partner_id;
+  END IF;
+  
+  -- When status changes from approved to paid
+  IF OLD.status = 'approved' AND NEW.status = 'paid' THEN
+    UPDATE `referral_partners`
+    SET 
+      `available_balance` = `available_balance` - NEW.commission_amount,
+      `paid_amount` = `paid_amount` + NEW.commission_amount,
+      `updated_at` = NOW()
+    WHERE `id` = NEW.partner_id;
+  END IF;
+  
+  -- When commission is cancelled
+  IF NEW.status = 'cancelled' AND OLD.status IN ('pending', 'approved') THEN
+    UPDATE `referral_partners`
+    SET 
+      `total_commission` = `total_commission` - OLD.commission_amount,
+      `pending_balance` = CASE 
+        WHEN OLD.status = 'pending' THEN `pending_balance` - OLD.commission_amount
+        ELSE `pending_balance`
+      END,
+      `available_balance` = CASE 
+        WHEN OLD.status = 'approved' THEN `available_balance` - OLD.commission_amount
+        ELSE `available_balance`
+      END,
+      `updated_at` = NOW()
+    WHERE `id` = NEW.partner_id;
+  END IF;
+END
+$$
+DELIMITER ;
+
+-- --------------------------------------------------------
+
+--
+-- Table structure for table `partner_payouts`
+--
+
+CREATE TABLE `partner_payouts` (
+  `id` bigint(20) UNSIGNED NOT NULL,
+  `partner_id` bigint(20) UNSIGNED NOT NULL,
+  `amount` bigint(20) NOT NULL COMMENT 'Payout amount (IDR)',
+  `bank_name` varchar(100) NOT NULL,
+  `bank_account_number` varchar(50) NOT NULL,
+  `bank_account_holder` varchar(255) NOT NULL,
+  `status` enum('pending','processing','completed','failed','cancelled') NOT NULL DEFAULT 'pending',
+  `transfer_ref` varchar(100) DEFAULT NULL COMMENT 'Bank transfer reference number',
+  `failure_reason` text DEFAULT NULL,
+  `requested_at` timestamp NOT NULL DEFAULT current_timestamp(),
+  `processed_by` bigint(20) UNSIGNED DEFAULT NULL,
+  `processed_at` timestamp NULL DEFAULT NULL,
+  `completed_at` timestamp NULL DEFAULT NULL,
+  `notes` text DEFAULT NULL,
+  `created_at` timestamp NOT NULL DEFAULT current_timestamp(),
+  `updated_at` timestamp NOT NULL DEFAULT current_timestamp() ON UPDATE current_timestamp()
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+--
+-- Dumping data for table `partner_payouts`
+--
+
+INSERT INTO `partner_payouts` (`id`, `partner_id`, `amount`, `bank_name`, `bank_account_number`, `bank_account_holder`, `status`, `transfer_ref`, `failure_reason`, `requested_at`, `processed_by`, `processed_at`, `completed_at`, `notes`, `created_at`, `updated_at`) VALUES
+(1, 1, 5000000, 'Bank Central Asia', '1234567890', 'Ahmad Pratama', 'completed', 'https://example.com/proof/transfer123.jpg', NULL, '2026-02-05 19:28:49', NULL, NULL, '2026-02-05 19:29:05', NULL, '2026-02-05 19:28:49', '2026-02-05 19:29:05');
+
+-- --------------------------------------------------------
+
+--
+-- Table structure for table `partner_referrals`
+--
+
+CREATE TABLE `partner_referrals` (
+  `id` bigint(20) UNSIGNED NOT NULL,
+  `partner_id` bigint(20) UNSIGNED NOT NULL COMMENT 'referral_partners.id',
+  `company_id` bigint(20) UNSIGNED NOT NULL COMMENT 'companies.id',
+  `referral_code_used` varchar(20) NOT NULL COMMENT 'The code used at registration',
+  `registered_at` timestamp NOT NULL DEFAULT current_timestamp(),
+  `is_verified` tinyint(1) NOT NULL DEFAULT 0 COMMENT 'Company account has been verified',
+  `first_payment_at` timestamp NULL DEFAULT NULL COMMENT 'When company made first purchase',
+  `notes` text DEFAULT NULL
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+--
+-- Dumping data for table `partner_referrals`
+--
+
+INSERT INTO `partner_referrals` (`id`, `partner_id`, `company_id`, `referral_code_used`, `registered_at`, `is_verified`, `first_payment_at`, `notes`) VALUES
+(2, 3, 7, 'SAPUC4EB', '2026-02-09 13:08:22', 0, NULL, NULL);
+
+--
+-- Triggers `partner_referrals`
+--
+DELIMITER $$
+CREATE TRIGGER `after_referral_insert` AFTER INSERT ON `partner_referrals` FOR EACH ROW BEGIN
+  UPDATE `referral_partners`
+  SET 
+    `total_referrals` = `total_referrals` + 1,
+    `updated_at` = NOW()
+  WHERE `id` = NEW.partner_id;
+END
+$$
+DELIMITER ;
+
+-- --------------------------------------------------------
+
+--
+-- Table structure for table `password_resets`
+--
+
+CREATE TABLE `password_resets` (
+  `id` bigint(20) UNSIGNED NOT NULL,
+  `user_id` bigint(20) UNSIGNED NOT NULL,
+  `token` varchar(255) NOT NULL,
+  `expires_at` datetime NOT NULL,
+  `created_at` datetime DEFAULT current_timestamp()
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+
+--
+-- Dumping data for table `password_resets`
+--
+
+INSERT INTO `password_resets` (`id`, `user_id`, `token`, `expires_at`, `created_at`) VALUES
+(2, 24, '669b9969feaca3acd674ccbe4a7cdf883adc329e9bad1d7a350190f69832e3c2', '2026-02-05 20:38:02', '2026-02-05 19:38:02');
 
 -- --------------------------------------------------------
 
@@ -807,6 +997,43 @@ INSERT INTO `payments` (`id`, `company_id`, `job_id`, `package_id`, `quota_amoun
 (13, 1, NULL, 'pack5', 5, 50000, '/docs/payments/1/proof_1770005261.txt', 'confirmed', 'Approved - 5 quota package', 1, '2026-02-02 04:07:41', '2026-02-02 04:08:25', '2026-02-02 04:07:41', '2026-02-02 04:08:25'),
 (14, 1, NULL, 'pack10', 12, 100000, '/docs/payments/1/proof_1770005343.txt', 'pending', NULL, NULL, '2026-02-02 04:09:03', NULL, '2026-02-02 04:09:03', '2026-02-02 04:09:03'),
 (15, 1, NULL, 'pack10', 12, 100000, '/docs/payments/1/proof_1770005356.txt', 'confirmed', 'Pack 10+2 approved', 1, '2026-02-02 04:09:16', '2026-02-02 04:09:31', '2026-02-02 04:09:16', '2026-02-02 04:09:31');
+
+-- --------------------------------------------------------
+
+--
+-- Table structure for table `referral_partners`
+--
+
+CREATE TABLE `referral_partners` (
+  `id` bigint(20) UNSIGNED NOT NULL,
+  `user_id` bigint(20) UNSIGNED NOT NULL COMMENT 'Link to users table',
+  `referral_code` varchar(20) NOT NULL COMMENT 'Unique referral code e.g., AHMAD2024',
+  `commission_rate` decimal(5,2) NOT NULL DEFAULT 40.00 COMMENT 'Commission percentage (40%)',
+  `status` enum('active','inactive','pending','suspended','rejected') NOT NULL DEFAULT 'pending',
+  `bank_name` varchar(100) DEFAULT NULL,
+  `bank_account_number` varchar(50) DEFAULT NULL,
+  `bank_account_holder` varchar(255) DEFAULT NULL,
+  `is_bank_verified` tinyint(1) NOT NULL DEFAULT 0,
+  `total_referrals` int(11) NOT NULL DEFAULT 0 COMMENT 'Total companies referred',
+  `total_commission` bigint(20) NOT NULL DEFAULT 0 COMMENT 'Total commission earned (lifetime)',
+  `available_balance` bigint(20) NOT NULL DEFAULT 0 COMMENT 'Balance ready for payout',
+  `pending_balance` bigint(20) NOT NULL DEFAULT 0 COMMENT 'Commission pending approval',
+  `paid_amount` bigint(20) NOT NULL DEFAULT 0 COMMENT 'Total amount paid out',
+  `approved_by` bigint(20) UNSIGNED DEFAULT NULL,
+  `approved_at` timestamp NULL DEFAULT NULL,
+  `notes` text DEFAULT NULL COMMENT 'Admin notes',
+  `created_at` timestamp NOT NULL DEFAULT current_timestamp(),
+  `updated_at` timestamp NOT NULL DEFAULT current_timestamp() ON UPDATE current_timestamp()
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+--
+-- Dumping data for table `referral_partners`
+--
+
+INSERT INTO `referral_partners` (`id`, `user_id`, `referral_code`, `commission_rate`, `status`, `bank_name`, `bank_account_number`, `bank_account_holder`, `is_bank_verified`, `total_referrals`, `total_commission`, `available_balance`, `pending_balance`, `paid_amount`, `approved_by`, `approved_at`, `notes`, `created_at`, `updated_at`) VALUES
+(1, 22, 'AHMAD2024', 40.00, 'active', 'Bank Central Asia', '1234567890', 'Ahmad Pratama', 1, 0, 47850000, 7500000, 0, 40350000, NULL, '2026-02-04 13:06:58', NULL, '2024-01-14 17:00:00', '2026-02-09 13:27:27'),
+(2, 23, 'TESTB403', 35.00, 'active', NULL, NULL, NULL, 0, 0, 0, 0, 0, 0, 1, '2026-02-05 19:28:25', NULL, '2026-02-05 12:26:15', '2026-02-05 19:28:25'),
+(3, 24, 'SAPUC4EB', 40.00, 'active', NULL, NULL, NULL, 0, 1, 0, 0, 0, 0, NULL, NULL, NULL, '2026-02-05 12:37:05', '2026-02-09 13:27:27');
 
 -- --------------------------------------------------------
 
@@ -1211,7 +1438,23 @@ INSERT INTO `refresh_tokens` (`id`, `user_id`, `token_hash`, `expires_at`, `revo
 (387, 7, 'dd014bc644d44b13dc69ff99aeefcdc4662f4d8ffbc2b9da454b71f9ec06d457', '2026-02-09 13:20:31', NULL, '', '', '2026-02-02 13:20:31'),
 (388, 7, '55c7a011479c79f08e9053ea286f45d22f6fd2854dea5dccd5ab2d5953434066', '2026-02-09 14:14:01', NULL, '', '', '2026-02-02 14:14:01'),
 (389, 7, 'd2fb3aed3e20821b0f54bbb5e3984f7bc7eefc2881677e12756d5608e0e5319b', '2026-02-09 14:45:49', NULL, '', '', '2026-02-02 14:45:49'),
-(390, 1, 'dd0a08d9789328573a159c36bf9d59097569e1948bd19b57597e2b3f709c4fe7', '2026-02-10 16:22:03', NULL, '', '', '2026-02-03 16:22:03');
+(390, 1, 'dd0a08d9789328573a159c36bf9d59097569e1948bd19b57597e2b3f709c4fe7', '2026-02-10 16:22:03', NULL, '', '', '2026-02-03 16:22:03'),
+(391, 20, 'a264abe792e99d466b6ea405cbc19adc8586da0e478ee2116e1e69303a120f06', '2026-02-11 03:34:14', NULL, '', '', '2026-02-04 03:34:14'),
+(392, 7, 'ac008b86050f916528231b5d5856fe0ff698fafc7b35730469f48b435be040e8', '2026-02-11 12:44:49', NULL, '', '', '2026-02-04 12:44:49'),
+(393, 7, 'f7b1731fe4e9ffdb40f2d1c0c39abcdd10067c544992f54760aab7f9a3cc9019', '2026-02-11 13:35:26', NULL, '', '', '2026-02-04 13:35:26'),
+(394, 1, '64f0bb80795e6b91a16af22c04f6b779e09421c5164afca6ab1bac200c9a8b32', '2026-02-15 02:27:49', NULL, '', '', '2026-02-08 02:27:49'),
+(395, 1, 'ff6253aa143ac1f39df6aab18f340e3db4f635e1445d72bc77bc9d9097e01085', '2026-02-15 02:27:57', NULL, '', '', '2026-02-08 02:27:57'),
+(397, 7, '2ec87638e251b899ee3d4bd9102106043438e818394d2be2f6399a7471c275fc', '2026-02-16 13:05:36', NULL, '', '', '2026-02-09 13:05:36'),
+(398, 26, '43754c218c9199dc862b55237f9bc9659c2fc0dc9c43b86a6ef59e0e0d0529bc', '2026-02-16 13:08:22', NULL, '', '', '2026-02-09 13:08:22'),
+(399, 1, '3ab612eee2904c8beb05ad34b090a65766c04b4951ba631c4ec72b7c5f7fbb12', '2026-02-16 13:12:30', NULL, '', '', '2026-02-09 13:12:30'),
+(400, 1, '58ced0af41798dd1dd9512e511c25b2aa894b7791683e58ed2c3cfb56ccadf2d', '2026-02-16 13:14:33', NULL, '', '', '2026-02-09 13:14:33'),
+(401, 1, 'e150ff2b18b34b4c586306ced552fe35dbafbec9d62c003d8665aa3b92726901', '2026-02-16 13:30:05', NULL, '', '', '2026-02-09 13:30:05'),
+(402, 26, 'e821c4ed5f82ce0a66343f393f90fed1aef0aa41c959994490fcca642db818f0', '2026-02-18 11:47:32', NULL, '', '', '2026-02-11 11:47:32'),
+(403, 26, '5c3400d08407132da6159c3e6f4203d4e134b2ecad4b381a7a8fa4440f22d3d3', '2026-02-18 12:03:42', NULL, '', '', '2026-02-11 12:03:42'),
+(404, 26, '1bcf0fe9867b6bcd5c92285b8ccd5197288ab80a7a2894c6c0fd7f1731f8274e', '2026-02-18 14:48:45', NULL, '', '', '2026-02-11 14:48:45'),
+(405, 20, '07b5f140fddbb87e90fd033838a9a985eaec9346b22322636b1c287f8ccbb057', '2026-02-18 14:56:22', NULL, '', '', '2026-02-11 14:56:22'),
+(406, 26, '8a0ae6b88070879c151078413d895dda9509fcfaf51eaebf3bce444d57b75478', '2026-02-18 14:57:52', NULL, '', '', '2026-02-11 14:57:52'),
+(407, 26, '4ce874f456c470911d77469b96eb33d94cd8cb64cab42ec2e0c9c89f7ec3daa6', '2026-02-18 15:11:25', NULL, '', '', '2026-02-11 15:11:25');
 
 -- --------------------------------------------------------
 
@@ -1294,7 +1537,7 @@ CREATE TABLE `users` (
   `id` bigint(20) UNSIGNED NOT NULL,
   `email` varchar(255) NOT NULL,
   `password_hash` varchar(255) NOT NULL,
-  `role` enum('job_seeker','company','admin') NOT NULL DEFAULT 'job_seeker',
+  `role` enum('job_seeker','company','admin','partner') NOT NULL DEFAULT 'job_seeker',
   `full_name` varchar(255) NOT NULL,
   `phone` varchar(20) DEFAULT NULL,
   `avatar_url` varchar(500) DEFAULT NULL,
@@ -1329,7 +1572,61 @@ INSERT INTO `users` (`id`, `email`, `password_hash`, `role`, `full_name`, `phone
 (18, 'debug.test@example.com', '$2a$10$GUhOXJgQDIqJxRw.irMOa.D1NLbxjIe9aNgUDacALSB1mCzNBgwoe', 'job_seeker', 'Debug Test', NULL, NULL, 1, 0, NULL, '2026-01-23 03:22:05', '2026-01-23 03:22:05', NULL),
 (19, 'emailtest123@example.com', '$2a$10$uCnPcKmTLE2C5nyPUMWmReEUr0o.D1eJKke5iAn7ArvyLeWL1THoW', 'job_seeker', 'Email Test User', NULL, NULL, 1, 0, NULL, '2026-01-23 03:25:21', '2026-01-23 03:25:21', NULL),
 (20, 'jastiska14@gmail.com', '$2a$10$aIiXz6C49XHFpRSS9pILOeqIycow/uRlAaeLp6WtXFPF6P7PAgXui', 'job_seeker', 'Jastiska Dwi Wanda Sari', '08893011438', '/docs/avatars/avatar_20_1769167905.png', 1, 0, NULL, '2026-01-23 03:55:52', '2026-01-23 11:31:45', NULL),
-(21, 'craftgirlsssshopping@gmail.com', '$2a$10$3NfsAYR/Sm5lhYYnXSCRC.ZG1DIaLC2sD3FBdtioJqqDrLYjEAFES', 'job_seeker', 'Saputra Budianto', '0881036480285', '/docs/avatars/avatar_21_1769148776.jpg', 1, 0, NULL, '2026-01-23 03:57:01', '2026-02-01 15:15:59', NULL);
+(21, 'craftgirlsssshopping@gmail.com', '$2a$10$3NfsAYR/Sm5lhYYnXSCRC.ZG1DIaLC2sD3FBdtioJqqDrLYjEAFES', 'job_seeker', 'Saputra Budianto', '0881036480285', '/docs/avatars/avatar_21_1769148776.jpg', 1, 0, NULL, '2026-01-23 03:57:01', '2026-02-01 15:15:59', NULL),
+(22, 'ahmad.pratama@email.com', '$2a$10$92IXUNpkjO0rOQ5byMi.Ye4oKoEa3Ro9llC/.og/at2.uheWG/igi', 'partner', 'Ahmad Pratama', NULL, NULL, 1, 1, NULL, '2026-02-04 13:06:58', '2026-02-04 13:06:58', NULL),
+(23, 'testpartner2@example.com', '$2a$10$dmbFVfwx/WXUQcc1ngOwDOB8IO4mW760dgNUE6g9O7uYl9W.MxoHm', 'partner', 'Test Partner Baru', '081234567890', NULL, 1, 0, NULL, '2026-02-05 12:26:15', '2026-02-05 12:27:43', NULL),
+(24, 'localhosting8080@gmail.com', '$2a$10$AhHqSNhjP0q2bTzKwcbktO/6YgyNMc/VGiFobDF4nwCXsUmMI3hv2', 'partner', 'Saputra Budianto', '0881036480285', NULL, 1, 0, NULL, '2026-02-05 12:37:05', '2026-02-08 02:28:54', NULL),
+(26, 'localhosting127.0.0.1@gmail.com', '$2a$10$fvhCmmsY6aZ0Wr0TekF/keE5CkztyZBc8xPAQmAOZdlK8yS.fDghq', 'company', 'Admin', '0881036480285', NULL, 1, 0, NULL, '2026-02-09 13:08:22', '2026-02-09 13:08:22', NULL);
+
+-- --------------------------------------------------------
+
+--
+-- Stand-in structure for view `v_partner_dashboard_stats`
+-- (See below for the actual view)
+--
+CREATE TABLE `v_partner_dashboard_stats` (
+`partner_id` bigint(20) unsigned
+,`user_id` bigint(20) unsigned
+,`referral_code` varchar(20)
+,`total_companies` int(11)
+,`total_transactions` bigint(21)
+,`total_commission` bigint(20)
+,`available_balance` bigint(20)
+,`paid_commission` bigint(20)
+,`pending_commission` bigint(20)
+);
+
+-- --------------------------------------------------------
+
+--
+-- Stand-in structure for view `v_partner_monthly_stats`
+-- (See below for the actual view)
+--
+CREATE TABLE `v_partner_monthly_stats` (
+`partner_id` bigint(20) unsigned
+,`month_year` varchar(7)
+,`month_name` varchar(32)
+,`total_commission` decimal(41,0)
+,`companies_count` bigint(21)
+);
+
+-- --------------------------------------------------------
+
+--
+-- Structure for view `v_partner_dashboard_stats`
+--
+DROP TABLE IF EXISTS `v_partner_dashboard_stats`;
+
+CREATE ALGORITHM=UNDEFINED DEFINER=`root`@`localhost` SQL SECURITY DEFINER VIEW `v_partner_dashboard_stats`  AS SELECT `rp`.`id` AS `partner_id`, `rp`.`user_id` AS `user_id`, `rp`.`referral_code` AS `referral_code`, `rp`.`total_referrals` AS `total_companies`, count(distinct `pc`.`id`) AS `total_transactions`, coalesce(`rp`.`total_commission`,0) AS `total_commission`, coalesce(`rp`.`available_balance`,0) AS `available_balance`, coalesce(`rp`.`paid_amount`,0) AS `paid_commission`, coalesce(`rp`.`pending_balance`,0) AS `pending_commission` FROM (`referral_partners` `rp` left join `partner_commissions` `pc` on(`pc`.`partner_id` = `rp`.`id`)) GROUP BY `rp`.`id` ;
+
+-- --------------------------------------------------------
+
+--
+-- Structure for view `v_partner_monthly_stats`
+--
+DROP TABLE IF EXISTS `v_partner_monthly_stats`;
+
+CREATE ALGORITHM=UNDEFINED DEFINER=`root`@`localhost` SQL SECURITY DEFINER VIEW `v_partner_monthly_stats`  AS SELECT `pc`.`partner_id` AS `partner_id`, date_format(`pc`.`created_at`,'%Y-%m') AS `month_year`, date_format(`pc`.`created_at`,'%b') AS `month_name`, sum(`pc`.`commission_amount`) AS `total_commission`, count(distinct `pr`.`company_id`) AS `companies_count` FROM (`partner_commissions` `pc` join `partner_referrals` `pr` on(`pr`.`id` = `pc`.`referral_id`)) WHERE `pc`.`status` in ('approved','paid') GROUP BY `pc`.`partner_id`, date_format(`pc`.`created_at`,'%Y-%m') ORDER BY date_format(`pc`.`created_at`,'%Y-%m') DESC ;
 
 --
 -- Indexes for dumped tables
@@ -1418,7 +1715,9 @@ ALTER TABLE `companies`
   ADD KEY `fk_companies_verified_by` (`documents_verified_by`),
   ADD KEY `idx_company_status` (`company_status`),
   ADD KEY `idx_deleted_at` (`deleted_at`),
-  ADD KEY `idx_created_at` (`created_at`);
+  ADD KEY `idx_created_at` (`created_at`),
+  ADD KEY `idx_referred_by_partner` (`referred_by_partner_id`),
+  ADD KEY `idx_companies_referral_code` (`referral_code_used`);
 
 --
 -- Indexes for table `company_quotas`
@@ -1509,6 +1808,53 @@ ALTER TABLE `notifications`
   ADD KEY `idx_notifications_created_at` (`created_at`);
 
 --
+-- Indexes for table `partner_commissions`
+--
+ALTER TABLE `partner_commissions`
+  ADD PRIMARY KEY (`id`),
+  ADD UNIQUE KEY `uk_payment_id` (`payment_id`) COMMENT 'One commission record per payment',
+  ADD KEY `idx_partner_id` (`partner_id`),
+  ADD KEY `idx_referral_id` (`referral_id`),
+  ADD KEY `idx_company_id` (`company_id`),
+  ADD KEY `idx_status` (`status`),
+  ADD KEY `idx_created_at` (`created_at`),
+  ADD KEY `idx_payout_id` (`payout_id`),
+  ADD KEY `fk_commission_approved_by` (`approved_by`),
+  ADD KEY `idx_commissions_date_status` (`created_at`,`status`);
+
+--
+-- Indexes for table `partner_payouts`
+--
+ALTER TABLE `partner_payouts`
+  ADD PRIMARY KEY (`id`),
+  ADD KEY `idx_partner_id` (`partner_id`),
+  ADD KEY `idx_status` (`status`),
+  ADD KEY `idx_created_at` (`created_at`),
+  ADD KEY `idx_processed_at` (`processed_at`),
+  ADD KEY `fk_payout_processed_by` (`processed_by`),
+  ADD KEY `idx_payouts_partner_date` (`partner_id`,`created_at`);
+
+--
+-- Indexes for table `partner_referrals`
+--
+ALTER TABLE `partner_referrals`
+  ADD PRIMARY KEY (`id`),
+  ADD UNIQUE KEY `uk_partner_company` (`partner_id`,`company_id`),
+  ADD UNIQUE KEY `uk_company_id` (`company_id`) COMMENT 'A company can only have one referrer',
+  ADD KEY `idx_partner_id` (`partner_id`),
+  ADD KEY `idx_registered_at` (`registered_at`);
+
+--
+-- Indexes for table `password_resets`
+--
+ALTER TABLE `password_resets`
+  ADD PRIMARY KEY (`id`),
+  ADD UNIQUE KEY `token` (`token`),
+  ADD KEY `idx_token` (`token`),
+  ADD KEY `idx_user_id` (`user_id`),
+  ADD KEY `idx_expires_at` (`expires_at`);
+
+--
 -- Indexes for table `password_reset_tokens`
 --
 ALTER TABLE `password_reset_tokens`
@@ -1528,6 +1874,18 @@ ALTER TABLE `payments`
   ADD KEY `idx_payments_status` (`status`),
   ADD KEY `idx_payments_submitted_at` (`submitted_at`),
   ADD KEY `idx_payments_package_id` (`package_id`);
+
+--
+-- Indexes for table `referral_partners`
+--
+ALTER TABLE `referral_partners`
+  ADD PRIMARY KEY (`id`),
+  ADD UNIQUE KEY `uk_user_id` (`user_id`),
+  ADD UNIQUE KEY `uk_referral_code` (`referral_code`),
+  ADD KEY `idx_status` (`status`),
+  ADD KEY `idx_referral_code` (`referral_code`),
+  ADD KEY `idx_created_at` (`created_at`),
+  ADD KEY `fk_partner_approved_by` (`approved_by`);
 
 --
 -- Indexes for table `refresh_tokens`
@@ -1605,13 +1963,13 @@ ALTER TABLE `applicant_profiles`
 -- AUTO_INCREMENT for table `applications`
 --
 ALTER TABLE `applications`
-  MODIFY `id` bigint(20) UNSIGNED NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=12;
+  MODIFY `id` bigint(20) UNSIGNED NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=13;
 
 --
 -- AUTO_INCREMENT for table `application_timelines`
 --
 ALTER TABLE `application_timelines`
-  MODIFY `id` bigint(20) UNSIGNED NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=27;
+  MODIFY `id` bigint(20) UNSIGNED NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=28;
 
 --
 -- AUTO_INCREMENT for table `audit_logs`
@@ -1629,13 +1987,13 @@ ALTER TABLE `chat_messages`
 -- AUTO_INCREMENT for table `companies`
 --
 ALTER TABLE `companies`
-  MODIFY `id` bigint(20) UNSIGNED NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=6;
+  MODIFY `id` bigint(20) UNSIGNED NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=8;
 
 --
 -- AUTO_INCREMENT for table `company_quotas`
 --
 ALTER TABLE `company_quotas`
-  MODIFY `id` bigint(20) UNSIGNED NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=7;
+  MODIFY `id` bigint(20) UNSIGNED NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=9;
 
 --
 -- AUTO_INCREMENT for table `conversations`
@@ -1653,13 +2011,13 @@ ALTER TABLE `cvs`
 -- AUTO_INCREMENT for table `cv_snapshots`
 --
 ALTER TABLE `cv_snapshots`
-  MODIFY `id` bigint(20) UNSIGNED NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=12;
+  MODIFY `id` bigint(20) UNSIGNED NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=13;
 
 --
 -- AUTO_INCREMENT for table `jobs`
 --
 ALTER TABLE `jobs`
-  MODIFY `id` bigint(20) UNSIGNED NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=57;
+  MODIFY `id` bigint(20) UNSIGNED NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=58;
 
 --
 -- AUTO_INCREMENT for table `job_shares`
@@ -1677,13 +2035,37 @@ ALTER TABLE `job_skills`
 -- AUTO_INCREMENT for table `job_views`
 --
 ALTER TABLE `job_views`
-  MODIFY `id` bigint(20) UNSIGNED NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=20;
+  MODIFY `id` bigint(20) UNSIGNED NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=23;
 
 --
 -- AUTO_INCREMENT for table `notifications`
 --
 ALTER TABLE `notifications`
   MODIFY `id` bigint(20) UNSIGNED NOT NULL AUTO_INCREMENT;
+
+--
+-- AUTO_INCREMENT for table `partner_commissions`
+--
+ALTER TABLE `partner_commissions`
+  MODIFY `id` bigint(20) UNSIGNED NOT NULL AUTO_INCREMENT;
+
+--
+-- AUTO_INCREMENT for table `partner_payouts`
+--
+ALTER TABLE `partner_payouts`
+  MODIFY `id` bigint(20) UNSIGNED NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=2;
+
+--
+-- AUTO_INCREMENT for table `partner_referrals`
+--
+ALTER TABLE `partner_referrals`
+  MODIFY `id` bigint(20) UNSIGNED NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=3;
+
+--
+-- AUTO_INCREMENT for table `password_resets`
+--
+ALTER TABLE `password_resets`
+  MODIFY `id` bigint(20) UNSIGNED NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=3;
 
 --
 -- AUTO_INCREMENT for table `password_reset_tokens`
@@ -1698,10 +2080,16 @@ ALTER TABLE `payments`
   MODIFY `id` bigint(20) UNSIGNED NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=16;
 
 --
+-- AUTO_INCREMENT for table `referral_partners`
+--
+ALTER TABLE `referral_partners`
+  MODIFY `id` bigint(20) UNSIGNED NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=4;
+
+--
 -- AUTO_INCREMENT for table `refresh_tokens`
 --
 ALTER TABLE `refresh_tokens`
-  MODIFY `id` bigint(20) UNSIGNED NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=391;
+  MODIFY `id` bigint(20) UNSIGNED NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=408;
 
 --
 -- AUTO_INCREMENT for table `saved_jobs`
@@ -1725,7 +2113,7 @@ ALTER TABLE `ticket_responses`
 -- AUTO_INCREMENT for table `users`
 --
 ALTER TABLE `users`
-  MODIFY `id` bigint(20) UNSIGNED NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=22;
+  MODIFY `id` bigint(20) UNSIGNED NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=27;
 
 --
 -- Constraints for dumped tables
@@ -1769,7 +2157,8 @@ ALTER TABLE `chat_messages`
 --
 ALTER TABLE `companies`
   ADD CONSTRAINT `fk_companies_user_id` FOREIGN KEY (`user_id`) REFERENCES `users` (`id`) ON DELETE CASCADE,
-  ADD CONSTRAINT `fk_companies_verified_by` FOREIGN KEY (`documents_verified_by`) REFERENCES `users` (`id`) ON DELETE SET NULL;
+  ADD CONSTRAINT `fk_companies_verified_by` FOREIGN KEY (`documents_verified_by`) REFERENCES `users` (`id`) ON DELETE SET NULL,
+  ADD CONSTRAINT `fk_company_referrer` FOREIGN KEY (`referred_by_partner_id`) REFERENCES `referral_partners` (`id`) ON DELETE SET NULL;
 
 --
 -- Constraints for table `company_quotas`
@@ -1829,12 +2218,43 @@ ALTER TABLE `notifications`
   ADD CONSTRAINT `fk_notifications_user` FOREIGN KEY (`user_id`) REFERENCES `users` (`id`) ON DELETE CASCADE;
 
 --
+-- Constraints for table `partner_commissions`
+--
+ALTER TABLE `partner_commissions`
+  ADD CONSTRAINT `fk_commission_approved_by` FOREIGN KEY (`approved_by`) REFERENCES `users` (`id`) ON DELETE SET NULL,
+  ADD CONSTRAINT `fk_commission_company` FOREIGN KEY (`company_id`) REFERENCES `companies` (`id`) ON DELETE CASCADE,
+  ADD CONSTRAINT `fk_commission_partner` FOREIGN KEY (`partner_id`) REFERENCES `referral_partners` (`id`) ON DELETE CASCADE,
+  ADD CONSTRAINT `fk_commission_payment` FOREIGN KEY (`payment_id`) REFERENCES `payments` (`id`) ON DELETE CASCADE,
+  ADD CONSTRAINT `fk_commission_referral` FOREIGN KEY (`referral_id`) REFERENCES `partner_referrals` (`id`) ON DELETE CASCADE;
+
+--
+-- Constraints for table `partner_payouts`
+--
+ALTER TABLE `partner_payouts`
+  ADD CONSTRAINT `fk_payout_partner` FOREIGN KEY (`partner_id`) REFERENCES `referral_partners` (`id`) ON DELETE CASCADE,
+  ADD CONSTRAINT `fk_payout_processed_by` FOREIGN KEY (`processed_by`) REFERENCES `users` (`id`) ON DELETE SET NULL;
+
+--
+-- Constraints for table `partner_referrals`
+--
+ALTER TABLE `partner_referrals`
+  ADD CONSTRAINT `fk_referral_company` FOREIGN KEY (`company_id`) REFERENCES `companies` (`id`) ON DELETE CASCADE,
+  ADD CONSTRAINT `fk_referral_partner` FOREIGN KEY (`partner_id`) REFERENCES `referral_partners` (`id`) ON DELETE CASCADE;
+
+--
 -- Constraints for table `payments`
 --
 ALTER TABLE `payments`
   ADD CONSTRAINT `payments_ibfk_1` FOREIGN KEY (`company_id`) REFERENCES `users` (`id`) ON DELETE CASCADE,
   ADD CONSTRAINT `payments_ibfk_2` FOREIGN KEY (`job_id`) REFERENCES `jobs` (`id`) ON DELETE SET NULL,
   ADD CONSTRAINT `payments_ibfk_3` FOREIGN KEY (`confirmed_by_id`) REFERENCES `users` (`id`) ON DELETE SET NULL;
+
+--
+-- Constraints for table `referral_partners`
+--
+ALTER TABLE `referral_partners`
+  ADD CONSTRAINT `fk_partner_approved_by` FOREIGN KEY (`approved_by`) REFERENCES `users` (`id`) ON DELETE SET NULL,
+  ADD CONSTRAINT `fk_partner_user` FOREIGN KEY (`user_id`) REFERENCES `users` (`id`) ON DELETE CASCADE;
 
 --
 -- Constraints for table `refresh_tokens`

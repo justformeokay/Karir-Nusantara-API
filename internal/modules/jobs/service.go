@@ -165,7 +165,7 @@ func (s *service) Create(ctx context.Context, companyID uint64, userID uint64, r
 	if req.Status == JobStatusActive {
 		// Check and consume quota if publishing directly
 		if s.quotaService != nil {
-			canPublish, quotaType, err := s.quotaService.CanPublishJob(userID)
+			canPublish, quotaType, err := s.quotaService.CanPublishJob(companyID)
 			if err != nil {
 				return nil, apperrors.NewInternalError("Failed to check quota", err)
 			}
@@ -176,7 +176,7 @@ func (s *service) Create(ctx context.Context, companyID uint64, userID uint64, r
 				})
 			}
 			// Consume quota
-			if err := s.quotaService.ConsumeQuota(userID); err != nil {
+			if err := s.quotaService.ConsumeQuota(companyID); err != nil {
 				return nil, apperrors.NewInternalError("Failed to consume quota", err)
 			}
 			_ = quotaType // Log or track quota type used
@@ -431,7 +431,7 @@ func (s *service) UpdateStatus(ctx context.Context, id uint64, companyID uint64,
 	// Check and consume quota when publishing (draft -> active or first time active)
 	if newStatus == JobStatusActive && !job.PublishedAt.Valid {
 		if s.quotaService != nil {
-			canPublish, _, err := s.quotaService.CanPublishJob(userID)
+			canPublish, _, err := s.quotaService.CanPublishJob(companyID)
 			if err != nil {
 				return nil, apperrors.NewInternalError("Failed to check quota", err)
 			}
@@ -442,7 +442,7 @@ func (s *service) UpdateStatus(ctx context.Context, id uint64, companyID uint64,
 				})
 			}
 			// Consume quota
-			if err := s.quotaService.ConsumeQuota(userID); err != nil {
+			if err := s.quotaService.ConsumeQuota(companyID); err != nil {
 				return nil, apperrors.NewInternalError("Failed to consume quota", err)
 			}
 		}
