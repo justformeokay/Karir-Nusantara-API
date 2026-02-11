@@ -534,6 +534,17 @@ func (r *repository) UpdateCompanyActive(ctx context.Context, id uint64, isActiv
 // ============================================
 
 func (r *repository) GetJobs(ctx context.Context, filter JobFilter) ([]*JobAdmin, int, error) {
+	// Validate and sanitize pagination parameters - Performance optimization
+	if filter.PageSize <= 0 {
+		filter.PageSize = 15
+	}
+	if filter.PageSize > 100 { // Max 100 items per page to prevent large data transfer
+		filter.PageSize = 100
+	}
+	if filter.Page <= 0 {
+		filter.Page = 1
+	}
+
 	// Build WHERE clause
 	conditions := []string{}
 	args := []interface{}{}
@@ -547,7 +558,7 @@ func (r *repository) GetJobs(ctx context.Context, filter JobFilter) ([]*JobAdmin
 		args = append(args, filter.Status)
 	}
 	if filter.Search != "" {
-		conditions = append(conditions, "(j.title LIKE ? OR u.company_name LIKE ?)")
+		conditions = append(conditions, "(j.title LIKE ? OR c.company_name LIKE ?)")
 		searchTerm := "%" + filter.Search + "%"
 		args = append(args, searchTerm, searchTerm)
 	}
@@ -565,31 +576,25 @@ func (r *repository) GetJobs(ctx context.Context, filter JobFilter) ([]*JobAdmin
 		whereClause = " WHERE " + strings.Join(conditions, " AND ")
 	}
 
-	// Count query
-	countQuery := `SELECT COUNT(*) FROM jobs j LEFT JOIN users u ON j.company_id = u.id` + whereClause
+	// Count query - optimized to only count, no unnecessary joins
+	countQuery := `SELECT COUNT(*) FROM jobs j` + whereClause
 	var total int
 	if err := r.db.QueryRowContext(ctx, countQuery, args...).Scan(&total); err != nil {
 		return nil, 0, err
 	}
 
-	// Main query
+	// Main query - select only essential columns for list view (optimized for performance)
+	// This reduces data transfer and improves query speed with large datasets
 	query := `
 		SELECT 
-			j.id, j.company_id, u.company_name, j.title, j.slug, j.description, j.requirements,
+			j.id, j.company_id, c.company_name, j.title, j.slug,
 			j.city, j.province, j.is_remote, j.job_type, j.experience_level,
-			j.salary_min, j.salary_max, j.status, j.admin_status, j.admin_note, j.flag_reason,
-			j.views_count, j.applications_count, j.published_at, j.created_at, j.updated_at
+			j.salary_min, j.salary_max, j.status, j.flag_reason,
+			j.views_count, j.applications_count, j.created_at
 		FROM jobs j
-		LEFT JOIN users u ON j.company_id = u.id
+		LEFT JOIN companies c ON j.company_id = c.id
 	` + whereClause + " ORDER BY j.created_at DESC"
 
-	// Pagination
-	if filter.PageSize <= 0 {
-		filter.PageSize = 10
-	}
-	if filter.Page <= 0 {
-		filter.Page = 1
-	}
 	offset := (filter.Page - 1) * filter.PageSize
 	query += fmt.Sprintf(" LIMIT %d OFFSET %d", filter.PageSize, offset)
 
@@ -603,10 +608,10 @@ func (r *repository) GetJobs(ctx context.Context, filter JobFilter) ([]*JobAdmin
 	for rows.Next() {
 		var j JobAdmin
 		if err := rows.Scan(
-			&j.ID, &j.CompanyID, &j.CompanyName, &j.Title, &j.Slug, &j.Description, &j.Requirements,
+			&j.ID, &j.CompanyID, &j.CompanyName, &j.Title, &j.Slug,
 			&j.City, &j.Province, &j.IsRemote, &j.JobType, &j.ExperienceLevel,
-			&j.SalaryMin, &j.SalaryMax, &j.Status, &j.AdminStatus, &j.AdminNote, &j.FlagReason,
-			&j.ViewsCount, &j.ApplicationsCount, &j.PublishedAt, &j.CreatedAt, &j.UpdatedAt,
+			&j.SalaryMin, &j.SalaryMax, &j.Status, &j.FlagReason,
+			&j.ViewsCount, &j.ApplicationsCount, &j.CreatedAt,
 		); err != nil {
 			return nil, 0, err
 		}
@@ -617,14 +622,15 @@ func (r *repository) GetJobs(ctx context.Context, filter JobFilter) ([]*JobAdmin
 }
 
 func (r *repository) GetJobByID(ctx context.Context, id uint64) (*JobAdmin, error) {
+	// Select all columns for detail view
 	query := `
 		SELECT 
-			j.id, j.company_id, u.company_name, j.title, j.slug, j.description, j.requirements,
+			j.id, j.company_id, c.company_name, j.title, j.slug, j.description, j.requirements,
 			j.city, j.province, j.is_remote, j.job_type, j.experience_level,
 			j.salary_min, j.salary_max, j.status, j.admin_status, j.admin_note, j.flag_reason,
 			j.views_count, j.applications_count, j.published_at, j.created_at, j.updated_at
 		FROM jobs j
-		LEFT JOIN users u ON j.company_id = u.id
+		LEFT JOIN companies c ON j.company_id = c.id
 		WHERE j.id = ?
 	`
 
