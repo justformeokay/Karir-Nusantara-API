@@ -558,17 +558,23 @@ func (r *partnerRepository) GetReferralStats(ctx context.Context) (*AdminReferra
 func (r *partnerRepository) GetPayoutStats(ctx context.Context) (*AdminPayoutStatsResponse, error) {
 	query := `
 		SELECT 
+			(SELECT COUNT(*) FROM partner_payouts) as total_payouts,
+			(SELECT COUNT(*) FROM partner_payouts WHERE status IN ('pending', 'processing')) as pending_payouts_count,
+			(SELECT COUNT(*) FROM partner_payouts WHERE status = 'completed') as completed_payouts_count,
+			(SELECT COALESCE(SUM(amount), 0) FROM partner_payouts WHERE status = 'completed') as total_amount_paid,
+			(SELECT COALESCE(SUM(amount), 0) FROM partner_payouts WHERE status IN ('pending', 'processing')) as pending_amount,
 			(SELECT COALESCE(SUM(commission_amount), 0) FROM partner_commissions) as total_commission,
-			(SELECT COALESCE(SUM(amount), 0) FROM partner_payouts WHERE status IN ('pending', 'processing')) as pending_payouts,
-			(SELECT COALESCE(SUM(paid_amount), 0) FROM referral_partners) as total_paid_out,
 			(SELECT COUNT(*) FROM referral_partners rp JOIN users u ON rp.user_id = u.id WHERE rp.available_balance > 0 AND u.deleted_at IS NULL) as partners_with_balance
 	`
 
 	var stats AdminPayoutStatsResponse
 	err := r.db.QueryRowContext(ctx, query).Scan(
+		&stats.TotalPayouts,
+		&stats.PendingPayoutsCount,
+		&stats.CompletedPayoutsCount,
+		&stats.TotalAmountPaid,
+		&stats.PendingAmount,
 		&stats.TotalCommissionGenerated,
-		&stats.PendingPayouts,
-		&stats.TotalPaidOut,
 		&stats.PartnersWithBalance,
 	)
 	if err != nil {

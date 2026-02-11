@@ -66,9 +66,12 @@ type AdminReferralStatsResponse struct {
 
 // AdminPayoutStatsResponse represents payout statistics
 type AdminPayoutStatsResponse struct {
+	TotalPayouts             int   `json:"total_payouts"`
+	PendingPayoutsCount      int   `json:"pending_payouts_count"`
+	CompletedPayoutsCount    int   `json:"completed_payouts_count"`
+	TotalAmountPaid          int64 `json:"total_amount_paid"`
+	PendingAmount            int64 `json:"pending_amount"`
 	TotalCommissionGenerated int64 `json:"total_commission_generated"`
-	PendingPayouts           int64 `json:"pending_payouts"`
-	TotalPaidOut             int64 `json:"total_paid_out"`
 	PartnersWithBalance      int   `json:"partners_with_balance"`
 }
 
