@@ -123,6 +123,7 @@ func (s *service) Create(ctx context.Context, companyID uint64, userID uint64, r
 	job := &Job{
 		CompanyID:       companyID,
 		Title:           req.Title,
+		Category:        req.Category,
 		Slug:            slug,
 		Description:     req.Description,
 		City:            req.City,
@@ -132,6 +133,7 @@ func (s *service) Create(ctx context.Context, companyID uint64, userID uint64, r
 		ExperienceLevel: req.ExperienceLevel,
 		SalaryCurrency:  "IDR",
 		IsSalaryVisible: req.IsSalaryVisible,
+		IsSalaryFixed:   req.IsSalaryFixed,
 		Status:          JobStatusDraft,
 	}
 
@@ -263,6 +265,9 @@ func (s *service) Update(ctx context.Context, id uint64, companyID uint64, req *
 		job.Title = *req.Title
 		job.Slug = generateSlug(*req.Title)
 	}
+	if req.Category != nil {
+		job.Category = *req.Category
+	}
 	if req.Description != nil {
 		job.Description = *req.Description
 	}
@@ -298,6 +303,9 @@ func (s *service) Update(ctx context.Context, id uint64, companyID uint64, req *
 	}
 	if req.IsSalaryVisible != nil {
 		job.IsSalaryVisible = *req.IsSalaryVisible
+	}
+	if req.IsSalaryFixed != nil {
+		job.IsSalaryFixed = *req.IsSalaryFixed
 	}
 	if req.ApplicationDeadline != nil {
 		deadline, err := time.Parse("2006-01-02", *req.ApplicationDeadline)

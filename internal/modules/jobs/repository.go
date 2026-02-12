@@ -51,24 +51,24 @@ func NewRepository(db *sqlx.DB) Repository {
 func (r *mysqlRepository) Create(ctx context.Context, job *Job) error {
 	query := `
 		INSERT INTO jobs (
-			company_id, title, slug, description, requirements, responsibilities, benefits,
+			company_id, title, category, slug, description, requirements, responsibilities, benefits,
 			city, province, is_remote, job_type, experience_level,
-			salary_min, salary_max, salary_currency, is_salary_visible,
+			salary_min, salary_max, salary_currency, is_salary_visible, is_salary_fixed,
 			application_deadline, max_applications, status, published_at,
 			created_at, updated_at
 		) VALUES (
-			?, ?, ?, ?, ?, ?, ?,
+			?, ?, ?, ?, ?, ?, ?, ?,
 			?, ?, ?, ?, ?,
-			?, ?, ?, ?,
+			?, ?, ?, ?, ?,
 			?, ?, ?, ?,
 			NOW(), NOW()
 		)
 	`
 
 	result, err := r.db.ExecContext(ctx, query,
-		job.CompanyID, job.Title, job.Slug, job.Description, job.Requirements, job.Responsibilities, job.Benefits,
+		job.CompanyID, job.Title, job.Category, job.Slug, job.Description, job.Requirements, job.Responsibilities, job.Benefits,
 		job.City, job.Province, job.IsRemote, job.JobType, job.ExperienceLevel,
-		job.SalaryMin, job.SalaryMax, job.SalaryCurrency, job.IsSalaryVisible,
+		job.SalaryMin, job.SalaryMax, job.SalaryCurrency, job.IsSalaryVisible, job.IsSalaryFixed,
 		job.ApplicationDeadline, job.MaxApplications, job.Status, job.PublishedAt,
 	)
 	if err != nil {
@@ -87,9 +87,9 @@ func (r *mysqlRepository) Create(ctx context.Context, job *Job) error {
 // GetByID retrieves a job by ID
 func (r *mysqlRepository) GetByID(ctx context.Context, id uint64) (*Job, error) {
 	query := `
-		SELECT id, company_id, title, slug, description, requirements, responsibilities, benefits,
+		SELECT id, company_id, title, category, slug, description, requirements, responsibilities, benefits,
 			   city, province, is_remote, job_type, experience_level,
-			   salary_min, salary_max, salary_currency, is_salary_visible,
+			   salary_min, salary_max, salary_currency, is_salary_visible, is_salary_fixed,
 			   application_deadline, max_applications, status, views_count, applications_count, shares_count,
 			   published_at, created_at, updated_at, deleted_at
 		FROM jobs
@@ -110,9 +110,9 @@ func (r *mysqlRepository) GetByID(ctx context.Context, id uint64) (*Job, error) 
 // GetBySlug retrieves a job by slug
 func (r *mysqlRepository) GetBySlug(ctx context.Context, slug string) (*Job, error) {
 	query := `
-		SELECT id, company_id, title, slug, description, requirements, responsibilities, benefits,
+		SELECT id, company_id, title, category, slug, description, requirements, responsibilities, benefits,
 			   city, province, is_remote, job_type, experience_level,
-			   salary_min, salary_max, salary_currency, is_salary_visible,
+			   salary_min, salary_max, salary_currency, is_salary_visible, is_salary_fixed,
 			   application_deadline, max_applications, status, views_count, applications_count, shares_count,
 			   published_at, created_at, updated_at, deleted_at
 		FROM jobs
@@ -134,18 +134,18 @@ func (r *mysqlRepository) GetBySlug(ctx context.Context, slug string) (*Job, err
 func (r *mysqlRepository) Update(ctx context.Context, job *Job) error {
 	query := `
 		UPDATE jobs SET
-			title = ?, slug = ?, description = ?, requirements = ?, responsibilities = ?, benefits = ?,
+			title = ?, category = ?, slug = ?, description = ?, requirements = ?, responsibilities = ?, benefits = ?,
 			city = ?, province = ?, is_remote = ?, job_type = ?, experience_level = ?,
-			salary_min = ?, salary_max = ?, is_salary_visible = ?,
+			salary_min = ?, salary_max = ?, is_salary_visible = ?, is_salary_fixed = ?,
 			application_deadline = ?, status = ?, published_at = ?,
 			updated_at = NOW()
 		WHERE id = ? AND deleted_at IS NULL
 	`
 
 	_, err := r.db.ExecContext(ctx, query,
-		job.Title, job.Slug, job.Description, job.Requirements, job.Responsibilities, job.Benefits,
+		job.Title, job.Category, job.Slug, job.Description, job.Requirements, job.Responsibilities, job.Benefits,
 		job.City, job.Province, job.IsRemote, job.JobType, job.ExperienceLevel,
-		job.SalaryMin, job.SalaryMax, job.IsSalaryVisible,
+		job.SalaryMin, job.SalaryMax, job.IsSalaryVisible, job.IsSalaryFixed,
 		job.ApplicationDeadline, job.Status, job.PublishedAt,
 		job.ID,
 	)
@@ -246,9 +246,9 @@ func (r *mysqlRepository) List(ctx context.Context, params JobListParams) ([]*Jo
 	// Build query with pagination
 	offset := (params.Page - 1) * params.PerPage
 	query := fmt.Sprintf(`
-		SELECT id, company_id, title, slug, description, requirements, responsibilities, benefits,
+		SELECT id, company_id, title, category, slug, description, requirements, responsibilities, benefits,
 			   city, province, is_remote, job_type, experience_level,
-			   salary_min, salary_max, salary_currency, is_salary_visible,
+			   salary_min, salary_max, salary_currency, is_salary_visible, is_salary_fixed,
 			   application_deadline, max_applications, status, views_count, applications_count, shares_count,
 			   published_at, created_at, updated_at, deleted_at
 		FROM jobs
@@ -310,9 +310,9 @@ func (r *mysqlRepository) ListByCompany(ctx context.Context, companyID uint64, p
 	// Build query with pagination
 	offset := (params.Page - 1) * params.PerPage
 	query := fmt.Sprintf(`
-		SELECT id, company_id, title, slug, description, requirements, responsibilities, benefits,
+		SELECT id, company_id, title, category, slug, description, requirements, responsibilities, benefits,
 			   city, province, is_remote, job_type, experience_level,
-			   salary_min, salary_max, salary_currency, is_salary_visible,
+			   salary_min, salary_max, salary_currency, is_salary_visible, is_salary_fixed,
 			   application_deadline, max_applications, status, views_count, applications_count, shares_count,
 			   published_at, created_at, updated_at, deleted_at
 		FROM jobs

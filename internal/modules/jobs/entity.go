@@ -40,6 +40,7 @@ type Job struct {
 	ID                  uint64         `db:"id" json:"id"`
 	CompanyID           uint64         `db:"company_id" json:"company_id"`
 	Title               string         `db:"title" json:"title"`
+	Category            string         `db:"category" json:"category"`
 	Slug                string         `db:"slug" json:"slug"`
 	Description         string         `db:"description" json:"description"`
 	Requirements        sql.NullString `db:"requirements" json:"requirements,omitempty"`
@@ -54,6 +55,7 @@ type Job struct {
 	SalaryMax           sql.NullInt64  `db:"salary_max" json:"salary_max,omitempty"`
 	SalaryCurrency      string         `db:"salary_currency" json:"salary_currency"`
 	IsSalaryVisible     bool           `db:"is_salary_visible" json:"is_salary_visible"`
+	IsSalaryFixed       bool           `db:"is_salary_fixed" json:"is_salary_fixed"`
 	ApplicationDeadline sql.NullTime   `db:"application_deadline" json:"application_deadline,omitempty"`
 	MaxApplications     sql.NullInt64  `db:"max_applications" json:"max_applications,omitempty"`
 	Status              string         `db:"status" json:"status"`
@@ -102,6 +104,7 @@ type JobResponse struct {
 	ID                  uint64       `json:"id"`
 	HashID              string       `json:"hash_id"`
 	Title               string       `json:"title"`
+	Category            string       `json:"category"`
 	Slug                string       `json:"slug"`
 	Description         string       `json:"description"`
 	Requirements        string       `json:"requirements,omitempty"`
@@ -142,6 +145,7 @@ func (j *Job) ToResponse() *JobResponse {
 		ID:          j.ID,
 		HashID:      hashid.Encode(j.ID),
 		Title:       j.Title,
+		Category:    j.Category,
 		Slug:        j.Slug,
 		Description: j.Description,
 		Location: LocationInfo{
@@ -176,15 +180,20 @@ func (j *Job) ToResponse() *JobResponse {
 	}
 
 	// Include salary if visible
-	if j.IsSalaryVisible && (j.SalaryMin.Valid || j.SalaryMax.Valid) {
+	if j.IsSalaryVisible && j.SalaryMin.Valid {
 		resp.Salary = &SalaryInfo{
 			Currency: j.SalaryCurrency,
 		}
-		if j.SalaryMin.Valid {
+		if j.IsSalaryFixed {
+			// For fixed salary, only Min is used as the fixed amount
 			resp.Salary.Min = j.SalaryMin.Int64
-		}
-		if j.SalaryMax.Valid {
-			resp.Salary.Max = j.SalaryMax.Int64
+			resp.Salary.Max = 0 // Max is 0 for fixed salary
+		} else {
+			// For range salary
+			resp.Salary.Min = j.SalaryMin.Int64
+			if j.SalaryMax.Valid {
+				resp.Salary.Max = j.SalaryMax.Int64
+			}
 		}
 	}
 
@@ -204,6 +213,7 @@ func (j *Job) ToResponse() *JobResponse {
 // CreateJobRequest represents a job creation request
 type CreateJobRequest struct {
 	Title               string   `json:"title" validate:"required,min=5,max=255"`
+	Category            string   `json:"category" validate:"required,max=50"`
 	Description         string   `json:"description" validate:"required,min=50"`
 	Requirements        string   `json:"requirements,omitempty"`
 	Responsibilities    string   `json:"responsibilities,omitempty"`
@@ -217,6 +227,7 @@ type CreateJobRequest struct {
 	SalaryMax           *int64   `json:"salary_max,omitempty" validate:"omitempty,gtefield=SalaryMin"`
 	SalaryCurrency      string   `json:"salary_currency,omitempty"`
 	IsSalaryVisible     bool     `json:"is_salary_visible"`
+	IsSalaryFixed       bool     `json:"is_salary_fixed"` // If true, only salary_min is used
 	ApplicationDeadline string   `json:"application_deadline,omitempty"`
 	Skills              []string `json:"skills,omitempty"`
 	Status              string   `json:"status,omitempty" validate:"omitempty,oneof=draft active"`
@@ -225,6 +236,7 @@ type CreateJobRequest struct {
 // UpdateJobRequest represents a job update request
 type UpdateJobRequest struct {
 	Title               *string  `json:"title,omitempty" validate:"omitempty,min=5,max=255"`
+	Category            *string  `json:"category,omitempty" validate:"omitempty,max=50"`
 	Description         *string  `json:"description,omitempty" validate:"omitempty,min=50"`
 	Requirements        *string  `json:"requirements,omitempty"`
 	Responsibilities    *string  `json:"responsibilities,omitempty"`
@@ -237,6 +249,7 @@ type UpdateJobRequest struct {
 	SalaryMin           *int64   `json:"salary_min,omitempty"`
 	SalaryMax           *int64   `json:"salary_max,omitempty"`
 	IsSalaryVisible     *bool    `json:"is_salary_visible,omitempty"`
+	IsSalaryFixed       *bool    `json:"is_salary_fixed,omitempty"` // If true, only salary_min is used
 	ApplicationDeadline *string  `json:"application_deadline,omitempty"`
 	Skills              []string `json:"skills,omitempty"`
 	Status              *string  `json:"status,omitempty" validate:"omitempty,oneof=draft active paused closed filled"`

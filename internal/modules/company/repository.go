@@ -138,6 +138,10 @@ func (r *mysqlRepository) Update(ctx context.Context, company *Company) error {
 			akta_pendirian_url = ?,
 			npwp_url = ?,
 			nib_url = ?,
+			company_status = ?,
+			documents_verified_at = ?,
+			documents_verified_by = ?,
+			verification_notes = ?,
 			updated_at = NOW()
 		WHERE id = ? AND deleted_at IS NULL
 	`
@@ -148,6 +152,10 @@ func (r *mysqlRepository) Update(ctx context.Context, company *Company) error {
 		company.CompanyAddress, company.CompanyCity, company.CompanyProvince, company.CompanyPostalCode,
 		company.EstablishedYear, company.EmployeeCount,
 		company.KTPFounderURL, company.AktaPendirianURL, company.NPWPURL, company.NIBURL,
+		company.CompanyStatus,
+		company.DocumentsVerifiedAt,
+		company.DocumentsVerifiedBy,
+		company.VerificationNotes,
 		company.ID,
 	)
 	if err != nil {

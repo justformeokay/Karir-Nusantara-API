@@ -95,6 +95,12 @@ func (s *service) CreateOrUpdateCompany(ctx context.Context, userID uint64, req 
 		return nil, apperrors.NewInternalError("Failed to get company", err)
 	}
 
+	// Track if this was a verified company (for re-verification)
+	wasVerified := false
+	if company != nil && company.CompanyStatus == "verified" {
+		wasVerified = true
+	}
+
 	if company == nil {
 		// Create new company
 		company = &Company{
@@ -145,6 +151,16 @@ func (s *service) CreateOrUpdateCompany(ctx context.Context, userID uint64, req 
 	}
 	if req.EmployeeCount > 0 {
 		company.EmployeeCount = sql.NullInt64{Int64: int64(req.EmployeeCount), Valid: true}
+	}
+
+	// If company was verified, reset status to pending for re-verification
+	// This ensures data integrity and prevents manipulation of company information
+	if wasVerified {
+		company.CompanyStatus = "pending"
+		// Clear previous verification data
+		company.DocumentsVerifiedAt = sql.NullTime{Valid: false}
+		company.DocumentsVerifiedBy = sql.NullInt64{Valid: false}
+		company.VerificationNotes = sql.NullString{Valid: false}
 	}
 
 	// Create or update
