@@ -152,6 +152,9 @@ func (r *mysqlRepository) List(ctx context.Context, params ApplicationListParams
 		args = append(args, params.Status)
 	}
 
+	// Exclude applications for soft-deleted jobs
+	conditions = append(conditions, "j.deleted_at IS NULL")
+
 	whereClause := ""
 	if len(conditions) > 0 {
 		whereClause = "WHERE " + strings.Join(conditions, " AND ")
