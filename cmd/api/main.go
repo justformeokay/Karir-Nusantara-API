@@ -86,7 +86,7 @@ func main() {
 	quotaService := quota.NewService(quotaRepo)
 	jobsService := jobs.NewServiceWithEmail(jobsRepo, companyRepo, quotaService, emailService)
 	cvsService := cvs.NewService(cvsRepo)
-	applicationsService := applications.NewService(applicationsRepo, cvsService, jobsService)
+	applicationsService := applications.NewService(applicationsRepo, cvsService, jobsService, emailService)
 	wishlistService := wishlist.NewService(wishlistRepo)
 	dashboardService := dashboard.NewService(dashboardRepo)
 	companyService := company.NewService(companyRepo)

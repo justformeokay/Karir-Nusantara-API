@@ -1031,3 +1031,150 @@ func (s *Service) SendPartnerPasswordResetEmail(to, partnerName, resetLink strin
 
 	return s.SendEmail(to, subject, body.String())
 }
+
+// InterviewScheduleData holds data for interview schedule email
+type InterviewScheduleData struct {
+	ApplicantName   string
+	JobTitle        string
+	CompanyName     string
+	InterviewType   string
+	ScheduledAt     string
+	Location        string
+	MeetingLink     string
+	MeetingPlatform string
+	ContactPerson   string
+	ContactPhone    string
+	Notes           string
+}
+
+// SendInterviewScheduleEmail sends interview schedule notification to candidate
+func (s *Service) SendInterviewScheduleEmail(to string, data InterviewScheduleData) error {
+	subject := fmt.Sprintf("Jadwal Interview - %s di %s", data.JobTitle, data.CompanyName)
+
+	tmpl := `
+<!DOCTYPE html>
+<html>
+<head>
+	<style>
+		body { font-family: Arial, sans-serif; line-height: 1.6; color: #333; margin: 0; padding: 0; }
+		.container { max-width: 600px; margin: 0 auto; padding: 20px; }
+		.header { background: linear-gradient(135deg, #2563eb 0%, #1d4ed8 100%); color: white; padding: 30px 20px; text-align: center; border-radius: 10px 10px 0 0; }
+		.header h1 { margin: 0; font-size: 24px; }
+		.content { padding: 30px 20px; background-color: #f9fafb; }
+		.success-box { background-color: #d1fae5; padding: 20px; border-radius: 10px; text-align: center; margin: 20px 0; border-left: 4px solid #10b981; }
+		.success-icon { font-size: 48px; margin-bottom: 10px; }
+		.interview-details { background-color: #fff; padding: 20px; border-radius: 10px; margin: 20px 0; border: 1px solid #e5e7eb; }
+		.detail-row { padding: 12px 0; border-bottom: 1px solid #e5e7eb; display: flex; }
+		.detail-row:last-child { border-bottom: none; }
+		.detail-label { font-weight: bold; min-width: 150px; color: #6b7280; }
+		.detail-value { color: #111827; }
+		.important-note { background-color: #fef3c7; padding: 15px; border-left: 4px solid #f59e0b; margin: 20px 0; border-radius: 0 8px 8px 0; }
+		.button { display: inline-block; padding: 14px 28px; background-color: #2563eb; color: white; text-decoration: none; border-radius: 8px; margin: 20px 0; font-weight: bold; }
+		.footer { padding: 20px; text-align: center; font-size: 12px; color: #666; background-color: #f3f4f6; border-radius: 0 0 10px 10px; }
+	</style>
+</head>
+<body>
+	<div class="container">
+		<div class="header">
+			<h1>🎯 Jadwal Interview</h1>
+		</div>
+		<div class="content">
+			<div class="success-box">
+				<div class="success-icon">✅</div>
+				<h2>Selamat, {{.ApplicantName}}!</h2>
+				<p>Lamaran Anda untuk posisi <strong>{{.JobTitle}}</strong> di <strong>{{.CompanyName}}</strong> telah dipilih untuk tahap interview.</p>
+			</div>
+			
+			<h3>📋 Detail Interview:</h3>
+			<div class="interview-details">
+				{{if .ScheduledAt}}
+				<div class="detail-row">
+					<div class="detail-label">📅 Tanggal & Waktu:</div>
+					<div class="detail-value">{{.ScheduledAt}}</div>
+				</div>
+				{{end}}
+				{{if .InterviewType}}
+				<div class="detail-row">
+					<div class="detail-label">💼 Tipe Interview:</div>
+					<div class="detail-value">{{.InterviewType}}</div>
+				</div>
+				{{end}}
+				{{if .Location}}
+				<div class="detail-row">
+					<div class="detail-label">📍 Lokasi:</div>
+					<div class="detail-value">{{.Location}}</div>
+				</div>
+				{{end}}
+				{{if .MeetingPlatform}}
+				<div class="detail-row">
+					<div class="detail-label">💻 Platform:</div>
+					<div class="detail-value">{{.MeetingPlatform}}</div>
+				</div>
+				{{end}}
+				{{if .MeetingLink}}
+				<div class="detail-row">
+					<div class="detail-label">🔗 Link Meeting:</div>
+					<div class="detail-value"><a href="{{.MeetingLink}}" style="color: #2563eb;">{{.MeetingLink}}</a></div>
+				</div>
+				{{end}}
+				{{if .ContactPerson}}
+				<div class="detail-row">
+					<div class="detail-label">👤 Contact Person:</div>
+					<div class="detail-value">{{.ContactPerson}}</div>
+				</div>
+				{{end}}
+				{{if .ContactPhone}}
+				<div class="detail-row">
+					<div class="detail-label">📞 Telepon:</div>
+					<div class="detail-value">{{.ContactPhone}}</div>
+				</div>
+				{{end}}
+			</div>
+
+			{{if .Notes}}
+			<div class="important-note">
+				<strong>📝 Catatan Penting:</strong>
+				<p style="margin: 10px 0 0 0;">{{.Notes}}</p>
+			</div>
+			{{end}}
+
+			<div class="important-note">
+				<strong>⚠️ Persiapan Interview:</strong>
+				<ul style="margin: 10px 0 0 0; padding-left: 20px;">
+					<li>Pastikan Anda hadir tepat waktu</li>
+					<li>Siapkan dokumen dan portofolio yang relevan</li>
+					<li>Pelajari lebih lanjut tentang perusahaan</li>
+					<li>Siapkan pertanyaan untuk interviewer</li>
+				</ul>
+			</div>
+
+			<center>
+				<a href="https://karirnusantara.com/dashboard/applications" class="button">Lihat Detail Lamaran</a>
+			</center>
+
+			<p style="text-align: center; color: #6b7280; margin-top: 20px;">
+				Semoga sukses dengan interview Anda! 💪
+			</p>
+		</div>
+		<div class="footer">
+			<p>&copy; 2026 Karir Nusantara. All rights reserved.</p>
+			<p>Email ini dikirim secara otomatis, mohon untuk tidak membalas.</p>
+			<p>Jika Anda memiliki pertanyaan, silakan hubungi perusahaan melalui kontak yang tertera di atas.</p>
+		</div>
+	</div>
+</body>
+</html>
+`
+
+	t, err := template.New("interview-schedule").Parse(tmpl)
+	if err != nil {
+		return fmt.Errorf("failed to parse template: %w", err)
+	}
+
+	var body bytes.Buffer
+	if err := t.Execute(&body, data); err != nil {
+		return fmt.Errorf("failed to execute template: %w", err)
+	}
+
+	return s.SendEmail(to, subject, body.String())
+}

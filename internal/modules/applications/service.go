@@ -7,6 +7,7 @@ import (
 
 	"github.com/karirnusantara/api/internal/modules/cvs"
 	"github.com/karirnusantara/api/internal/modules/jobs"
+	"github.com/karirnusantara/api/internal/shared/email"
 	apperrors "github.com/karirnusantara/api/internal/shared/errors"
 )
 
@@ -23,17 +24,19 @@ type Service interface {
 }
 
 type service struct {
-	repo       Repository
-	cvService  cvs.Service
-	jobService jobs.Service
+	repo         Repository
+	cvService    cvs.Service
+	jobService   jobs.Service
+	emailService *email.Service
 }
 
 // NewService creates a new applications service
-func NewService(repo Repository, cvService cvs.Service, jobService jobs.Service) Service {
+func NewService(repo Repository, cvService cvs.Service, jobService jobs.Service, emailService *email.Service) Service {
 	return &service{
-		repo:       repo,
-		cvService:  cvService,
-		jobService: jobService,
+		repo:         repo,
+		cvService:    cvService,
+		jobService:   jobService,
+		emailService: emailService,
 	}
 }
 
@@ -288,6 +291,55 @@ func (s *service) UpdateStatus(ctx context.Context, applicationID uint64, compan
 
 	if err := s.repo.AddTimelineEvent(ctx, event); err != nil {
 		return nil, apperrors.NewInternalError("Failed to add timeline event", err)
+	}
+
+	// Send email notification if status changed to interview_scheduled
+	if req.Status == StatusInterviewScheduled {
+		// Get applicant info
+		applicant, err := s.repo.GetApplicantInfo(ctx, app.UserID)
+		if err == nil && applicant != nil && applicant.Email != "" {
+			// Prepare email data
+			emailData := email.InterviewScheduleData{
+				ApplicantName: applicant.Name,
+				JobTitle:      job.Title,
+				CompanyName:   job.Company.Name,
+			}
+
+			// Add interview details
+			if event.InterviewType.Valid {
+				emailData.InterviewType = event.InterviewType.String
+			}
+			if event.ScheduledAt.Valid {
+				emailData.ScheduledAt = event.ScheduledAt.Time.Format("Monday, 02 January 2006 pukul 15:04 WIB")
+			}
+			if event.ScheduledLocation.Valid {
+				emailData.Location = event.ScheduledLocation.String
+			}
+			if event.MeetingLink.Valid {
+				emailData.MeetingLink = event.MeetingLink.String
+			}
+			if event.MeetingPlatform.Valid {
+				emailData.MeetingPlatform = event.MeetingPlatform.String
+			}
+			if event.ContactPerson.Valid {
+				emailData.ContactPerson = event.ContactPerson.String
+			}
+			if event.ContactPhone.Valid {
+				emailData.ContactPhone = event.ContactPhone.String
+			}
+			if event.ScheduledNotes.Valid {
+				emailData.Notes = event.ScheduledNotes.String
+			}
+
+			// Send email (non-blocking - don't fail if email fails)
+			go func() {
+				if err := s.emailService.SendInterviewScheduleEmail(applicant.Email, emailData); err != nil {
+					// Log error but don't fail the request
+					// In production, you might want to use proper logging
+					_ = err
+				}
+			}()
+		}
 	}
 
 	return s.GetByID(ctx, app.ID, companyID, true)
