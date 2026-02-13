@@ -2,6 +2,7 @@ package jobs
 
 import (
 	"database/sql"
+	"log"
 	"time"
 
 	"github.com/karirnusantara/api/internal/shared/hashid"
@@ -147,6 +148,8 @@ type SalaryInfo struct {
 
 // ToResponse converts Job to JobResponse
 func (j *Job) ToResponse() *JobResponse {
+	log.Printf("[DEBUG] ToResponse: Job ID=%d, Title=%s, CompanyID=%d", j.ID, j.Title, j.CompanyID)
+
 	resp := &JobResponse{
 		ID:          j.ID,
 		HashID:      hashid.Encode(j.ID),
@@ -166,11 +169,18 @@ func (j *Job) ToResponse() *JobResponse {
 		ApplicationsCount: j.ApplicationsCount,
 		SharesCount:       j.SharesCount,
 		CreatedAt:         j.CreatedAt.Format(time.RFC3339),
-		Company:           j.Company.WithHashID(),
 		// Always include raw salary fields for company portal
 		SalaryCurrency:  j.SalaryCurrency,
 		IsSalaryVisible: j.IsSalaryVisible,
 		IsSalaryFixed:   j.IsSalaryFixed,
+	}
+
+	// Safely handle Company - check for nil before calling WithHashID
+	if j.Company != nil {
+		log.Printf("[DEBUG] ToResponse: Company is NOT nil, Name=%s", j.Company.Name)
+		resp.Company = j.Company.WithHashID()
+	} else {
+		log.Printf("[DEBUG] ToResponse: Company IS nil")
 	}
 
 	// Always populate raw salary fields if they exist

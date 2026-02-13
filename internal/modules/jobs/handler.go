@@ -2,6 +2,7 @@ package jobs
 
 import (
 	"encoding/json"
+	"log"
 	"net/http"
 	"strconv"
 
@@ -136,42 +137,57 @@ func (h *Handler) Update(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	log.Printf("[DEBUG] Update handler: userID=%d", userID)
+
 	// Get company_id from companies table where user_id = userID
 	company, err := h.service.GetCompanyByUserID(r.Context(), userID)
 	if err != nil {
+		log.Printf("[ERROR] Failed to get company for userID=%d: %v", userID, err)
 		response.InternalServerError(w, "Gagal mendapatkan data perusahaan")
 		return
 	}
 	if company == nil {
+		log.Printf("[WARN] Company not found for userID=%d", userID)
 		response.BadRequest(w, "Data perusahaan tidak ditemukan")
 		return
 	}
 	companyID := company.ID
 
+	log.Printf("[DEBUG] Update handler: companyID=%d", companyID)
+
 	idStr := chi.URLParam(r, "id")
 	id, err := parseID(idStr)
 	if err != nil {
+		log.Printf("[ERROR] Failed to parse ID '%s': %v", idStr, err)
 		response.BadRequest(w, "Invalid job ID")
 		return
 	}
 
+	log.Printf("[DEBUG] Update handler: jobID=%d (from '%s')", id, idStr)
+
 	var req UpdateJobRequest
 	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
+		log.Printf("[ERROR] Failed to decode request body: %v", err)
 		response.BadRequest(w, "Invalid request body")
 		return
 	}
 
+	log.Printf("[DEBUG] Update request: %+v", req)
+
 	if errors := h.validator.Validate(&req); errors != nil {
+		log.Printf("[WARN] Validation failed: %v", errors)
 		response.UnprocessableEntity(w, "Validation failed", errors)
 		return
 	}
 
 	job, err := h.service.Update(r.Context(), id, companyID, &req)
 	if err != nil {
+		log.Printf("[ERROR] Service.Update failed: %v", err)
 		handleError(w, err)
 		return
 	}
 
+	log.Printf("[INFO] Job updated successfully: ID=%d", job.ID)
 	response.OK(w, "Job updated successfully", job)
 }
 

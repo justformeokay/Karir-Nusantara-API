@@ -210,19 +210,25 @@ func (s *service) Create(ctx context.Context, companyID uint64, userID uint64, r
 
 // GetByID retrieves a job by ID with all related data
 func (s *service) GetByID(ctx context.Context, id uint64) (*JobResponse, error) {
+	log.Printf("[DEBUG] Service.GetByID: id=%d", id)
 	job, err := s.repo.GetByID(ctx, id)
 	if err != nil {
+		log.Printf("[ERROR] Service.GetByID: repo.GetByID failed: %v", err)
 		return nil, apperrors.NewInternalError("Failed to get job", err)
 	}
 	if job == nil {
+		log.Printf("[WARN] Service.GetByID: Job not found with id=%d", id)
 		return nil, apperrors.NewNotFoundError("Job")
 	}
 
+	log.Printf("[DEBUG] Service.GetByID: Loading relations for job ID=%d", id)
 	// Load related data
 	if err := s.loadJobRelations(ctx, job); err != nil {
+		log.Printf("[ERROR] Service.GetByID: loadJobRelations failed: %v", err)
 		return nil, err
 	}
 
+	log.Printf("[DEBUG] Service.GetByID: Converting to response")
 	return job.ToResponse(), nil
 }
 
@@ -246,24 +252,45 @@ func (s *service) GetBySlug(ctx context.Context, slug string) (*JobResponse, err
 
 // Update updates a job posting
 func (s *service) Update(ctx context.Context, id uint64, companyID uint64, req *UpdateJobRequest) (*JobResponse, error) {
+	log.Printf("[DEBUG] Service.Update: id=%d, companyID=%d", id, companyID)
+
 	// Get existing job
 	job, err := s.repo.GetByID(ctx, id)
 	if err != nil {
+		log.Printf("[ERROR] Service.Update: repo.GetByID failed: %v", err)
 		return nil, apperrors.NewInternalError("Failed to get job", err)
 	}
 	if job == nil {
+		log.Printf("[WARN] Service.Update: Job not found with id=%d", id)
 		return nil, apperrors.NewNotFoundError("Job")
 	}
 
+	log.Printf("[DEBUG] Service.Update: Found job - ID=%d, CompanyID=%d, Title=%s", job.ID, job.CompanyID, job.Title)
+
 	// Check ownership
 	if job.CompanyID != companyID {
+		log.Printf("[WARN] Service.Update: Ownership mismatch - job.CompanyID=%d, requestCompanyID=%d", job.CompanyID, companyID)
 		return nil, apperrors.NewForbiddenError("You don't have permission to update this job")
 	}
 
 	// Update fields
 	if req.Title != nil {
 		job.Title = *req.Title
-		job.Slug = generateSlug(*req.Title)
+		// Only regenerate slug if title actually changed
+		newSlug := generateSlug(*req.Title)
+		if newSlug != job.Slug {
+			// Check if new slug exists (for another job)
+			existing, err := s.repo.GetBySlug(ctx, newSlug)
+			if err != nil {
+				log.Printf("[ERROR] Service.Update: Failed to check slug: %v", err)
+				return nil, apperrors.NewInternalError("Failed to check slug", err)
+			}
+			// If slug exists and belongs to different job, append timestamp
+			if existing != nil && existing.ID != job.ID {
+				newSlug = fmt.Sprintf("%s-%d", newSlug, time.Now().Unix())
+			}
+			job.Slug = newSlug
+		}
 	}
 	if req.Category != nil {
 		job.Category = *req.Category
@@ -322,22 +349,30 @@ func (s *service) Update(ctx context.Context, id uint64, companyID uint64, req *
 	}
 
 	// Update job
+	log.Printf("[DEBUG] Service.Update: Calling repo.Update for job ID=%d", job.ID)
 	if err := s.repo.Update(ctx, job); err != nil {
+		log.Printf("[ERROR] Service.Update: repo.Update failed: %v", err)
 		return nil, apperrors.NewInternalError("Failed to update job", err)
 	}
+	log.Printf("[DEBUG] Service.Update: repo.Update successful")
 
 	// Update skills if provided
 	if req.Skills != nil {
+		log.Printf("[DEBUG] Service.Update: Updating skills for job ID=%d, count=%d", job.ID, len(req.Skills))
 		if err := s.repo.DeleteSkills(ctx, job.ID); err != nil {
+			log.Printf("[ERROR] Service.Update: DeleteSkills failed: %v", err)
 			return nil, apperrors.NewInternalError("Failed to update skills", err)
 		}
 		if len(req.Skills) > 0 {
 			if err := s.repo.AddSkills(ctx, job.ID, req.Skills); err != nil {
+				log.Printf("[ERROR] Service.Update: AddSkills failed: %v", err)
 				return nil, apperrors.NewInternalError("Failed to add skills", err)
 			}
 		}
+		log.Printf("[DEBUG] Service.Update: Skills updated successfully")
 	}
 
+	log.Printf("[DEBUG] Service.Update: Calling GetByID to return updated job")
 	return s.GetByID(ctx, job.ID)
 }
 
@@ -495,16 +530,21 @@ func isValidStatusTransition(from, to string) bool {
 
 // loadJobRelations loads related data for a job
 func (s *service) loadJobRelations(ctx context.Context, job *Job) error {
+	log.Printf("[DEBUG] loadJobRelations: Loading relations for job ID=%d, CompanyID=%d", job.ID, job.CompanyID)
+
 	// Load company info
 	company, err := s.repo.GetCompanyInfo(ctx, job.CompanyID)
 	if err != nil {
+		log.Printf("[ERROR] loadJobRelations: GetCompanyInfo failed for companyID=%d: %v", job.CompanyID, err)
 		return apperrors.NewInternalError("Failed to load company info", err)
 	}
+	log.Printf("[DEBUG] loadJobRelations: Company loaded - isNil=%v", company == nil)
 	job.Company = company
 
 	// Load skills
 	skills, err := s.repo.GetSkills(ctx, job.ID)
 	if err != nil {
+		log.Printf("[ERROR] loadJobRelations: GetSkills failed for jobID=%d: %v", job.ID, err)
 		return apperrors.NewInternalError("Failed to load skills", err)
 	}
 	job.Skills = skills

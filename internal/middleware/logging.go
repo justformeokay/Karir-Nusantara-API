@@ -3,6 +3,7 @@ package middleware
 import (
 	"log"
 	"net/http"
+	"runtime/debug"
 	"time"
 
 	"github.com/google/uuid"
@@ -56,7 +57,9 @@ func Recoverer(next http.Handler) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		defer func() {
 			if err := recover(); err != nil {
-				log.Printf("Panic recovered: %v", err)
+				log.Printf("[PANIC] Recovered for %s %s: %v", r.Method, r.URL.Path, err)
+				// Print stack trace for debugging
+				debug.PrintStack()
 				http.Error(w, "Internal Server Error", http.StatusInternalServerError)
 			}
 		}()

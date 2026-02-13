@@ -5,6 +5,7 @@ import (
 	"database/sql"
 	"errors"
 	"fmt"
+	"log"
 	"strings"
 
 	"github.com/jmoiron/sqlx"
@@ -142,6 +143,9 @@ func (r *mysqlRepository) Update(ctx context.Context, job *Job) error {
 		WHERE id = ? AND deleted_at IS NULL
 	`
 
+	log.Printf("[DEBUG] Updating job ID=%d, Title=%s, Category=%s, Status=%s, SalaryMin=%v, SalaryMax=%v",
+		job.ID, job.Title, job.Category, job.Status, job.SalaryMin, job.SalaryMax)
+
 	_, err := r.db.ExecContext(ctx, query,
 		job.Title, job.Category, job.Slug, job.Description, job.Requirements, job.Responsibilities, job.Benefits,
 		job.City, job.Province, job.IsRemote, job.JobType, job.ExperienceLevel,
@@ -150,6 +154,7 @@ func (r *mysqlRepository) Update(ctx context.Context, job *Job) error {
 		job.ID,
 	)
 	if err != nil {
+		log.Printf("[ERROR] Failed to update job ID=%d: %v", job.ID, err)
 		return fmt.Errorf("failed to update job: %w", err)
 	}
 
