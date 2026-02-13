@@ -101,19 +101,25 @@ type JobSkill struct {
 
 // JobResponse represents the job response for API
 type JobResponse struct {
-	ID                  uint64       `json:"id"`
-	HashID              string       `json:"hash_id"`
-	Title               string       `json:"title"`
-	Category            string       `json:"category"`
-	Slug                string       `json:"slug"`
-	Description         string       `json:"description"`
-	Requirements        string       `json:"requirements,omitempty"`
-	Responsibilities    string       `json:"responsibilities,omitempty"`
-	Benefits            string       `json:"benefits,omitempty"`
-	Location            LocationInfo `json:"location"`
-	JobType             string       `json:"job_type"`
-	ExperienceLevel     string       `json:"experience_level"`
-	Salary              *SalaryInfo  `json:"salary,omitempty"`
+	ID               uint64       `json:"id"`
+	HashID           string       `json:"hash_id"`
+	Title            string       `json:"title"`
+	Category         string       `json:"category"`
+	Slug             string       `json:"slug"`
+	Description      string       `json:"description"`
+	Requirements     string       `json:"requirements,omitempty"`
+	Responsibilities string       `json:"responsibilities,omitempty"`
+	Benefits         string       `json:"benefits,omitempty"`
+	Location         LocationInfo `json:"location"`
+	JobType          string       `json:"job_type"`
+	ExperienceLevel  string       `json:"experience_level"`
+	Salary           *SalaryInfo  `json:"salary,omitempty"`
+	// Raw salary fields for company portal editing
+	SalaryMin           *int64       `json:"salary_min,omitempty"`
+	SalaryMax           *int64       `json:"salary_max,omitempty"`
+	SalaryCurrency      string       `json:"salary_currency,omitempty"`
+	IsSalaryVisible     bool         `json:"is_salary_visible"`
+	IsSalaryFixed       bool         `json:"is_salary_fixed"`
 	ApplicationDeadline string       `json:"application_deadline,omitempty"`
 	Status              string       `json:"status"`
 	ViewsCount          uint64       `json:"views_count"`
@@ -161,6 +167,18 @@ func (j *Job) ToResponse() *JobResponse {
 		SharesCount:       j.SharesCount,
 		CreatedAt:         j.CreatedAt.Format(time.RFC3339),
 		Company:           j.Company.WithHashID(),
+		// Always include raw salary fields for company portal
+		SalaryCurrency:  j.SalaryCurrency,
+		IsSalaryVisible: j.IsSalaryVisible,
+		IsSalaryFixed:   j.IsSalaryFixed,
+	}
+
+	// Always populate raw salary fields if they exist
+	if j.SalaryMin.Valid {
+		resp.SalaryMin = &j.SalaryMin.Int64
+	}
+	if j.SalaryMax.Valid {
+		resp.SalaryMax = &j.SalaryMax.Int64
 	}
 
 	if j.Requirements.Valid {
@@ -179,7 +197,7 @@ func (j *Job) ToResponse() *JobResponse {
 		resp.PublishedAt = j.PublishedAt.Time.Format(time.RFC3339)
 	}
 
-	// Include salary if visible
+	// Include salary object if visible (for public display)
 	if j.IsSalaryVisible && j.SalaryMin.Valid {
 		resp.Salary = &SalaryInfo{
 			Currency: j.SalaryCurrency,
