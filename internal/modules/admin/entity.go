@@ -256,6 +256,7 @@ type JobAdmin struct {
 	PublishedAt       sql.NullTime   `db:"published_at" json:"published_at,omitempty"`
 	CreatedAt         time.Time      `db:"created_at" json:"created_at"`
 	UpdatedAt         time.Time      `db:"updated_at" json:"updated_at"`
+	DeletedAt         sql.NullTime   `db:"deleted_at" json:"deleted_at,omitempty"`
 }
 
 // JobAdminResponse represents the job response for admin API
@@ -283,6 +284,8 @@ type JobAdminResponse struct {
 	PublishedAt       string `json:"published_at,omitempty"`
 	CreatedAt         string `json:"created_at"`
 	UpdatedAt         string `json:"updated_at"`
+	DeletedAt         string `json:"deleted_at,omitempty"`
+	IsDeleted         bool   `json:"is_deleted"`
 }
 
 func (j *JobAdmin) ToResponse() *JobAdminResponse {
@@ -329,6 +332,10 @@ func (j *JobAdmin) ToResponse() *JobAdminResponse {
 		resp.PublishedAt = j.PublishedAt.Time.Format(time.RFC3339)
 	}
 
+	if j.DeletedAt.Valid {
+		resp.DeletedAt = j.DeletedAt.Time.Format(time.RFC3339)
+		resp.IsDeleted = true
+	}
 	return resp
 }
 

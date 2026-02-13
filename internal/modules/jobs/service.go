@@ -265,12 +265,21 @@ func (s *service) Update(ctx context.Context, id uint64, companyID uint64, req *
 		return nil, apperrors.NewNotFoundError("Job")
 	}
 
-	log.Printf("[DEBUG] Service.Update: Found job - ID=%d, CompanyID=%d, Title=%s", job.ID, job.CompanyID, job.Title)
+	log.Printf("[DEBUG] Service.Update: Found job - ID=%d, CompanyID=%d, Title=%s, EditCount=%d", job.ID, job.CompanyID, job.Title, job.EditCount)
 
 	// Check ownership
 	if job.CompanyID != companyID {
 		log.Printf("[WARN] Service.Update: Ownership mismatch - job.CompanyID=%d, requestCompanyID=%d", job.CompanyID, companyID)
 		return nil, apperrors.NewForbiddenError("You don't have permission to update this job")
+	}
+
+	// Check if job has already been edited (max 1 edit allowed)
+	if job.EditCount >= 1 {
+		log.Printf("[WARN] Service.Update: Job ID=%d has already been edited (edit_count=%d)", job.ID, job.EditCount)
+		return nil, apperrors.NewValidationError("Lowongan ini sudah pernah diedit. Setiap lowongan hanya dapat diedit 1 kali.", map[string]string{
+			"code":       "EDIT_LIMIT_REACHED",
+			"edit_count": fmt.Sprintf("%d", job.EditCount),
+		})
 	}
 
 	// Update fields

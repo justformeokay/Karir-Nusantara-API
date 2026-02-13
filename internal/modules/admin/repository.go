@@ -590,7 +590,7 @@ func (r *repository) GetJobs(ctx context.Context, filter JobFilter) ([]*JobAdmin
 			j.id, j.company_id, c.company_name, j.title, j.slug,
 			j.city, j.province, j.is_remote, j.job_type, j.experience_level,
 			j.salary_min, j.salary_max, j.status, j.flag_reason,
-			j.views_count, j.applications_count, j.created_at
+			j.views_count, j.applications_count, j.created_at, j.deleted_at
 		FROM jobs j
 		LEFT JOIN companies c ON j.company_id = c.id
 	` + whereClause + " ORDER BY j.created_at DESC"
@@ -611,7 +611,7 @@ func (r *repository) GetJobs(ctx context.Context, filter JobFilter) ([]*JobAdmin
 			&j.ID, &j.CompanyID, &j.CompanyName, &j.Title, &j.Slug,
 			&j.City, &j.Province, &j.IsRemote, &j.JobType, &j.ExperienceLevel,
 			&j.SalaryMin, &j.SalaryMax, &j.Status, &j.FlagReason,
-			&j.ViewsCount, &j.ApplicationsCount, &j.CreatedAt,
+			&j.ViewsCount, &j.ApplicationsCount, &j.CreatedAt, &j.DeletedAt,
 		); err != nil {
 			return nil, 0, err
 		}

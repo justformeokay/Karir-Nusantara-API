@@ -63,6 +63,7 @@ type Job struct {
 	ViewsCount          uint64         `db:"views_count" json:"views_count"`
 	ApplicationsCount   uint64         `db:"applications_count" json:"applications_count"`
 	SharesCount         uint64         `db:"shares_count" json:"shares_count"`
+	EditCount           uint64         `db:"edit_count" json:"edit_count"`
 	PublishedAt         sql.NullTime   `db:"published_at" json:"published_at,omitempty"`
 	CreatedAt           time.Time      `db:"created_at" json:"created_at"`
 	UpdatedAt           time.Time      `db:"updated_at" json:"updated_at"`
@@ -126,6 +127,8 @@ type JobResponse struct {
 	ViewsCount          uint64       `json:"views_count"`
 	ApplicationsCount   uint64       `json:"applications_count"`
 	SharesCount         uint64       `json:"shares_count"`
+	EditCount           uint64       `json:"edit_count"`
+	CanEdit             bool         `json:"can_edit"`
 	PublishedAt         string       `json:"published_at,omitempty"`
 	CreatedAt           string       `json:"created_at"`
 	Company             *CompanyInfo `json:"company,omitempty"`
@@ -168,6 +171,8 @@ func (j *Job) ToResponse() *JobResponse {
 		ViewsCount:        j.ViewsCount,
 		ApplicationsCount: j.ApplicationsCount,
 		SharesCount:       j.SharesCount,
+		EditCount:         j.EditCount,
+		CanEdit:           j.EditCount == 0, // Can only edit if not edited before
 		CreatedAt:         j.CreatedAt.Format(time.RFC3339),
 		// Always include raw salary fields for company portal
 		SalaryCurrency:  j.SalaryCurrency,

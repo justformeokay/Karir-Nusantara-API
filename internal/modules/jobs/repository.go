@@ -91,7 +91,7 @@ func (r *mysqlRepository) GetByID(ctx context.Context, id uint64) (*Job, error) 
 		SELECT id, company_id, title, category, slug, description, requirements, responsibilities, benefits,
 			   city, province, is_remote, job_type, experience_level,
 			   salary_min, salary_max, salary_currency, is_salary_visible, is_salary_fixed,
-			   application_deadline, max_applications, status, views_count, applications_count, shares_count,
+			   application_deadline, max_applications, status, views_count, applications_count, shares_count, edit_count,
 			   published_at, created_at, updated_at, deleted_at
 		FROM jobs
 		WHERE id = ? AND deleted_at IS NULL
@@ -114,7 +114,7 @@ func (r *mysqlRepository) GetBySlug(ctx context.Context, slug string) (*Job, err
 		SELECT id, company_id, title, category, slug, description, requirements, responsibilities, benefits,
 			   city, province, is_remote, job_type, experience_level,
 			   salary_min, salary_max, salary_currency, is_salary_visible, is_salary_fixed,
-			   application_deadline, max_applications, status, views_count, applications_count, shares_count,
+			   application_deadline, max_applications, status, views_count, applications_count, shares_count, edit_count,
 			   published_at, created_at, updated_at, deleted_at
 		FROM jobs
 		WHERE slug = ? AND deleted_at IS NULL
@@ -139,11 +139,12 @@ func (r *mysqlRepository) Update(ctx context.Context, job *Job) error {
 			city = ?, province = ?, is_remote = ?, job_type = ?, experience_level = ?,
 			salary_min = ?, salary_max = ?, is_salary_visible = ?, is_salary_fixed = ?,
 			application_deadline = ?, status = ?, published_at = ?,
+			edit_count = edit_count + 1,
 			updated_at = NOW()
 		WHERE id = ? AND deleted_at IS NULL
 	`
 
-	log.Printf("[DEBUG] Updating job ID=%d, Title=%s, Category=%s, Status=%s, SalaryMin=%v, SalaryMax=%v",
+	log.Printf("[DEBUG] Updating job ID=%d, Title=%s, Category=%s, Status=%s, SalaryMin=%v, SalaryMax=%v, Incrementing edit_count",
 		job.ID, job.Title, job.Category, job.Status, job.SalaryMin, job.SalaryMax)
 
 	_, err := r.db.ExecContext(ctx, query,
@@ -254,7 +255,7 @@ func (r *mysqlRepository) List(ctx context.Context, params JobListParams) ([]*Jo
 		SELECT id, company_id, title, category, slug, description, requirements, responsibilities, benefits,
 			   city, province, is_remote, job_type, experience_level,
 			   salary_min, salary_max, salary_currency, is_salary_visible, is_salary_fixed,
-			   application_deadline, max_applications, status, views_count, applications_count, shares_count,
+			   application_deadline, max_applications, status, views_count, applications_count, shares_count, edit_count,
 			   published_at, created_at, updated_at, deleted_at
 		FROM jobs
 		WHERE %s
@@ -318,7 +319,7 @@ func (r *mysqlRepository) ListByCompany(ctx context.Context, companyID uint64, p
 		SELECT id, company_id, title, category, slug, description, requirements, responsibilities, benefits,
 			   city, province, is_remote, job_type, experience_level,
 			   salary_min, salary_max, salary_currency, is_salary_visible, is_salary_fixed,
-			   application_deadline, max_applications, status, views_count, applications_count, shares_count,
+			   application_deadline, max_applications, status, views_count, applications_count, shares_count, edit_count,
 			   published_at, created_at, updated_at, deleted_at
 		FROM jobs
 		WHERE %s

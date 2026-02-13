@@ -505,6 +505,7 @@ CREATE TABLE `jobs` (
   `views_count` int(10) UNSIGNED NOT NULL DEFAULT 0,
   `applications_count` int(10) UNSIGNED NOT NULL DEFAULT 0,
   `shares_count` int(10) UNSIGNED NOT NULL DEFAULT 0,
+  `edit_count` int(10) UNSIGNED NOT NULL DEFAULT 0 COMMENT 'Number of times this job has been edited (max 1 allowed)',
   `published_at` timestamp NULL DEFAULT NULL,
   `created_at` timestamp NOT NULL DEFAULT current_timestamp(),
   `updated_at` timestamp NOT NULL DEFAULT current_timestamp() ON UPDATE current_timestamp(),
