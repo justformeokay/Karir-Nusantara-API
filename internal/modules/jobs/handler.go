@@ -280,6 +280,15 @@ func (h *Handler) List(w http.ResponseWriter, r *http.Request) {
 	if sortOrder := query.Get("sort_order"); sortOrder != "" {
 		params.SortOrder = sortOrder
 	}
+	// Parse status filter - if explicitly provided, override default
+	// Use "all" or empty string to show all statuses (excluding deleted)
+	if status := query.Get("status"); status != "" {
+		if status == "all" {
+			params.Status = "" // Show all statuses
+		} else {
+			params.Status = status
+		}
+	}
 	// Parse company filter - supports both numeric company_id and hash_id
 	if companyIDStr := query.Get("company_id"); companyIDStr != "" {
 		if companyID, err := strconv.ParseUint(companyIDStr, 10, 64); err == nil {
