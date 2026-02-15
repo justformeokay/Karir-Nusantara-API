@@ -24,16 +24,18 @@ const (
 
 // Application represents a job application
 type Application struct {
-	ID               uint64         `db:"id" json:"id"`
-	UserID           uint64         `db:"user_id" json:"user_id"`
-	JobID            uint64         `db:"job_id" json:"job_id"`
-	CVSnapshotID     uint64         `db:"cv_snapshot_id" json:"cv_snapshot_id"`
-	CoverLetter      sql.NullString `db:"cover_letter" json:"cover_letter,omitempty"`
-	CurrentStatus    string         `db:"current_status" json:"current_status"`
-	AppliedAt        time.Time      `db:"applied_at" json:"applied_at"`
-	LastStatusUpdate time.Time      `db:"last_status_update" json:"last_status_update"`
-	CreatedAt        time.Time      `db:"created_at" json:"created_at"`
-	UpdatedAt        time.Time      `db:"updated_at" json:"updated_at"`
+	ID                 uint64         `db:"id" json:"id"`
+	UserID             uint64         `db:"user_id" json:"user_id"`
+	JobID              uint64         `db:"job_id" json:"job_id"`
+	CVSnapshotID       uint64         `db:"cv_snapshot_id" json:"cv_snapshot_id"`
+	CVSource           string         `db:"cv_source" json:"cv_source"`                                 // 'built' or 'uploaded'
+	UploadedDocumentID sql.NullInt64  `db:"uploaded_document_id" json:"uploaded_document_id,omitempty"` // Reference to document if cv_source='uploaded'
+	CoverLetter        sql.NullString `db:"cover_letter" json:"cover_letter,omitempty"`
+	CurrentStatus      string         `db:"current_status" json:"current_status"`
+	AppliedAt          time.Time      `db:"applied_at" json:"applied_at"`
+	LastStatusUpdate   time.Time      `db:"last_status_update" json:"last_status_update"`
+	CreatedAt          time.Time      `db:"created_at" json:"created_at"`
+	UpdatedAt          time.Time      `db:"updated_at" json:"updated_at"`
 
 	// Relationships (loaded separately)
 	Job        *JobInfo        `db:"-" json:"job,omitempty"`
@@ -110,8 +112,10 @@ type TimelineEvent struct {
 
 // ApplyJobRequest represents a job application request
 type ApplyJobRequest struct {
-	JobID       uint64 `json:"job_id" validate:"required"`
-	CoverLetter string `json:"cover_letter,omitempty"`
+	JobID              uint64 `json:"job_id" validate:"required"`
+	CoverLetter        string `json:"cover_letter,omitempty"`
+	CVSource           string `json:"cv_source,omitempty" validate:"omitempty,oneof=built uploaded"`                     // Optional: 'built' or 'uploaded', defaults to 'built'
+	UploadedDocumentID uint64 `json:"uploaded_document_id,omitempty" validate:"omitempty,required_if=CVSource uploaded"` // Required if cv_source='uploaded'
 }
 
 // UpdateStatusRequest represents a status update request (by company)

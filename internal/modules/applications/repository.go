@@ -45,16 +45,16 @@ func NewRepository(db *sqlx.DB) Repository {
 func (r *mysqlRepository) Create(ctx context.Context, app *Application) error {
 	query := `
 		INSERT INTO applications (
-			user_id, job_id, cv_snapshot_id, cover_letter, current_status,
+			user_id, job_id, cv_snapshot_id, cv_source, uploaded_document_id, cover_letter, current_status,
 			applied_at, last_status_update, created_at, updated_at
 		) VALUES (
-			?, ?, ?, ?, ?,
+			?, ?, ?, ?, ?, ?, ?,
 			NOW(), NOW(), NOW(), NOW()
 		)
 	`
 
 	result, err := r.db.ExecContext(ctx, query,
-		app.UserID, app.JobID, app.CVSnapshotID, app.CoverLetter, app.CurrentStatus,
+		app.UserID, app.JobID, app.CVSnapshotID, app.CVSource, app.UploadedDocumentID, app.CoverLetter, app.CurrentStatus,
 	)
 	if err != nil {
 		return fmt.Errorf("failed to create application: %w", err)
@@ -72,7 +72,7 @@ func (r *mysqlRepository) Create(ctx context.Context, app *Application) error {
 // GetByID retrieves an application by ID
 func (r *mysqlRepository) GetByID(ctx context.Context, id uint64) (*Application, error) {
 	query := `
-		SELECT id, user_id, job_id, cv_snapshot_id, cover_letter, current_status,
+		SELECT id, user_id, job_id, cv_snapshot_id, cv_source, uploaded_document_id, cover_letter, current_status,
 			   applied_at, last_status_update, created_at, updated_at
 		FROM applications
 		WHERE id = ?
@@ -92,7 +92,7 @@ func (r *mysqlRepository) GetByID(ctx context.Context, id uint64) (*Application,
 // GetByUserAndJob retrieves an application by user and job ID
 func (r *mysqlRepository) GetByUserAndJob(ctx context.Context, userID, jobID uint64) (*Application, error) {
 	query := `
-		SELECT id, user_id, job_id, cv_snapshot_id, cover_letter, current_status,
+		SELECT id, user_id, job_id, cv_snapshot_id, cv_source, uploaded_document_id, cover_letter, current_status,
 			   applied_at, last_status_update, created_at, updated_at
 		FROM applications
 		WHERE user_id = ? AND job_id = ?
@@ -185,7 +185,7 @@ func (r *mysqlRepository) List(ctx context.Context, params ApplicationListParams
 
 	offset := (params.Page - 1) * params.PerPage
 	query := fmt.Sprintf(`
-		SELECT a.id, a.user_id, a.job_id, a.cv_snapshot_id, a.cover_letter, a.current_status,
+		SELECT a.id, a.user_id, a.job_id, a.cv_snapshot_id, a.cv_source, a.uploaded_document_id, a.cover_letter, a.current_status,
 			   a.applied_at, a.last_status_update, a.created_at, a.updated_at
 		FROM applications a
 		JOIN jobs j ON a.job_id = j.id

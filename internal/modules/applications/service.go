@@ -70,12 +70,24 @@ func (s *service) Apply(ctx context.Context, userID uint64, req *ApplyJobRequest
 		return nil, apperrors.NewInternalError("Failed to create CV snapshot", err)
 	}
 
+	// Determine CV source (default to 'built' if not specified)
+	cvSource := req.CVSource
+	if cvSource == "" {
+		cvSource = "built"
+	}
+
 	// Create application
 	app := &Application{
 		UserID:        userID,
 		JobID:         req.JobID,
 		CVSnapshotID:  snapshot.ID,
+		CVSource:      cvSource,
 		CurrentStatus: StatusSubmitted,
+	}
+
+	// Set uploaded document ID if cv_source is 'uploaded'
+	if cvSource == "uploaded" && req.UploadedDocumentID > 0 {
+		app.UploadedDocumentID = sql.NullInt64{Int64: int64(req.UploadedDocumentID), Valid: true}
 	}
 
 	if req.CoverLetter != "" {
