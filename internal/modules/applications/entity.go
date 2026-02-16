@@ -38,10 +38,20 @@ type Application struct {
 	UpdatedAt          time.Time      `db:"updated_at" json:"updated_at"`
 
 	// Relationships (loaded separately)
-	Job        *JobInfo        `db:"-" json:"job,omitempty"`
-	Applicant  *ApplicantInfo  `db:"-" json:"applicant,omitempty"`
-	CVSnapshot *CVSnapshotInfo `db:"-" json:"cv_snapshot,omitempty"`
-	Timeline   []TimelineEvent `db:"-" json:"timeline,omitempty"`
+	Job              *JobInfo              `db:"-" json:"job,omitempty"`
+	Applicant        *ApplicantInfo        `db:"-" json:"applicant,omitempty"`
+	CVSnapshot       *CVSnapshotInfo       `db:"-" json:"cv_snapshot,omitempty"`
+	Timeline         []TimelineEvent       `db:"-" json:"timeline,omitempty"`
+	UploadedDocument *UploadedDocumentInfo `db:"-" json:"uploaded_document,omitempty"`
+}
+
+// UploadedDocumentInfo represents uploaded CV document information
+type UploadedDocumentInfo struct {
+	ID       uint64 `json:"id"`
+	Name     string `json:"name"`
+	URL      string `json:"url"`
+	FileSize int64  `json:"file_size,omitempty"`
+	MimeType string `json:"mime_type,omitempty"`
 }
 
 // JobInfo represents minimal job information for application
@@ -65,12 +75,16 @@ type CompanyInfo struct {
 
 // ApplicantInfo represents minimal applicant information
 type ApplicantInfo struct {
-	ID        uint64 `json:"id"`
-	HashID    string `json:"hash_id"`
-	Name      string `json:"name"`
-	Email     string `json:"email"`
-	Phone     string `json:"phone,omitempty"`
-	AvatarURL string `json:"avatar_url,omitempty"`
+	ID                uint64 `json:"id"`
+	HashID            string `json:"hash_id"`
+	Name              string `json:"name"`
+	Email             string `json:"email"`
+	Phone             string `json:"phone,omitempty"`
+	AvatarURL         string `json:"avatar_url,omitempty"`
+	City              string `json:"city,omitempty"`
+	Province          string `json:"province,omitempty"`
+	ExpectedSalaryMin *int64 `json:"expected_salary_min,omitempty"`
+	ExpectedSalaryMax *int64 `json:"expected_salary_max,omitempty"`
 }
 
 // CVSnapshotInfo represents CV snapshot information
@@ -169,6 +183,8 @@ type ApplicationResponse struct {
 	Job              *JobInfo                `json:"job"`
 	Applicant        *ApplicantInfo          `json:"applicant,omitempty"`
 	CVSnapshot       *CVSnapshotInfo         `json:"cv_snapshot,omitempty"`
+	CVSource         string                  `json:"cv_source"`                   // 'built' or 'uploaded'
+	UploadedDocument *UploadedDocumentInfo   `json:"uploaded_document,omitempty"` // Present if cv_source='uploaded'
 	CoverLetter      string                  `json:"cover_letter,omitempty"`
 	CurrentStatus    string                  `json:"current_status"`
 	StatusLabel      string                  `json:"status_label"`
@@ -204,6 +220,8 @@ func (a *Application) ToResponse() *ApplicationResponse {
 		Job:              a.Job,
 		Applicant:        a.Applicant,
 		CVSnapshot:       a.CVSnapshot,
+		CVSource:         a.CVSource,
+		UploadedDocument: a.UploadedDocument,
 		CurrentStatus:    a.CurrentStatus,
 		StatusLabel:      GetStatusLabel(a.CurrentStatus),
 		AppliedAt:        a.AppliedAt.Format(time.RFC3339),

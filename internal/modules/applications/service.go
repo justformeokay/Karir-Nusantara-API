@@ -432,6 +432,15 @@ func (s *service) loadApplicationRelations(ctx context.Context, app *Application
 	}
 	app.CVSnapshot = snapshot
 
+	// Load uploaded document info if cv_source is 'uploaded'
+	if app.CVSource == "uploaded" && app.UploadedDocumentID.Valid {
+		uploadedDoc, err := s.repo.GetUploadedDocumentInfo(ctx, uint64(app.UploadedDocumentID.Int64))
+		if err != nil {
+			return apperrors.NewInternalError("Failed to load uploaded document info", err)
+		}
+		app.UploadedDocument = uploadedDoc
+	}
+
 	// Load timeline
 	var timeline []TimelineEvent
 	if isCompany {

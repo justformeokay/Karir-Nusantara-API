@@ -29,6 +29,7 @@ type Repository interface {
 	GetJobInfo(ctx context.Context, jobID uint64) (*JobInfo, error)
 	GetApplicantInfo(ctx context.Context, userID uint64) (*ApplicantInfo, error)
 	GetCVSnapshotInfo(ctx context.Context, snapshotID uint64) (*CVSnapshotInfo, error)
+	GetUploadedDocumentInfo(ctx context.Context, documentID uint64) (*UploadedDocumentInfo, error)
 	GetCompanyIDByUserID(ctx context.Context, userID uint64) (uint64, error)
 }
 
@@ -318,14 +319,25 @@ func (r *mysqlRepository) GetJobInfo(ctx context.Context, jobID uint64) (*JobInf
 
 // GetApplicantInfo retrieves applicant info
 func (r *mysqlRepository) GetApplicantInfo(ctx context.Context, userID uint64) (*ApplicantInfo, error) {
-	query := `SELECT id, full_name, email, phone, avatar_url FROM users WHERE id = ?`
+	query := `
+		SELECT 
+			u.id, u.full_name, u.email, u.phone, u.avatar_url,
+			ap.expected_salary_min, ap.expected_salary_max, ap.city, ap.province
+		FROM users u
+		LEFT JOIN applicant_profiles ap ON u.id = ap.user_id
+		WHERE u.id = ?
+	`
 
 	var result struct {
-		ID        uint64         `db:"id"`
-		Name      string         `db:"full_name"`
-		Email     string         `db:"email"`
-		Phone     sql.NullString `db:"phone"`
-		AvatarURL sql.NullString `db:"avatar_url"`
+		ID                uint64         `db:"id"`
+		Name              string         `db:"full_name"`
+		Email             string         `db:"email"`
+		Phone             sql.NullString `db:"phone"`
+		AvatarURL         sql.NullString `db:"avatar_url"`
+		City              sql.NullString `db:"city"`
+		Province          sql.NullString `db:"province"`
+		ExpectedSalaryMin sql.NullInt64  `db:"expected_salary_min"`
+		ExpectedSalaryMax sql.NullInt64  `db:"expected_salary_max"`
 	}
 
 	if err := r.db.GetContext(ctx, &result, query, userID); err != nil {
@@ -335,13 +347,27 @@ func (r *mysqlRepository) GetApplicantInfo(ctx context.Context, userID uint64) (
 		return nil, fmt.Errorf("failed to get applicant info: %w", err)
 	}
 
-	return &ApplicantInfo{
+	applicantInfo := &ApplicantInfo{
 		ID:        result.ID,
 		Name:      result.Name,
 		Email:     result.Email,
 		Phone:     result.Phone.String,
 		AvatarURL: result.AvatarURL.String,
-	}, nil
+		City:      result.City.String,
+		Province:  result.Province.String,
+	}
+
+	// Add expected salary if available
+	if result.ExpectedSalaryMin.Valid {
+		min := result.ExpectedSalaryMin.Int64
+		applicantInfo.ExpectedSalaryMin = &min
+	}
+	if result.ExpectedSalaryMax.Valid {
+		max := result.ExpectedSalaryMax.Int64
+		applicantInfo.ExpectedSalaryMax = &max
+	}
+
+	return applicantInfo, nil
 }
 
 // GetCVSnapshotInfo retrieves CV snapshot info with full details
@@ -411,4 +437,43 @@ func (r *mysqlRepository) GetCompanyIDByUserID(ctx context.Context, userID uint6
 		return 0, fmt.Errorf("failed to get company ID: %w", err)
 	}
 	return companyID, nil
+}
+
+// GetUploadedDocumentInfo retrieves uploaded document info by ID
+func (r *mysqlRepository) GetUploadedDocumentInfo(ctx context.Context, documentID uint64) (*UploadedDocumentInfo, error) {
+	query := `
+		SELECT id, document_name, document_url, file_size, mime_type
+		FROM applicant_documents
+		WHERE id = ?
+	`
+
+	var doc struct {
+		ID       uint64         `db:"id"`
+		Name     string         `db:"document_name"`
+		URL      string         `db:"document_url"`
+		FileSize sql.NullInt64  `db:"file_size"`
+		MimeType sql.NullString `db:"mime_type"`
+	}
+
+	if err := r.db.GetContext(ctx, &doc, query, documentID); err != nil {
+		if errors.Is(err, sql.ErrNoRows) {
+			return nil, nil
+		}
+		return nil, fmt.Errorf("failed to get uploaded document info: %w", err)
+	}
+
+	result := &UploadedDocumentInfo{
+		ID:   doc.ID,
+		Name: doc.Name,
+		URL:  doc.URL,
+	}
+
+	if doc.FileSize.Valid {
+		result.FileSize = doc.FileSize.Int64
+	}
+	if doc.MimeType.Valid {
+		result.MimeType = doc.MimeType.String
+	}
+
+	return result, nil
 }
