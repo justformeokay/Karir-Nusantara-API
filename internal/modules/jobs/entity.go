@@ -305,6 +305,7 @@ type JobListParams struct {
 	Status          string   `json:"status"`
 	SortBy          string   `json:"sort_by"`
 	SortOrder       string   `json:"sort_order"`
+	ExcludeExpired  bool     `json:"exclude_expired"` // Filter out jobs past application_deadline
 }
 
 // DefaultJobListParams returns default list parameters

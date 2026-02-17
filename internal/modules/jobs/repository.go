@@ -230,6 +230,11 @@ func (r *mysqlRepository) List(ctx context.Context, params JobListParams) ([]*Jo
 		args = append(args, *params.CompanyID)
 	}
 
+	// Filter expired jobs (for recommendations)
+	if params.ExcludeExpired {
+		conditions = append(conditions, "(application_deadline IS NULL OR application_deadline > NOW())")
+	}
+
 	whereClause := strings.Join(conditions, " AND ")
 
 	// Count total

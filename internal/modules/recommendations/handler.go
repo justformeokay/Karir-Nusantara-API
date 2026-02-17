@@ -113,6 +113,7 @@ func (h *Handler) GetRecommendations(w http.ResponseWriter, r *http.Request) {
 	params := jobs.DefaultJobListParams()
 	params.PerPage = 100 // Get more jobs for recommendations
 	params.Status = jobs.JobStatusActive
+	params.ExcludeExpired = true // Filter out expired jobs
 
 	jobResponses, _, err := h.jobsService.List(r.Context(), params)
 	if err != nil {
