@@ -23,6 +23,7 @@ import (
 	"github.com/karirnusantara/api/internal/modules/company"
 	"github.com/karirnusantara/api/internal/modules/cvs"
 	"github.com/karirnusantara/api/internal/modules/dashboard"
+	"github.com/karirnusantara/api/internal/modules/jobreports"
 	"github.com/karirnusantara/api/internal/modules/jobs"
 	"github.com/karirnusantara/api/internal/modules/partner"
 	"github.com/karirnusantara/api/internal/modules/passwordreset"
@@ -81,7 +82,7 @@ func main() {
 	ticketsRepo := tickets.NewRepository(db)
 	passwordResetRepo := passwordreset.NewRepository(db)
 	partnerRepo := partner.NewRepository(db)
-
+	jobreportsRepo := jobreports.NewRepository(db)
 	// Initialize other services
 	quotaService := quota.NewService(quotaRepo)
 	jobsService := jobs.NewServiceWithEmail(jobsRepo, companyRepo, quotaService, emailService)
@@ -94,6 +95,7 @@ func main() {
 	profileService := profile.NewService(profileRepo)
 	passwordResetService := passwordreset.NewService(passwordResetRepo, emailService)
 	ticketsService := tickets.NewService(ticketsRepo)
+	jobreportsService := jobreports.NewService(jobreportsRepo)
 
 	// Create partner email adapter
 	partnerEmailAdapter := &PartnerEmailAdapter{emailService: emailService}
@@ -114,6 +116,7 @@ func main() {
 	profileHandler := profile.NewHandler(profileService, v, "./docs")
 	passwordResetHandler := passwordreset.NewHandler(passwordResetService)
 	ticketsHandler := tickets.NewHandler(ticketsService, v)
+	jobreportsHandler := jobreports.NewHandler(jobreportsService, v)
 
 	// Initialize recommendations module
 	recommendationsService := recommendations.NewService()
@@ -168,6 +171,7 @@ func main() {
 		recommendations.RegisterRoutes(r, recommendationsHandler, authMiddleware.Authenticate)
 		passwordreset.RegisterRoutes(r, passwordResetHandler)
 		tickets.RegisterRoutes(r, ticketsHandler, authMiddleware)
+		jobreports.RegisterRoutes(r, jobreportsHandler, authMiddleware)
 
 		// Partner module routes
 		partner.RegisterRoutes(r, partnerHandler, partnerMiddleware)
