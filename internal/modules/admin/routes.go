@@ -7,6 +7,7 @@ import (
 	"github.com/karirnusantara/api/internal/config"
 	"github.com/karirnusantara/api/internal/middleware"
 	"github.com/karirnusantara/api/internal/modules/announcements"
+	"github.com/karirnusantara/api/internal/modules/interviewtests"
 	"github.com/karirnusantara/api/internal/modules/quota"
 	"github.com/karirnusantara/api/internal/shared/email"
 	"github.com/karirnusantara/api/internal/shared/invoice"
@@ -14,10 +15,11 @@ import (
 
 // Module represents the admin module
 type Module struct {
-	handler             *Handler
-	partnerHandler      *PartnerHandler
-	authMiddleware      *middleware.AuthMiddleware
-	announcementsModule *announcements.Module
+	handler              *Handler
+	partnerHandler       *PartnerHandler
+	authMiddleware       *middleware.AuthMiddleware
+	announcementsModule  *announcements.Module
+	interviewTestsModule *interviewtests.Module
 }
 
 // NewModule creates a new admin module
@@ -46,11 +48,15 @@ func NewModuleWithQuota(db *sqlx.DB, cfg *config.Config, authMiddleware *middlew
 	// Initialize announcements module
 	announcementsModule := announcements.NewModule(db, authMiddleware)
 
+	// Initialize interview tests module
+	interviewTestsModule := interviewtests.NewModule(db)
+
 	return &Module{
-		handler:             handler,
-		partnerHandler:      partnerHandler,
-		authMiddleware:      authMiddleware,
-		announcementsModule: announcementsModule,
+		handler:              handler,
+		partnerHandler:       partnerHandler,
+		authMiddleware:       authMiddleware,
+		announcementsModule:  announcementsModule,
+		interviewTestsModule: interviewTestsModule,
 	}
 }
 
@@ -110,6 +116,11 @@ func (m *Module) RegisterRoutes(r chi.Router) {
 			// Announcements management (notifications, banners, information)
 			if m.announcementsModule != nil {
 				m.announcementsModule.RegisterAdminRoutes(r)
+			}
+
+			// Interview Tests management (psychometric tests, interview questions)
+			if m.interviewTestsModule != nil {
+				m.interviewTestsModule.RegisterAdminRoutes(r)
 			}
 
 			// Partner management (referral & affiliate)
