@@ -25,9 +25,10 @@ func (r *Repository) Create(ctx context.Context, test *InterviewTest) error {
 	query := `
 		INSERT INTO interview_tests (
 			title, description, duration_minutes, passing_score,
-			shuffle_questions, show_results_immediately, status, created_by,
+			shuffle_questions, show_results_immediately, status,
+			owner_type, owner_company_id, is_public, created_by,
 			created_at, updated_at
-		) VALUES (?, ?, ?, ?, ?, ?, ?, ?, NOW(), NOW())
+		) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, NOW(), NOW())
 	`
 
 	result, err := r.db.ExecContext(ctx, query,
@@ -38,6 +39,9 @@ func (r *Repository) Create(ctx context.Context, test *InterviewTest) error {
 		test.ShuffleQuestions,
 		test.ShowResultsImmediately,
 		test.Status,
+		test.OwnerType,
+		test.OwnerCompanyID,
+		test.IsPublic,
 		test.CreatedBy,
 	)
 	if err != nil {
@@ -296,4 +300,51 @@ func (r *Repository) DeleteOptionsByQuestionID(ctx context.Context, questionID u
 	}
 
 	return nil
+}
+
+// GetPublicAdminTests retrieves all public tests created by super_admin
+func (r *Repository) GetPublicAdminTests(ctx context.Context) ([]*InterviewTest, error) {
+	var tests []*InterviewTest
+	query := `
+		SELECT * FROM interview_tests 
+		WHERE deleted_at IS NULL 
+		  AND owner_type = 'super_admin' 
+		  AND is_public = 1 
+		  AND status = 'active'
+		ORDER BY created_at DESC
+	`
+
+	err := r.db.SelectContext(ctx, &tests, query)
+	if err != nil {
+		return nil, fmt.Errorf("failed to get public admin tests: %w", err)
+	}
+
+	return tests, nil
+}
+
+// GetByCompanyID retrieves all tests owned by a specific company
+func (r *Repository) GetByCompanyID(ctx context.Context, companyID uint64, status string) ([]*InterviewTest, error) {
+	var tests []*InterviewTest
+
+	query := `
+		SELECT * FROM interview_tests 
+		WHERE deleted_at IS NULL 
+		  AND owner_type = 'company' 
+		  AND owner_company_id = ?
+	`
+	args := []interface{}{companyID}
+
+	if status != "" {
+		query += ` AND status = ?`
+		args = append(args, status)
+	}
+
+	query += ` ORDER BY created_at DESC`
+
+	err := r.db.SelectContext(ctx, &tests, query, args...)
+	if err != nil {
+		return nil, fmt.Errorf("failed to get company tests: %w", err)
+	}
+
+	return tests, nil
 }

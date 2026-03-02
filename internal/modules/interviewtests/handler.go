@@ -207,3 +207,183 @@ func handleServiceError(w http.ResponseWriter, err error) {
 		response.Error(w, http.StatusInternalServerError, "INTERNAL_ERROR", err.Error())
 	}
 }
+
+// =============== Company Handler ===============
+
+// CompanyServiceInterface defines the interface for company service used by company interview test handler
+type CompanyServiceInterface interface {
+	GetCompanyIDByUserID(ctx context.Context, userID uint64) (uint64, error)
+}
+
+// CompanyHandler handles HTTP requests for company interview tests
+type CompanyHandler struct {
+	service        *Service
+	companyService CompanyServiceInterface
+}
+
+// NewCompanyHandler creates a new company interview tests handler
+func NewCompanyHandler(service *Service, companyService CompanyServiceInterface) *CompanyHandler {
+	return &CompanyHandler{service: service, companyService: companyService}
+}
+
+// getCompanyIDFromContext resolves company ID for the authenticated user
+func (h *CompanyHandler) getCompanyIDFromContext(r *http.Request) (uint64, uint64, error) {
+	userID := getAdminIDFromContext(r)
+	if userID == 0 {
+		return 0, 0, errors.New("unauthorized")
+	}
+	companyID, err := h.companyService.GetCompanyIDByUserID(r.Context(), userID)
+	if err != nil {
+		return 0, 0, err
+	}
+	if companyID == 0 {
+		return 0, 0, errors.New("company not found")
+	}
+	return userID, companyID, nil
+}
+
+// GetLibrary handles GET /company/interview-tests/library
+func (h *CompanyHandler) GetLibrary(w http.ResponseWriter, r *http.Request) {
+	results, err := h.service.GetPublicAdminTests(r.Context())
+	if err != nil {
+		handleServiceError(w, err)
+		return
+	}
+	response.Success(w, http.StatusOK, "Library retrieved successfully", results)
+}
+
+// GetMyTests handles GET /company/interview-tests
+func (h *CompanyHandler) GetMyTests(w http.ResponseWriter, r *http.Request) {
+	_, companyID, err := h.getCompanyIDFromContext(r)
+	if err != nil {
+		response.Error(w, http.StatusUnauthorized, "UNAUTHORIZED", err.Error())
+		return
+	}
+
+	status := r.URL.Query().Get("status")
+	results, err := h.service.GetByCompanyID(r.Context(), companyID, status)
+	if err != nil {
+		handleServiceError(w, err)
+		return
+	}
+	response.Success(w, http.StatusOK, "Interview tests retrieved successfully", results)
+}
+
+// CreateMyTest handles POST /company/interview-tests
+func (h *CompanyHandler) CreateMyTest(w http.ResponseWriter, r *http.Request) {
+	userID, companyID, err := h.getCompanyIDFromContext(r)
+	if err != nil {
+		response.Error(w, http.StatusUnauthorized, "UNAUTHORIZED", err.Error())
+		return
+	}
+
+	var req CreateInterviewTestRequest
+	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
+		response.Error(w, http.StatusBadRequest, "INVALID_REQUEST", "Invalid request body")
+		return
+	}
+
+	result, err := h.service.CreateForCompany(r.Context(), req, companyID, userID)
+	if err != nil {
+		handleServiceError(w, err)
+		return
+	}
+	response.Success(w, http.StatusCreated, "Interview test created successfully", result)
+}
+
+// UpdateMyTest handles PUT /company/interview-tests/{id}
+func (h *CompanyHandler) UpdateMyTest(w http.ResponseWriter, r *http.Request) {
+	idStr := chi.URLParam(r, "id")
+	id, err := strconv.ParseUint(idStr, 10, 64)
+	if err != nil {
+		response.Error(w, http.StatusBadRequest, "INVALID_ID", "Invalid test ID")
+		return
+	}
+
+	userID, companyID, err := h.getCompanyIDFromContext(r)
+	if err != nil {
+		response.Error(w, http.StatusUnauthorized, "UNAUTHORIZED", err.Error())
+		return
+	}
+
+	var req UpdateInterviewTestRequest
+	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
+		response.Error(w, http.StatusBadRequest, "INVALID_REQUEST", "Invalid request body")
+		return
+	}
+
+	result, err := h.service.UpdateForCompany(r.Context(), id, req, companyID, userID)
+	if err != nil {
+		handleServiceError(w, err)
+		return
+	}
+	response.Success(w, http.StatusOK, "Interview test updated successfully", result)
+}
+
+// DeleteMyTest handles DELETE /company/interview-tests/{id}
+func (h *CompanyHandler) DeleteMyTest(w http.ResponseWriter, r *http.Request) {
+	idStr := chi.URLParam(r, "id")
+	id, err := strconv.ParseUint(idStr, 10, 64)
+	if err != nil {
+		response.Error(w, http.StatusBadRequest, "INVALID_ID", "Invalid test ID")
+		return
+	}
+
+	_, companyID, err := h.getCompanyIDFromContext(r)
+	if err != nil {
+		response.Error(w, http.StatusUnauthorized, "UNAUTHORIZED", err.Error())
+		return
+	}
+
+	if err := h.service.DeleteForCompany(r.Context(), id, companyID); err != nil {
+		handleServiceError(w, err)
+		return
+	}
+	response.Success(w, http.StatusOK, "Interview test deleted successfully", nil)
+}
+
+// PublishMyTest handles POST /company/interview-tests/{id}/publish
+func (h *CompanyHandler) PublishMyTest(w http.ResponseWriter, r *http.Request) {
+	idStr := chi.URLParam(r, "id")
+	id, err := strconv.ParseUint(idStr, 10, 64)
+	if err != nil {
+		response.Error(w, http.StatusBadRequest, "INVALID_ID", "Invalid test ID")
+		return
+	}
+
+	userID, companyID, err := h.getCompanyIDFromContext(r)
+	if err != nil {
+		response.Error(w, http.StatusUnauthorized, "UNAUTHORIZED", err.Error())
+		return
+	}
+
+	result, err := h.service.PublishForCompany(r.Context(), id, companyID, userID)
+	if err != nil {
+		handleServiceError(w, err)
+		return
+	}
+	response.Success(w, http.StatusOK, "Interview test published successfully", result)
+}
+
+// CopyFromAdmin handles POST /company/interview-tests/{id}/copy
+func (h *CompanyHandler) CopyFromAdmin(w http.ResponseWriter, r *http.Request) {
+	idStr := chi.URLParam(r, "id")
+	id, err := strconv.ParseUint(idStr, 10, 64)
+	if err != nil {
+		response.Error(w, http.StatusBadRequest, "INVALID_ID", "Invalid test ID")
+		return
+	}
+
+	userID, companyID, err := h.getCompanyIDFromContext(r)
+	if err != nil {
+		response.Error(w, http.StatusUnauthorized, "UNAUTHORIZED", err.Error())
+		return
+	}
+
+	result, err := h.service.CopyFromAdmin(r.Context(), id, companyID, userID)
+	if err != nil {
+		handleServiceError(w, err)
+		return
+	}
+	response.Success(w, http.StatusCreated, "Test copied successfully", result)
+}

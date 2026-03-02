@@ -23,6 +23,7 @@ import (
 	"github.com/karirnusantara/api/internal/modules/company"
 	"github.com/karirnusantara/api/internal/modules/cvs"
 	"github.com/karirnusantara/api/internal/modules/dashboard"
+	"github.com/karirnusantara/api/internal/modules/interviewtests"
 	"github.com/karirnusantara/api/internal/modules/jobreports"
 	"github.com/karirnusantara/api/internal/modules/jobs"
 	"github.com/karirnusantara/api/internal/modules/partner"
@@ -175,6 +176,10 @@ func main() {
 
 		// Partner module routes
 		partner.RegisterRoutes(r, partnerHandler, partnerMiddleware)
+
+		// Company interview tests module routes
+		companyInterviewTestsModule := interviewtests.NewCompanyModule(db, companyService)
+		companyInterviewTestsModule.RegisterRoutes(r, authMiddleware.Authenticate)
 
 		// Admin module routes
 		adminModule := admin.NewModuleWithQuota(db, cfg, authMiddleware, quotaService, emailService, invoiceService)

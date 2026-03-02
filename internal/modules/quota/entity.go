@@ -14,18 +14,18 @@ const (
 
 // Constants
 const (
-	FreeQuotaLimit = 10         // Free job postings per company
-	PricePerJob    = 10000      // IDR 10,000 per additional job
+	FreeQuotaLimit = 3     // Free job postings per company
+	PricePerJob    = 20000 // IDR 20,000 per additional job
 )
 
 // TopUpPackage represents a top-up package option
 type TopUpPackage struct {
 	ID          string `json:"id"`
 	Name        string `json:"name"`
-	Quota       int    `json:"quota"`       // Number of job posts purchased
-	BonusQuota  int    `json:"bonus_quota"` // Bonus job posts
-	TotalQuota  int    `json:"total_quota"` // Total quota received
-	Price       int64  `json:"price"`       // Price in IDR
+	Quota       int    `json:"quota"`         // Number of job posts purchased
+	BonusQuota  int    `json:"bonus_quota"`   // Bonus job posts
+	TotalQuota  int    `json:"total_quota"`   // Total quota received
+	Price       int64  `json:"price"`         // Price in IDR
 	PricePerJob int64  `json:"price_per_job"` // Effective price per job
 	IsBestValue bool   `json:"is_best_value"` // Highlight as best value
 	Description string `json:"description"`
@@ -40,8 +40,8 @@ func GetTopUpPackages() []TopUpPackage {
 			Quota:       1,
 			BonusQuota:  0,
 			TotalQuota:  1,
-			Price:       10000,
-			PricePerJob: 10000,
+			Price:       20000,
+			PricePerJob: 20000,
 			IsBestValue: false,
 			Description: "Bayar untuk 1 lowongan",
 		},
@@ -51,8 +51,8 @@ func GetTopUpPackages() []TopUpPackage {
 			Quota:       5,
 			BonusQuota:  0,
 			TotalQuota:  5,
-			Price:       50000,
-			PricePerJob: 10000,
+			Price:       100000,
+			PricePerJob: 20000,
 			IsBestValue: false,
 			Description: "Hemat waktu, beli 5 sekaligus",
 		},
@@ -62,10 +62,10 @@ func GetTopUpPackages() []TopUpPackage {
 			Quota:       10,
 			BonusQuota:  2,
 			TotalQuota:  12,
-			Price:       100000,
-			PricePerJob: 8333, // 100000 / 12
+			Price:       200000,
+			PricePerJob: 16667, // 200000 / 12 dibulatkan
 			IsBestValue: true,
-			Description: "Beli 10 dapat 12! Hemat Rp 20.000",
+			Description: "Beli 10 dapat 12! Hemat Rp 40.000",
 		},
 		{
 			ID:          "pack20",
@@ -73,10 +73,10 @@ func GetTopUpPackages() []TopUpPackage {
 			Quota:       20,
 			BonusQuota:  5,
 			TotalQuota:  25,
-			Price:       200000,
-			PricePerJob: 8000, // 200000 / 25
+			Price:       400000,
+			PricePerJob: 16000, // 400000 / 25
 			IsBestValue: false,
-			Description: "Beli 20 dapat 25! Hemat Rp 50.000",
+			Description: "Beli 20 dapat 25! Hemat Rp 100.000",
 		},
 	}
 }
@@ -93,12 +93,12 @@ func GetPackageByID(id string) *TopUpPackage {
 
 // CompanyQuota represents a company's job posting quota
 type CompanyQuota struct {
-	ID              uint64    `db:"id" json:"id"`
-	CompanyID       uint64    `db:"company_id" json:"company_id"`
-	FreeQuotaUsed   int       `db:"free_quota_used" json:"free_quota_used"`
-	PaidQuota       int       `db:"paid_quota" json:"paid_quota"`
-	CreatedAt       time.Time `db:"created_at" json:"created_at"`
-	UpdatedAt       time.Time `db:"updated_at" json:"updated_at"`
+	ID            uint64    `db:"id" json:"id"`
+	CompanyID     uint64    `db:"company_id" json:"company_id"`
+	FreeQuotaUsed int       `db:"free_quota_used" json:"free_quota_used"`
+	PaidQuota     int       `db:"paid_quota" json:"paid_quota"`
+	CreatedAt     time.Time `db:"created_at" json:"created_at"`
+	UpdatedAt     time.Time `db:"updated_at" json:"updated_at"`
 }
 
 // Payment represents a payment for job posting quota

@@ -41,6 +41,14 @@ const (
 	SubmissionCompleted  SubmissionStatus = "completed"
 )
 
+// OwnerType represents the type of owner for an interview test
+type OwnerType string
+
+const (
+	OwnerSuperAdmin OwnerType = "super_admin"
+	OwnerCompany    OwnerType = "company"
+)
+
 // InterviewTest represents an interview test entity
 type InterviewTest struct {
 	ID                     uint64              `db:"id" json:"id"`
@@ -52,6 +60,9 @@ type InterviewTest struct {
 	ShuffleQuestions       bool                `db:"shuffle_questions" json:"shuffle_questions"`
 	ShowResultsImmediately bool                `db:"show_results_immediately" json:"show_results_immediately"`
 	Status                 InterviewTestStatus `db:"status" json:"status"`
+	OwnerType              OwnerType           `db:"owner_type" json:"owner_type"`
+	OwnerCompanyID         sql.NullInt64       `db:"owner_company_id" json:"owner_company_id,omitempty"`
+	IsPublic               bool                `db:"is_public" json:"is_public"`
 	CreatedBy              uint64              `db:"created_by" json:"created_by"`
 	UpdatedBy              sql.NullInt64       `db:"updated_by" json:"updated_by,omitempty"`
 	CreatedAt              time.Time           `db:"created_at" json:"created_at"`
@@ -132,6 +143,9 @@ type InterviewTestResponse struct {
 	ShuffleQuestions       bool                        `json:"shuffle_questions"`
 	ShowResultsImmediately bool                        `json:"show_results_immediately"`
 	Status                 string                      `json:"status"`
+	OwnerType              string                      `json:"owner_type"`
+	OwnerCompanyID         *int64                      `json:"owner_company_id,omitempty"`
+	IsPublic               bool                        `json:"is_public"`
 	Questions              []InterviewQuestionResponse `json:"questions,omitempty"`
 	CreatedBy              uint64                      `json:"created_by"`
 	CreatedAt              string                      `json:"created_at"`
@@ -160,7 +174,7 @@ type QuestionOptionResponse struct {
 
 // ToResponse converts InterviewTest to InterviewTestResponse
 func (t *InterviewTest) ToResponse() InterviewTestResponse {
-	return InterviewTestResponse{
+	resp := InterviewTestResponse{
 		ID:                     t.ID,
 		Title:                  t.Title,
 		Description:            t.Description,
@@ -170,10 +184,16 @@ func (t *InterviewTest) ToResponse() InterviewTestResponse {
 		ShuffleQuestions:       t.ShuffleQuestions,
 		ShowResultsImmediately: t.ShowResultsImmediately,
 		Status:                 string(t.Status),
+		OwnerType:              string(t.OwnerType),
+		IsPublic:               t.IsPublic,
 		CreatedBy:              t.CreatedBy,
 		CreatedAt:              t.CreatedAt.Format(time.RFC3339),
 		UpdatedAt:              t.UpdatedAt.Format(time.RFC3339),
 	}
+	if t.OwnerCompanyID.Valid {
+		resp.OwnerCompanyID = &t.OwnerCompanyID.Int64
+	}
+	return resp
 }
 
 // ToResponse converts InterviewQuestion to InterviewQuestionResponse

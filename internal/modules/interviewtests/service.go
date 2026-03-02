@@ -159,7 +159,39 @@ func (s *Service) GetAll(ctx context.Context, status string) ([]InterviewTestRes
 
 	responses := make([]InterviewTestResponse, len(tests))
 	for i, test := range tests {
-		responses[i] = test.ToResponse()
+		resp := test.ToResponse()
+
+		// Get questions for this test
+		questions, err := s.repo.GetQuestionsByTestID(ctx, test.ID)
+		if err != nil {
+			return nil, err
+		}
+
+		// Get all options for this test
+		optionsMap, err := s.repo.GetOptionsByTestID(ctx, test.ID)
+		if err != nil {
+			return nil, err
+		}
+
+		// Build response with questions
+		resp.Questions = make([]InterviewQuestionResponse, len(questions))
+		for j, q := range questions {
+			qResp := q.ToResponse()
+
+			// Add options if this is a multiple choice question
+			if q.QuestionType == TypeMultipleChoice {
+				if opts, ok := optionsMap[q.ID]; ok {
+					qResp.Options = make([]QuestionOptionResponse, len(opts))
+					for k, opt := range opts {
+						qResp.Options[k] = opt.ToResponse()
+					}
+				}
+			}
+
+			resp.Questions[j] = qResp
+		}
+
+		responses[i] = resp
 	}
 
 	return responses, nil
@@ -437,4 +469,296 @@ func isValidDifficulty(difficulty string) bool {
 	return difficulty == string(DifficultyEasy) ||
 		difficulty == string(DifficultyMedium) ||
 		difficulty == string(DifficultyHard)
+}
+
+// =============== Company methods ===============
+
+// GetPublicAdminTests retrieves all public tests from super_admin (library)
+func (s *Service) GetPublicAdminTests(ctx context.Context) ([]InterviewTestResponse, error) {
+	tests, err := s.repo.GetPublicAdminTests(ctx)
+	if err != nil {
+		return nil, err
+	}
+
+	responses := make([]InterviewTestResponse, len(tests))
+	for i, test := range tests {
+		resp := test.ToResponse()
+
+		questions, err := s.repo.GetQuestionsByTestID(ctx, test.ID)
+		if err != nil {
+			return nil, err
+		}
+		optionsMap, err := s.repo.GetOptionsByTestID(ctx, test.ID)
+		if err != nil {
+			return nil, err
+		}
+
+		resp.Questions = make([]InterviewQuestionResponse, len(questions))
+		for j, q := range questions {
+			qResp := q.ToResponse()
+			if q.QuestionType == TypeMultipleChoice {
+				if opts, ok := optionsMap[q.ID]; ok {
+					qResp.Options = make([]QuestionOptionResponse, len(opts))
+					for k, opt := range opts {
+						qResp.Options[k] = opt.ToResponse()
+					}
+				}
+			}
+			resp.Questions[j] = qResp
+		}
+		responses[i] = resp
+	}
+	return responses, nil
+}
+
+// GetByCompanyID retrieves all tests owned by a company
+func (s *Service) GetByCompanyID(ctx context.Context, companyID uint64, status string) ([]InterviewTestResponse, error) {
+	if status != "" && !isValidStatus(status) {
+		return nil, ErrInvalidStatus
+	}
+
+	tests, err := s.repo.GetByCompanyID(ctx, companyID, status)
+	if err != nil {
+		return nil, err
+	}
+
+	responses := make([]InterviewTestResponse, len(tests))
+	for i, test := range tests {
+		resp := test.ToResponse()
+
+		questions, err := s.repo.GetQuestionsByTestID(ctx, test.ID)
+		if err != nil {
+			return nil, err
+		}
+		optionsMap, err := s.repo.GetOptionsByTestID(ctx, test.ID)
+		if err != nil {
+			return nil, err
+		}
+
+		resp.Questions = make([]InterviewQuestionResponse, len(questions))
+		for j, q := range questions {
+			qResp := q.ToResponse()
+			if q.QuestionType == TypeMultipleChoice {
+				if opts, ok := optionsMap[q.ID]; ok {
+					qResp.Options = make([]QuestionOptionResponse, len(opts))
+					for k, opt := range opts {
+						qResp.Options[k] = opt.ToResponse()
+					}
+				}
+			}
+			resp.Questions[j] = qResp
+		}
+		responses[i] = resp
+	}
+	return responses, nil
+}
+
+// CreateForCompany creates a new private test for a company
+func (s *Service) CreateForCompany(ctx context.Context, req CreateInterviewTestRequest, companyID uint64, userID uint64) (*InterviewTestResponse, error) {
+	if err := s.validateCreateRequest(req); err != nil {
+		return nil, err
+	}
+
+	shuffleQuestions := false
+	if req.ShuffleQuestions != nil {
+		shuffleQuestions = *req.ShuffleQuestions
+	}
+	showResultsImmediately := false
+	if req.ShowResultsImmediately != nil {
+		showResultsImmediately = *req.ShowResultsImmediately
+	}
+
+	test := &InterviewTest{
+		Title:                  req.Title,
+		Description:            req.Description,
+		DurationMinutes:        req.DurationMinutes,
+		PassingScore:           req.PassingScore,
+		ShuffleQuestions:       shuffleQuestions,
+		ShowResultsImmediately: showResultsImmediately,
+		Status:                 StatusDraft,
+		OwnerType:              OwnerCompany,
+		OwnerCompanyID:         sql.NullInt64{Int64: int64(companyID), Valid: true},
+		IsPublic:               false,
+		CreatedBy:              userID,
+	}
+
+	if err := s.repo.Create(ctx, test); err != nil {
+		return nil, err
+	}
+
+	for i, qReq := range req.Questions {
+		question := &InterviewQuestion{
+			InterviewTestID: test.ID,
+			QuestionText:    qReq.QuestionText,
+			QuestionType:    QuestionType(qReq.QuestionType),
+			Points:          qReq.Points,
+			Difficulty:      QuestionDifficulty(qReq.Difficulty),
+			Order:           i + 1,
+		}
+		if qReq.Explanation != nil {
+			question.Explanation = sql.NullString{String: *qReq.Explanation, Valid: true}
+		}
+		if err := s.repo.CreateQuestion(ctx, question); err != nil {
+			return nil, err
+		}
+		if question.QuestionType == TypeMultipleChoice {
+			for j, optReq := range qReq.Options {
+				option := &QuestionOption{
+					InterviewQuestionID: question.ID,
+					OptionText:          optReq.OptionText,
+					IsCorrect:           optReq.IsCorrect,
+					Order:               j + 1,
+				}
+				if err := s.repo.CreateOption(ctx, option); err != nil {
+					return nil, err
+				}
+			}
+		}
+	}
+
+	return s.GetByID(ctx, test.ID)
+}
+
+// UpdateForCompany updates a company-owned test (ownership check included)
+func (s *Service) UpdateForCompany(ctx context.Context, id uint64, req UpdateInterviewTestRequest, companyID uint64, userID uint64) (*InterviewTestResponse, error) {
+	test, err := s.repo.GetByID(ctx, id)
+	if err != nil {
+		return nil, err
+	}
+	if test == nil {
+		return nil, ErrTestNotFound
+	}
+	if test.OwnerType != OwnerCompany || !test.OwnerCompanyID.Valid || uint64(test.OwnerCompanyID.Int64) != companyID {
+		return nil, ErrTestNotFound
+	}
+	if err := s.validateUpdateRequest(req); err != nil {
+		return nil, err
+	}
+
+	test.Title = req.Title
+	test.Description = req.Description
+	test.DurationMinutes = req.DurationMinutes
+	test.PassingScore = req.PassingScore
+	if req.ShuffleQuestions != nil {
+		test.ShuffleQuestions = *req.ShuffleQuestions
+	}
+	if req.ShowResultsImmediately != nil {
+		test.ShowResultsImmediately = *req.ShowResultsImmediately
+	}
+	test.UpdatedBy = sql.NullInt64{Int64: int64(userID), Valid: true}
+
+	if err := s.repo.Update(ctx, test); err != nil {
+		return nil, err
+	}
+	if err := s.repo.DeleteQuestionsByTestID(ctx, id); err != nil {
+		return nil, err
+	}
+	for i, qReq := range req.Questions {
+		question := &InterviewQuestion{
+			InterviewTestID: test.ID,
+			QuestionText:    qReq.QuestionText,
+			QuestionType:    QuestionType(qReq.QuestionType),
+			Points:          qReq.Points,
+			Difficulty:      QuestionDifficulty(qReq.Difficulty),
+			Order:           i + 1,
+		}
+		if qReq.Explanation != nil {
+			question.Explanation = sql.NullString{String: *qReq.Explanation, Valid: true}
+		}
+		if err := s.repo.CreateQuestion(ctx, question); err != nil {
+			return nil, err
+		}
+		if question.QuestionType == TypeMultipleChoice {
+			for j, optReq := range qReq.Options {
+				option := &QuestionOption{
+					InterviewQuestionID: question.ID,
+					OptionText:          optReq.OptionText,
+					IsCorrect:           optReq.IsCorrect,
+					Order:               j + 1,
+				}
+				if err := s.repo.CreateOption(ctx, option); err != nil {
+					return nil, err
+				}
+			}
+		}
+	}
+	return s.GetByID(ctx, test.ID)
+}
+
+// DeleteForCompany soft-deletes a company-owned test
+func (s *Service) DeleteForCompany(ctx context.Context, id uint64, companyID uint64) error {
+	test, err := s.repo.GetByID(ctx, id)
+	if err != nil {
+		return err
+	}
+	if test == nil {
+		return ErrTestNotFound
+	}
+	if test.OwnerType != OwnerCompany || !test.OwnerCompanyID.Valid || uint64(test.OwnerCompanyID.Int64) != companyID {
+		return ErrTestNotFound
+	}
+	return s.repo.Delete(ctx, id)
+}
+
+// PublishForCompany publishes a company-owned test
+func (s *Service) PublishForCompany(ctx context.Context, id uint64, companyID uint64, userID uint64) (*InterviewTestResponse, error) {
+	test, err := s.repo.GetByID(ctx, id)
+	if err != nil {
+		return nil, err
+	}
+	if test == nil {
+		return nil, ErrTestNotFound
+	}
+	if test.OwnerType != OwnerCompany || !test.OwnerCompanyID.Valid || uint64(test.OwnerCompanyID.Int64) != companyID {
+		return nil, ErrTestNotFound
+	}
+	questions, err := s.repo.GetQuestionsByTestID(ctx, id)
+	if err != nil {
+		return nil, err
+	}
+	if len(questions) == 0 {
+		return nil, ErrNoQuestions
+	}
+	if err := s.repo.UpdateStatus(ctx, id, StatusActive, userID); err != nil {
+		return nil, err
+	}
+	return s.GetByID(ctx, id)
+}
+
+// CopyFromAdmin copies a public admin test to a company's ownership
+func (s *Service) CopyFromAdmin(ctx context.Context, testID uint64, companyID uint64, userID uint64) (*InterviewTestResponse, error) {
+	original, err := s.GetByID(ctx, testID)
+	if err != nil {
+		return nil, err
+	}
+
+	req := CreateInterviewTestRequest{
+		Title:                  fmt.Sprintf("%s (Copy)", original.Title),
+		Description:            original.Description,
+		DurationMinutes:        original.DurationMinutes,
+		PassingScore:           original.PassingScore,
+		ShuffleQuestions:       &original.ShuffleQuestions,
+		ShowResultsImmediately: &original.ShowResultsImmediately,
+		Questions:              make([]CreateQuestionRequest, len(original.Questions)),
+	}
+
+	for i, q := range original.Questions {
+		qReq := CreateQuestionRequest{
+			QuestionText: q.QuestionText,
+			QuestionType: q.QuestionType,
+			Points:       q.Points,
+			Difficulty:   q.Difficulty,
+			Explanation:  q.Explanation,
+			Options:      make([]CreateOptionRequest, len(q.Options)),
+		}
+		for j, opt := range q.Options {
+			qReq.Options[j] = CreateOptionRequest{
+				OptionText: opt.OptionText,
+				IsCorrect:  opt.IsCorrect,
+			}
+		}
+		req.Questions[i] = qReq
+	}
+
+	return s.CreateForCompany(ctx, req, companyID, userID)
 }
