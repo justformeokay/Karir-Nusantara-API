@@ -32,6 +32,7 @@ import (
 	"github.com/karirnusantara/api/internal/modules/profile"
 	"github.com/karirnusantara/api/internal/modules/quota"
 	"github.com/karirnusantara/api/internal/modules/recommendations"
+	"github.com/karirnusantara/api/internal/modules/systemsettings"
 	"github.com/karirnusantara/api/internal/modules/tickets"
 	"github.com/karirnusantara/api/internal/modules/wishlist"
 	"github.com/karirnusantara/api/internal/shared/email"
@@ -76,6 +77,7 @@ func main() {
 	applicationsRepo := applications.NewRepository(db)
 	wishlistRepo := wishlist.NewRepository(db)
 	quotaRepo := quota.NewRepository(db)
+	systemSettingsRepo := systemsettings.NewRepository(db)
 	dashboardRepo := dashboard.NewRepository(db)
 	companyRepo := company.NewRepository(db)
 	chatRepo := chat.NewRepository(db)
@@ -85,6 +87,7 @@ func main() {
 	partnerRepo := partner.NewRepository(db)
 	jobreportsRepo := jobreports.NewRepository(db)
 	// Initialize other services
+	systemSettingsService := systemsettings.NewService(systemSettingsRepo)
 	quotaService := quota.NewService(quotaRepo)
 	jobsService := jobs.NewServiceWithEmail(jobsRepo, companyRepo, quotaService, emailService)
 	cvsService := cvs.NewService(cvsRepo)
@@ -112,6 +115,7 @@ func main() {
 	applicationsHandler := applications.NewHandler(applicationsService, v)
 	wishlistHandler := wishlist.NewHandler(wishlistService, v)
 	quotaHandler := quota.NewHandler(quotaService, v, companyService)
+	systemSettingsHandler := systemsettings.NewHandler(systemSettingsService, v)
 	dashboardHandler := dashboard.NewHandler(dashboardService)
 	chatHandler := chat.NewHandler(chatService, v, "./docs")
 	profileHandler := profile.NewHandler(profileService, v, "./docs")
@@ -165,6 +169,8 @@ func main() {
 		applications.RegisterRoutes(r, applicationsHandler, authMiddleware.Authenticate, authMiddleware.RequireJobSeeker, authMiddleware.RequireCompany)
 		wishlist.RegisterRoutes(r, wishlistHandler, authMiddleware.Authenticate, authMiddleware.RequireJobSeeker)
 		quota.RegisterRoutes(r, quotaHandler, authMiddleware.Authenticate, authMiddleware.RequireCompany)
+		systemsettings.RegisterAdminRoutes(r, systemSettingsHandler, authMiddleware.Authenticate, authMiddleware.RequireAdmin)
+		systemsettings.RegisterPublicRoutes(r, systemSettingsHandler)
 		dashboard.RegisterRoutes(r, dashboardHandler, authMiddleware.Authenticate, authMiddleware.RequireCompany)
 		company.RegisterRoutes(r, companyHandler, authMiddleware.Authenticate)
 		chat.RegisterRoutes(r, chatHandler, authMiddleware)
