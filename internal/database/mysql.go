@@ -12,8 +12,9 @@ import (
 
 // NewMySQL creates a new MySQL database connection
 func NewMySQL(cfg config.DatabaseConfig) (*sqlx.DB, error) {
+	// sql_mode removes XAMPP's strict NO_AUTO_VALUE_ON_ZERO and others
 	dsn := fmt.Sprintf(
-		"%s:%s@tcp(%s:%s)/%s?charset=utf8mb4&parseTime=True&loc=Local",
+		"%s:%s@tcp(%s:%s)/%s?charset=utf8mb4&parseTime=True&loc=Local&sql_mode=NO_ENGINE_SUBSTITUTION",
 		cfg.User,
 		cfg.Password,
 		cfg.Host,

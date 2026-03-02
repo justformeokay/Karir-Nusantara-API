@@ -3,7 +3,7 @@
 -- https://www.phpmyadmin.net/
 --
 -- Host: localhost
--- Generation Time: Feb 20, 2026 at 01:57 PM
+-- Generation Time: Mar 02, 2026 at 01:23 PM
 -- Server version: 10.4.28-MariaDB
 -- PHP Version: 8.0.28
 
@@ -495,7 +495,18 @@ CREATE TABLE `interview_questions` (
 
 INSERT INTO `interview_questions` (`id`, `interview_test_id`, `question_text`, `question_type`, `points`, `difficulty`, `order`, `explanation`, `created_at`, `updated_at`) VALUES
 (1, 1, 'Antonim dari kata “objektif” adalah…', 'multiple_choice', 5, 'easy', 1, NULL, '2026-02-19 18:15:20', '2026-02-19 18:15:20'),
-(2, 2, 'Antonim dari kata “objektif” adalah…', 'multiple_choice', 5, 'easy', 1, NULL, '2026-02-19 18:16:06', '2026-02-19 18:16:06');
+(9, 2, 'Antonim dari kata “objektif” adalah…', 'multiple_choice', 5, 'easy', 1, NULL, '2026-02-20 13:52:13', '2026-02-20 13:52:13'),
+(10, 2, 'Sinonim dari kata “abstrak” adalah…', 'multiple_choice', 5, 'easy', 2, NULL, '2026-02-20 13:52:13', '2026-02-20 13:52:13'),
+(11, 2, 'Sinonim dari kata “vital” adalah…', 'multiple_choice', 5, 'easy', 3, NULL, '2026-02-20 13:52:13', '2026-02-20 13:52:13'),
+(12, 2, 'Antonim dari kata “ekspansif” adalah…', 'multiple_choice', 5, 'easy', 4, NULL, '2026-02-20 13:52:13', '2026-02-20 13:52:13'),
+(13, 2, 'Sinonim dari kata “resesi” adalah…', 'multiple_choice', 5, 'easy', 5, NULL, '2026-02-20 13:52:13', '2026-02-20 13:52:13'),
+(14, 2, 'Antonim dari kata “progresif” adalah…', 'multiple_choice', 5, 'easy', 6, NULL, '2026-02-20 13:52:13', '2026-02-20 13:52:13'),
+(21, 3, 'Antonim dari kata “objektif” adalah…', 'multiple_choice', 5, 'easy', 1, '', '2026-03-02 11:28:25', '2026-03-02 11:28:25'),
+(22, 3, 'Sinonim dari kata “abstrak” adalah…', 'multiple_choice', 5, 'easy', 2, '', '2026-03-02 11:28:25', '2026-03-02 11:28:25'),
+(23, 3, 'Sinonim dari kata “vital” adalah…', 'multiple_choice', 5, 'easy', 3, '', '2026-03-02 11:28:25', '2026-03-02 11:28:25'),
+(24, 3, 'Antonim dari kata “ekspansif” adalah…', 'multiple_choice', 5, 'easy', 4, '', '2026-03-02 11:28:25', '2026-03-02 11:28:25'),
+(25, 3, 'Sinonim dari kata “resesi” adalah…', 'multiple_choice', 5, 'easy', 5, '', '2026-03-02 11:28:25', '2026-03-02 11:28:25'),
+(26, 3, 'Antonim dari kata “progresif” adalah…', 'multiple_choice', 5, 'easy', 6, '', '2026-03-02 11:28:25', '2026-03-02 11:28:25');
 
 --
 -- Triggers `interview_questions`
@@ -559,10 +570,54 @@ INSERT INTO `interview_question_options` (`id`, `interview_question_id`, `option
 (2, 1, 'Adil', 0, 2, '2026-02-19 18:15:20', '2026-02-19 18:15:20'),
 (3, 1, 'Subjektif', 1, 3, '2026-02-19 18:15:20', '2026-02-19 18:15:20'),
 (4, 1, 'Rasional', 0, 4, '2026-02-19 18:15:20', '2026-02-19 18:15:20'),
-(5, 2, 'Netral', 0, 1, '2026-02-19 18:16:06', '2026-02-19 18:16:06'),
-(6, 2, 'Adil', 0, 2, '2026-02-19 18:16:06', '2026-02-19 18:16:06'),
-(7, 2, 'Subjektif', 1, 3, '2026-02-19 18:16:06', '2026-02-19 18:16:06'),
-(8, 2, 'Rasional', 0, 4, '2026-02-19 18:16:06', '2026-02-19 18:16:06');
+(33, 9, 'Netral', 0, 1, '2026-02-20 13:52:13', '2026-02-20 13:52:13'),
+(34, 9, 'Adil', 0, 2, '2026-02-20 13:52:13', '2026-02-20 13:52:13'),
+(35, 9, 'Subjektif', 1, 3, '2026-02-20 13:52:13', '2026-02-20 13:52:13'),
+(36, 9, 'Rasional', 0, 4, '2026-02-20 13:52:13', '2026-02-20 13:52:13'),
+(37, 10, 'Nyata', 0, 1, '2026-02-20 13:52:13', '2026-02-20 13:52:13'),
+(38, 10, 'Kabur', 0, 2, '2026-02-20 13:52:13', '2026-02-20 13:52:13'),
+(39, 10, 'Konkrit', 0, 3, '2026-02-20 13:52:13', '2026-02-20 13:52:13'),
+(40, 10, 'Teoritis', 1, 4, '2026-02-20 13:52:13', '2026-02-20 13:52:13'),
+(41, 11, 'Penting', 1, 1, '2026-02-20 13:52:13', '2026-02-20 13:52:13'),
+(42, 11, 'Mati', 0, 2, '2026-02-20 13:52:13', '2026-02-20 13:52:13'),
+(43, 11, 'Sepele', 0, 3, '2026-02-20 13:52:13', '2026-02-20 13:52:13'),
+(44, 11, 'Biasa', 0, 4, '2026-02-20 13:52:13', '2026-02-20 13:52:13'),
+(45, 12, 'Meluas', 0, 1, '2026-02-20 13:52:13', '2026-02-20 13:52:13'),
+(46, 12, 'Kaku', 0, 2, '2026-02-20 13:52:13', '2026-02-20 13:52:13'),
+(47, 12, 'Terbatas', 1, 3, '2026-02-20 13:52:13', '2026-02-20 13:52:13'),
+(48, 12, 'Terbuka', 0, 4, '2026-02-20 13:52:13', '2026-02-20 13:52:13'),
+(49, 13, 'Kemajuan', 0, 1, '2026-02-20 13:52:13', '2026-02-20 13:52:13'),
+(50, 13, 'Pemulihan', 0, 2, '2026-02-20 13:52:13', '2026-02-20 13:52:13'),
+(51, 13, 'Krisis', 1, 3, '2026-02-20 13:52:13', '2026-02-20 13:52:13'),
+(52, 13, 'Perkembangan', 0, 4, '2026-02-20 13:52:13', '2026-02-20 13:52:13'),
+(53, 14, 'Inovatif', 0, 1, '2026-02-20 13:52:13', '2026-02-20 13:52:13'),
+(54, 14, 'Stagnan', 1, 2, '2026-02-20 13:52:13', '2026-02-20 13:52:13'),
+(55, 14, 'Aktif', 0, 3, '2026-02-20 13:52:13', '2026-02-20 13:52:13'),
+(56, 14, 'Cepat', 0, 4, '2026-02-20 13:52:13', '2026-02-20 13:52:13'),
+(81, 21, 'Netral', 0, 1, '2026-03-02 11:28:25', '2026-03-02 11:28:25'),
+(82, 21, 'Adil', 0, 2, '2026-03-02 11:28:25', '2026-03-02 11:28:25'),
+(83, 21, 'Subjektif', 1, 3, '2026-03-02 11:28:25', '2026-03-02 11:28:25'),
+(84, 21, 'Rasional', 0, 4, '2026-03-02 11:28:25', '2026-03-02 11:28:25'),
+(85, 22, 'Nyata', 0, 1, '2026-03-02 11:28:25', '2026-03-02 11:28:25'),
+(86, 22, 'Kabur', 0, 2, '2026-03-02 11:28:25', '2026-03-02 11:28:25'),
+(87, 22, 'Konkrit', 0, 3, '2026-03-02 11:28:25', '2026-03-02 11:28:25'),
+(88, 22, 'Teoritis', 1, 4, '2026-03-02 11:28:25', '2026-03-02 11:28:25'),
+(89, 23, 'Penting', 1, 1, '2026-03-02 11:28:25', '2026-03-02 11:28:25'),
+(90, 23, 'Mati', 0, 2, '2026-03-02 11:28:25', '2026-03-02 11:28:25'),
+(91, 23, 'Sepele', 0, 3, '2026-03-02 11:28:25', '2026-03-02 11:28:25'),
+(92, 23, 'Biasa', 0, 4, '2026-03-02 11:28:25', '2026-03-02 11:28:25'),
+(93, 24, 'Meluas', 0, 1, '2026-03-02 11:28:25', '2026-03-02 11:28:25'),
+(94, 24, 'Kaku', 0, 2, '2026-03-02 11:28:25', '2026-03-02 11:28:25'),
+(95, 24, 'Terbatas', 1, 3, '2026-03-02 11:28:25', '2026-03-02 11:28:25'),
+(96, 24, 'Terbuka', 0, 4, '2026-03-02 11:28:25', '2026-03-02 11:28:25'),
+(97, 25, 'Kemajuan', 0, 1, '2026-03-02 11:28:25', '2026-03-02 11:28:25'),
+(98, 25, 'Pemulihan', 0, 2, '2026-03-02 11:28:25', '2026-03-02 11:28:25'),
+(99, 25, 'Krisis', 1, 3, '2026-03-02 11:28:25', '2026-03-02 11:28:25'),
+(100, 25, 'Perkembangan', 0, 4, '2026-03-02 11:28:25', '2026-03-02 11:28:25'),
+(101, 26, 'Inovatif', 0, 1, '2026-03-02 11:28:25', '2026-03-02 11:28:25'),
+(102, 26, 'Stagnan', 1, 2, '2026-03-02 11:28:25', '2026-03-02 11:28:25'),
+(103, 26, 'Aktif', 0, 3, '2026-03-02 11:28:25', '2026-03-02 11:28:25'),
+(104, 26, 'Cepat', 0, 4, '2026-03-02 11:28:25', '2026-03-02 11:28:25');
 
 -- --------------------------------------------------------
 
@@ -580,6 +635,9 @@ CREATE TABLE `interview_tests` (
   `shuffle_questions` tinyint(1) NOT NULL DEFAULT 0 COMMENT 'Acak urutan soal',
   `show_results_immediately` tinyint(1) NOT NULL DEFAULT 0 COMMENT 'Tampilkan hasil langsung setelah submit',
   `status` enum('draft','active','archived') NOT NULL DEFAULT 'draft' COMMENT 'Status Tes',
+  `owner_type` enum('super_admin','company') NOT NULL DEFAULT 'super_admin',
+  `owner_company_id` bigint(20) UNSIGNED DEFAULT NULL,
+  `is_public` tinyint(1) NOT NULL DEFAULT 0,
   `created_by` bigint(20) UNSIGNED NOT NULL COMMENT 'Admin user_id yang membuat',
   `updated_by` bigint(20) UNSIGNED DEFAULT NULL COMMENT 'Admin user_id yang terakhir update',
   `created_at` timestamp NOT NULL DEFAULT current_timestamp(),
@@ -591,9 +649,10 @@ CREATE TABLE `interview_tests` (
 -- Dumping data for table `interview_tests`
 --
 
-INSERT INTO `interview_tests` (`id`, `title`, `description`, `duration_minutes`, `total_points`, `passing_score`, `shuffle_questions`, `show_results_immediately`, `status`, `created_by`, `updated_by`, `created_at`, `updated_at`, `deleted_at`) VALUES
-(1, 'Psikotes Dasar - Teknik Informatika', 'Tes Psikotes logika sederhana', 60, 5, 70, 0, 0, 'draft', 1, NULL, '2026-02-19 18:15:20', '2026-02-19 18:16:09', '2026-02-19 18:16:09'),
-(2, 'Psikotes Dasar - Teknik Informatika (Copy)', 'Tes Psikotes logika sederhana', 60, 5, 70, 0, 0, 'draft', 1, NULL, '2026-02-19 18:16:06', '2026-02-19 18:16:06', NULL);
+INSERT INTO `interview_tests` (`id`, `title`, `description`, `duration_minutes`, `total_points`, `passing_score`, `shuffle_questions`, `show_results_immediately`, `status`, `owner_type`, `owner_company_id`, `is_public`, `created_by`, `updated_by`, `created_at`, `updated_at`, `deleted_at`) VALUES
+(1, 'Psikotes Dasar - Teknik Informatika', 'Tes Psikotes logika sederhana', 60, 5, 70, 0, 0, 'draft', 'super_admin', NULL, 1, 1, NULL, '2026-02-19 18:15:20', '2026-02-20 14:07:33', '2026-02-19 18:16:09'),
+(2, 'Psikotes Dasar - Teknik Informatika (Copy)', 'Tes Psikotes logika sederhana', 60, 30, 70, 0, 0, 'active', 'super_admin', NULL, 1, 1, 1, '2026-02-19 18:16:06', '2026-02-20 14:07:33', NULL),
+(3, 'Psikotes Dasar - Teknik Informatika', 'Tes Psikotes logika sederhana', 60, 30, 70, 0, 0, 'draft', 'company', 7, 0, 26, 26, '2026-02-20 14:52:35', '2026-03-02 11:28:25', NULL);
 
 -- --------------------------------------------------------
 
@@ -1174,6 +1233,39 @@ INSERT INTO `payments` (`id`, `company_id`, `job_id`, `package_id`, `quota_amoun
 -- --------------------------------------------------------
 
 --
+-- Table structure for table `quota_packages`
+--
+
+CREATE TABLE `quota_packages` (
+  `id` bigint(20) UNSIGNED NOT NULL,
+  `package_id` varchar(50) NOT NULL,
+  `name` varchar(100) NOT NULL,
+  `quota` int(11) NOT NULL,
+  `bonus_quota` int(11) DEFAULT 0,
+  `price` bigint(20) NOT NULL,
+  `description` text DEFAULT NULL,
+  `is_best_value` tinyint(1) DEFAULT 0,
+  `is_active` tinyint(1) DEFAULT 1,
+  `display_order` int(11) DEFAULT 0,
+  `created_by` bigint(20) UNSIGNED DEFAULT NULL,
+  `updated_by` bigint(20) UNSIGNED DEFAULT NULL,
+  `created_at` timestamp NOT NULL DEFAULT current_timestamp(),
+  `updated_at` timestamp NOT NULL DEFAULT current_timestamp() ON UPDATE current_timestamp()
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+
+--
+-- Dumping data for table `quota_packages`
+--
+
+INSERT INTO `quota_packages` (`id`, `package_id`, `name`, `quota`, `bonus_quota`, `price`, `description`, `is_best_value`, `is_active`, `display_order`, `created_by`, `updated_by`, `created_at`, `updated_at`) VALUES
+(1, 'pack10', '10 Posting + 2 GRATIS', 10, 2, 200000, 'Beli 10 dapat 12! Hemat Rp 40.000', 1, 1, 3, NULL, NULL, '2026-03-02 11:44:48', '2026-03-02 11:45:43'),
+(2, 'pack20', '20 Posting + 5 GRATIS', 20, 5, 400000, 'Beli 20 dapat 25! Hemat Rp 100.000', 0, 1, 4, NULL, NULL, '2026-03-02 11:44:48', '2026-03-02 11:45:43'),
+(3, 'pack5', '5 Posting', 5, 0, 100000, 'Hemat waktu, beli 5 sekaligus', 0, 1, 2, NULL, NULL, '2026-03-02 11:44:48', '2026-03-02 11:45:43'),
+(4, 'single', '1 Posting', 1, 0, 20000, 'Bayar untuk 1 lowongan', 0, 1, 1, NULL, NULL, '2026-03-02 11:44:48', '2026-03-02 11:45:43');
+
+-- --------------------------------------------------------
+
+--
 -- Table structure for table `referral_partners`
 --
 
@@ -1638,7 +1730,12 @@ INSERT INTO `refresh_tokens` (`id`, `user_id`, `token_hash`, `expires_at`, `revo
 (415, 26, '268a508732b43a4becfabe2f78b55f3300162558b385ab548fd726333683d82a', '2026-02-19 14:31:05', NULL, '', '', '2026-02-12 14:31:05'),
 (416, 26, '84ca5f332843e545e78e9c780b888ab13ce4fe59bd2469d4aeade65f732ff2db', '2026-02-19 14:49:28', NULL, '', '', '2026-02-12 14:49:28'),
 (417, 26, '1121c444c082b431d40ac98dedd559bf3e33e47a8877b7f9c98479875eebc15e', '2026-02-19 15:13:18', NULL, '', '', '2026-02-12 15:13:18'),
-(418, 26, 'f50085e16a2dd048ee8fbbc59a16dd009bd7aa6e798d0ccb34f8a266797cbbd3', '2026-02-19 15:32:02', NULL, '', '', '2026-02-12 15:32:02');
+(418, 26, 'f50085e16a2dd048ee8fbbc59a16dd009bd7aa6e798d0ccb34f8a266797cbbd3', '2026-02-19 15:32:02', NULL, '', '', '2026-02-12 15:32:02'),
+(419, 26, 'b7812e196c5b82709dfa1604797712a2d96da70efd07fda11c39dd4513faff3f', '2026-02-27 14:52:21', NULL, '', '', '2026-02-20 14:52:21'),
+(420, 26, '2b7632dbd9296675be41938ad7480704c7e3a54891c6f3adda33223afb90c404', '2026-03-03 05:00:36', NULL, '', '', '2026-02-24 05:00:36'),
+(421, 26, '708ce5792b0d3b8b1e6f06de838e131cffb6848e366750d70d75c58acf133972', '2026-03-09 11:27:12', NULL, '', '', '2026-03-02 11:27:12'),
+(422, 1, 'e8e1266b552f12ec99168bf8408d8326fadc7c0b97a7720b6bdcb8ead1d28f63', '2026-03-09 11:48:49', NULL, '', '', '2026-03-02 11:48:49'),
+(423, 1, 'fce8a0e7c638a773d6e136fea48b245de7aa825cdad920114a69997905f4a62c', '2026-03-09 11:48:57', NULL, '', '', '2026-03-02 11:48:57');
 
 -- --------------------------------------------------------
 
@@ -1688,6 +1785,32 @@ CREATE TABLE `support_tickets` (
 
 INSERT INTO `support_tickets` (`id`, `user_id`, `title`, `description`, `category`, `priority`, `status`, `email`, `created_at`, `updated_at`, `resolved_at`, `closed_at`) VALUES
 (3, 20, 'Testing Ticket', 'Hello bang', 'cv-builder', 'low', 'open', 'jastiska14@gmail.com', '2026-01-26 06:53:30', '2026-01-26 06:53:30', NULL, NULL);
+
+-- --------------------------------------------------------
+
+--
+-- Table structure for table `system_settings`
+--
+
+CREATE TABLE `system_settings` (
+  `id` bigint(20) UNSIGNED NOT NULL,
+  `key` varchar(100) NOT NULL,
+  `value` longtext NOT NULL,
+  `data_type` enum('string','integer','decimal','boolean','json') DEFAULT 'string',
+  `description` text DEFAULT NULL,
+  `updated_by` bigint(20) UNSIGNED DEFAULT NULL,
+  `created_at` timestamp NOT NULL DEFAULT current_timestamp(),
+  `updated_at` timestamp NOT NULL DEFAULT current_timestamp() ON UPDATE current_timestamp()
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+
+--
+-- Dumping data for table `system_settings`
+--
+
+INSERT INTO `system_settings` (`id`, `key`, `value`, `data_type`, `description`, `updated_by`, `created_at`, `updated_at`) VALUES
+(1, 'currency', 'IDR', 'string', 'Mata uang yang digunakan pada platform', 1, '2026-03-02 11:44:48', '2026-03-02 12:20:36'),
+(2, 'free_quota_limit', '2', 'integer', 'Jumlah kuota gratis untuk perusahaan baru yang mendaftar', 1, '2026-03-02 11:44:48', '2026-03-02 12:20:36'),
+(3, 'price_per_job', '25000', 'integer', 'Harga dasar per posting lowongan kerja (IDR)', 1, '2026-03-02 11:44:48', '2026-03-02 12:20:36');
 
 -- --------------------------------------------------------
 
@@ -1965,7 +2088,9 @@ ALTER TABLE `interview_tests`
   ADD KEY `created_by` (`created_by`),
   ADD KEY `updated_by` (`updated_by`),
   ADD KEY `idx_status` (`status`),
-  ADD KEY `idx_created_at` (`created_at`);
+  ADD KEY `idx_created_at` (`created_at`),
+  ADD KEY `idx_interview_tests_owner` (`owner_type`,`owner_company_id`),
+  ADD KEY `idx_interview_tests_public` (`is_public`,`status`);
 
 --
 -- Indexes for table `interview_test_answers`
@@ -2118,6 +2243,12 @@ ALTER TABLE `payments`
   ADD KEY `idx_payments_package_id` (`package_id`);
 
 --
+-- Indexes for table `quota_packages`
+--
+ALTER TABLE `quota_packages`
+  ADD UNIQUE KEY `package_id` (`package_id`);
+
+--
 -- Indexes for table `referral_partners`
 --
 ALTER TABLE `referral_partners`
@@ -2157,6 +2288,12 @@ ALTER TABLE `support_tickets`
   ADD KEY `idx_priority` (`priority`),
   ADD KEY `idx_category` (`category`),
   ADD KEY `idx_created_at` (`created_at`);
+
+--
+-- Indexes for table `system_settings`
+--
+ALTER TABLE `system_settings`
+  ADD UNIQUE KEY `key` (`key`);
 
 --
 -- Indexes for table `ticket_responses`
@@ -2259,19 +2396,19 @@ ALTER TABLE `cv_snapshots`
 -- AUTO_INCREMENT for table `interview_questions`
 --
 ALTER TABLE `interview_questions`
-  MODIFY `id` bigint(20) UNSIGNED NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=3;
+  MODIFY `id` bigint(20) UNSIGNED NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=27;
 
 --
 -- AUTO_INCREMENT for table `interview_question_options`
 --
 ALTER TABLE `interview_question_options`
-  MODIFY `id` bigint(20) UNSIGNED NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=9;
+  MODIFY `id` bigint(20) UNSIGNED NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=105;
 
 --
 -- AUTO_INCREMENT for table `interview_tests`
 --
 ALTER TABLE `interview_tests`
-  MODIFY `id` bigint(20) UNSIGNED NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=3;
+  MODIFY `id` bigint(20) UNSIGNED NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=4;
 
 --
 -- AUTO_INCREMENT for table `interview_test_answers`
@@ -2361,7 +2498,7 @@ ALTER TABLE `referral_partners`
 -- AUTO_INCREMENT for table `refresh_tokens`
 --
 ALTER TABLE `refresh_tokens`
-  MODIFY `id` bigint(20) UNSIGNED NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=419;
+  MODIFY `id` bigint(20) UNSIGNED NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=424;
 
 --
 -- AUTO_INCREMENT for table `saved_jobs`
