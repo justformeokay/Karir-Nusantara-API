@@ -88,7 +88,7 @@ func main() {
 	jobreportsRepo := jobreports.NewRepository(db)
 	// Initialize other services
 	systemSettingsService := systemsettings.NewService(systemSettingsRepo)
-	quotaService := quota.NewService(quotaRepo)
+	quotaService := quota.NewService(quotaRepo, systemSettingsService)
 	jobsService := jobs.NewServiceWithEmail(jobsRepo, companyRepo, quotaService, emailService)
 	cvsService := cvs.NewService(cvsRepo)
 	applicationsService := applications.NewService(applicationsRepo, cvsService, jobsService, emailService)
@@ -114,7 +114,7 @@ func main() {
 	cvsHandler := cvs.NewHandler(cvsService, v)
 	applicationsHandler := applications.NewHandler(applicationsService, v)
 	wishlistHandler := wishlist.NewHandler(wishlistService, v)
-	quotaHandler := quota.NewHandler(quotaService, v, companyService)
+	quotaHandler := quota.NewHandler(quotaService, v, companyService, systemSettingsService)
 	systemSettingsHandler := systemsettings.NewHandler(systemSettingsService, v)
 	dashboardHandler := dashboard.NewHandler(dashboardService)
 	chatHandler := chat.NewHandler(chatService, v, "./docs")

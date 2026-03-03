@@ -12,6 +12,7 @@ import (
 	"time"
 
 	"github.com/karirnusantara/api/internal/middleware"
+	"github.com/karirnusantara/api/internal/modules/systemsettings"
 	"github.com/karirnusantara/api/internal/shared/response"
 	"github.com/karirnusantara/api/internal/shared/validator"
 )
@@ -23,17 +24,19 @@ type CompanyService interface {
 
 // Handler handles HTTP requests for quota
 type Handler struct {
-	service        *Service
-	validator      *validator.Validator
-	companyService CompanyService
+	service               *Service
+	validator             *validator.Validator
+	companyService        CompanyService
+	systemSettingsService *systemsettings.Service
 }
 
 // NewHandler creates a new quota handler
-func NewHandler(service *Service, v *validator.Validator, companyService CompanyService) *Handler {
+func NewHandler(service *Service, v *validator.Validator, companyService CompanyService, ssService *systemsettings.Service) *Handler {
 	return &Handler{
-		service:        service,
-		validator:      v,
-		companyService: companyService,
+		service:               service,
+		validator:             v,
+		companyService:        companyService,
+		systemSettingsService: ssService,
 	}
 }
 
@@ -155,8 +158,28 @@ func (h *Handler) SubmitPaymentProof(w http.ResponseWriter, r *http.Request) {
 	// Parse optional package_id (for top-up packages)
 	var packageID *string
 	if pkgID := r.FormValue("package_id"); pkgID != "" {
-		// Validate package exists
-		if GetPackageByID(pkgID) == nil {
+		// Validate package exists (from DB or hardcoded)
+		packageExists := false
+
+		// Check in database system settings first
+		if h.systemSettingsService != nil {
+			pricing, err := h.systemSettingsService.GetPublicPricing()
+			if err == nil {
+				for _, pkg := range pricing.QuotaPackages {
+					if pkg.PackageID == pkgID {
+						packageExists = true
+						break
+					}
+				}
+			}
+		}
+
+		// Fallback to hardcoded packages
+		if !packageExists && GetPackageByID(pkgID) != nil {
+			packageExists = true
+		}
+
+		if !packageExists {
 			response.Error(w, http.StatusBadRequest, "INVALID_PACKAGE", "Invalid package ID")
 			return
 		}
@@ -238,12 +261,51 @@ func (h *Handler) GetPayments(w http.ResponseWriter, r *http.Request) {
 // @Success 200 {object} response.Response
 // @Router /company/payments/info [get]
 func (h *Handler) GetPaymentInfo(w http.ResponseWriter, r *http.Request) {
+	// Get pricing data from system settings (database)
+	var pricePerJob int64 = PricePerJob     // fallback to constant
+	var freeQuotaLimit int = FreeQuotaLimit // fallback to constant
+	var packages []TopUpPackage
+
+	if h.systemSettingsService != nil {
+		pricing, err := h.systemSettingsService.GetPublicPricing()
+		if err == nil {
+			pricePerJob = pricing.PricePerJob
+			freeQuotaLimit = pricing.FreeQuotaLimit
+
+			// Convert systemsettings.QuotaPackage to quota.TopUpPackage
+			for _, pkg := range pricing.QuotaPackages {
+				totalQuota := pkg.Quota + pkg.BonusQuota
+				pricePerUnit := int64(0)
+				if totalQuota > 0 {
+					pricePerUnit = pkg.Price / int64(totalQuota)
+				}
+				packages = append(packages, TopUpPackage{
+					ID:          pkg.PackageID,
+					Name:        pkg.Name,
+					Quota:       pkg.Quota,
+					BonusQuota:  pkg.BonusQuota,
+					TotalQuota:  totalQuota,
+					Price:       pkg.Price,
+					PricePerJob: pricePerUnit,
+					IsBestValue: pkg.IsBestValue,
+					Description: pkg.Description,
+				})
+			}
+		}
+	}
+
+	// Fallback to hardcoded if no packages from DB
+	if len(packages) == 0 {
+		packages = GetTopUpPackages()
+	}
+
 	info := map[string]interface{}{
-		"bank":           "BCA",
-		"account_number": "8725164421",
-		"account_name":   "Saputra Budianto",
-		"price_per_job":  PricePerJob,
-		"packages":       GetTopUpPackages(),
+		"bank":             "BCA",
+		"account_number":   "8725164421",
+		"account_name":     "Saputra Budianto",
+		"price_per_job":    pricePerJob,
+		"free_quota_limit": freeQuotaLimit,
+		"packages":         packages,
 	}
 
 	response.Success(w, http.StatusOK, "Payment info retrieved", info)
@@ -257,7 +319,38 @@ func (h *Handler) GetPaymentInfo(w http.ResponseWriter, r *http.Request) {
 // @Success 200 {object} response.Response{data=[]TopUpPackage}
 // @Router /company/packages [get]
 func (h *Handler) GetPackages(w http.ResponseWriter, r *http.Request) {
-	packages := GetTopUpPackages()
+	var packages []TopUpPackage
+
+	if h.systemSettingsService != nil {
+		pricing, err := h.systemSettingsService.GetPublicPricing()
+		if err == nil {
+			// Convert systemsettings.QuotaPackage to quota.TopUpPackage
+			for _, pkg := range pricing.QuotaPackages {
+				totalQuota := pkg.Quota + pkg.BonusQuota
+				pricePerUnit := int64(0)
+				if totalQuota > 0 {
+					pricePerUnit = pkg.Price / int64(totalQuota)
+				}
+				packages = append(packages, TopUpPackage{
+					ID:          pkg.PackageID,
+					Name:        pkg.Name,
+					Quota:       pkg.Quota,
+					BonusQuota:  pkg.BonusQuota,
+					TotalQuota:  totalQuota,
+					Price:       pkg.Price,
+					PricePerJob: pricePerUnit,
+					IsBestValue: pkg.IsBestValue,
+					Description: pkg.Description,
+				})
+			}
+		}
+	}
+
+	// Fallback to hardcoded if no packages from DB
+	if len(packages) == 0 {
+		packages = GetTopUpPackages()
+	}
+
 	response.Success(w, http.StatusOK, "Packages retrieved successfully", packages)
 }
 
