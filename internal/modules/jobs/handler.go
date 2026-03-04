@@ -509,6 +509,8 @@ func (h *Handler) ListByCompany(w http.ResponseWriter, r *http.Request) {
 	params := DefaultJobListParams()
 	// For company listing, don't filter by status by default (show all jobs)
 	params.Status = ""
+	// Company should see all their jobs including expired ones
+	params.ExcludeExpired = false
 
 	// Parse query parameters
 	query := r.URL.Query()

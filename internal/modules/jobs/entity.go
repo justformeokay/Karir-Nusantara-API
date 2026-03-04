@@ -311,11 +311,12 @@ type JobListParams struct {
 // DefaultJobListParams returns default list parameters
 func DefaultJobListParams() JobListParams {
 	return JobListParams{
-		Page:      1,
-		PerPage:   20,
-		Status:    JobStatusActive,
-		SortBy:    "published_at",
-		SortOrder: "desc",
+		Page:           1,
+		PerPage:        20,
+		Status:         JobStatusActive,
+		SortBy:         "published_at",
+		SortOrder:      "desc",
+		ExcludeExpired: true, // By default, exclude jobs past application_deadline
 	}
 }
 
