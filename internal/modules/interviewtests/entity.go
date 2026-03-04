@@ -263,3 +263,43 @@ type UpdateInterviewTestRequest struct {
 	ShowResultsImmediately *bool                   `json:"show_results_immediately,omitempty"`
 	Questions              []CreateQuestionRequest `json:"questions"`
 }
+
+// AssignTestRequest represents the request to assign a test to a candidate
+type AssignTestRequest struct {
+	InterviewTestID uint64 `json:"interview_test_id"`
+	CandidateUserID uint64 `json:"candidate_user_id"`
+	ApplicationID   uint64 `json:"application_id"`
+}
+
+// SubmitAnswerRequest represents a single answer submitted by a job seeker
+type SubmitAnswerRequest struct {
+	QuestionID       uint64 `json:"question_id"`
+	QuestionType     string `json:"question_type"`
+	SelectedOptionID uint64 `json:"selected_option_id,omitempty"`
+	AnswerText       string `json:"answer_text,omitempty"`
+}
+
+// SubmitAnswersRequest wraps multiple answers in one submission
+type SubmitAnswersRequest struct {
+	Answers []SubmitAnswerRequest `json:"answers"`
+}
+
+// SubmissionResponse is the API response for a test submission
+type SubmissionResponse struct {
+	ID            uint64                `json:"id"`
+	Status        string                `json:"status"`
+	Score         *int64                `json:"score,omitempty"`
+	Percentage    *float64              `json:"percentage,omitempty"`
+	IsPassed      *bool                 `json:"is_passed,omitempty"`
+	StartedAt     *string               `json:"started_at,omitempty"`
+	SubmittedAt   *string               `json:"submitted_at,omitempty"`
+	ApplicationID *uint64               `json:"application_id,omitempty"`
+	Test          InterviewTestResponse `json:"test"`
+}
+
+// TestForSubmissionResponse wraps the test + submission context for a job seeker to take
+type TestForSubmissionResponse struct {
+	SubmissionID uint64                `json:"submission_id"`
+	Status       string                `json:"status"`
+	Test         InterviewTestResponse `json:"test"`
+}

@@ -762,3 +762,239 @@ func (s *Service) CopyFromAdmin(ctx context.Context, testID uint64, companyID ui
 
 	return s.CreateForCompany(ctx, req, companyID, userID)
 }
+
+// =============== Submission / Assignment methods ===============
+
+// AssignTestToCandidate creates a new submission record (assigns test to a candidate)
+func (s *Service) AssignTestToCandidate(ctx context.Context, testID uint64, candidateUserID uint64, applicationID uint64, companyID uint64) (*SubmissionResponse, error) {
+	// Verify the test exists and belongs to the company (or is a public admin test)
+	test, err := s.repo.GetByID(ctx, testID)
+	if err != nil {
+		return nil, err
+	}
+	if test == nil {
+		return nil, ErrTestNotFound
+	}
+	// Only allow active tests
+	if test.Status != StatusActive {
+		return nil, errors.New("only active tests can be assigned")
+	}
+
+	// Prevent duplicate assignment
+	existing, err := s.repo.GetSubmissionByApplicationAndTest(ctx, applicationID, testID)
+	if err != nil {
+		return nil, err
+	}
+	if existing != nil {
+		return nil, errors.New("test already assigned to this candidate for this application")
+	}
+
+	sub := &InterviewTestSubmission{
+		InterviewTestID: testID,
+		UserID:          candidateUserID,
+		ApplicationID:   sql.NullInt64{Int64: int64(applicationID), Valid: true},
+	}
+
+	if err := s.repo.CreateSubmission(ctx, sub); err != nil {
+		return nil, err
+	}
+
+	testResp := test.ToResponse()
+	return buildSubmissionResponse(sub, &testResp), nil
+}
+
+// GetSubmissionsForApplication returns all test submissions for a given application
+func (s *Service) GetSubmissionsForApplication(ctx context.Context, applicationID uint64) ([]SubmissionResponse, error) {
+	subs, err := s.repo.GetSubmissionsByApplicationID(ctx, applicationID)
+	if err != nil {
+		return nil, err
+	}
+
+	responses := make([]SubmissionResponse, 0, len(subs))
+	for _, sub := range subs {
+		test, err := s.repo.GetByID(ctx, sub.InterviewTestID)
+		if err != nil || test == nil {
+			continue
+		}
+		testResp := test.ToResponse()
+		responses = append(responses, *buildSubmissionResponse(sub, &testResp))
+	}
+	return responses, nil
+}
+
+// GetSubmissionsForUser returns all test submissions assigned to a job seeker
+func (s *Service) GetSubmissionsForUser(ctx context.Context, userID uint64) ([]SubmissionResponse, error) {
+	subs, err := s.repo.GetSubmissionsByUserID(ctx, userID)
+	if err != nil {
+		return nil, err
+	}
+
+	responses := make([]SubmissionResponse, 0, len(subs))
+	for _, sub := range subs {
+		test, err := s.repo.GetByID(ctx, sub.InterviewTestID)
+		if err != nil || test == nil {
+			continue
+		}
+		testResp := test.ToResponse()
+		responses = append(responses, *buildSubmissionResponse(sub, &testResp))
+	}
+	return responses, nil
+}
+
+// GetTestForSubmission returns the full test detail (with questions/options) for a submission, for a job seeker to answer
+func (s *Service) GetTestForSubmission(ctx context.Context, submissionID uint64, userID uint64) (*TestForSubmissionResponse, error) {
+	sub, err := s.repo.GetSubmissionByID(ctx, submissionID)
+	if err != nil {
+		return nil, err
+	}
+	if sub == nil || sub.UserID != userID {
+		return nil, errors.New("submission not found")
+	}
+
+	testResp, err := s.GetByID(ctx, sub.InterviewTestID)
+	if err != nil {
+		return nil, err
+	}
+
+	// Strip correct answer info - candidates should not see which is correct
+	for i := range testResp.Questions {
+		for j := range testResp.Questions[i].Options {
+			testResp.Questions[i].Options[j].IsCorrect = false
+		}
+	}
+
+	return &TestForSubmissionResponse{
+		SubmissionID: sub.ID,
+		Status:       string(sub.Status),
+		Test:         *testResp,
+	}, nil
+}
+
+// SubmitTestAnswers processes answers submitted by a job seeker, auto-grades multiple choice
+func (s *Service) SubmitTestAnswers(ctx context.Context, submissionID uint64, userID uint64, answers []SubmitAnswerRequest) (*SubmissionResponse, error) {
+	sub, err := s.repo.GetSubmissionByID(ctx, submissionID)
+	if err != nil {
+		return nil, err
+	}
+	if sub == nil || sub.UserID != userID {
+		return nil, errors.New("submission not found")
+	}
+	if sub.Status != SubmissionInProgress {
+		return nil, errors.New("this test has already been submitted")
+	}
+
+	// Get the test to know total points
+	test, err := s.repo.GetByID(ctx, sub.InterviewTestID)
+	if err != nil || test == nil {
+		return nil, errors.New("test not found")
+	}
+
+	// Fetch all questions for this test (for points lookup)
+	questions, err := s.repo.GetQuestionsByTestID(ctx, sub.InterviewTestID)
+	if err != nil {
+		return nil, err
+	}
+	questionMap := make(map[uint64]*InterviewQuestion)
+	for _, q := range questions {
+		questionMap[q.ID] = q
+	}
+
+	totalScore := int64(0)
+	hasEssay := false
+
+	for _, a := range answers {
+		answer := &InterviewTestAnswer{
+			SubmissionID:        submissionID,
+			InterviewQuestionID: a.QuestionID,
+			QuestionType:        QuestionType(a.QuestionType),
+		}
+
+		if a.QuestionType == string(TypeMultipleChoice) && a.SelectedOptionID != 0 {
+			answer.SelectedOptionID = sql.NullInt64{Int64: int64(a.SelectedOptionID), Valid: true}
+
+			// Auto-grade: check if selected option is correct
+			correctOpt, err := s.repo.GetCorrectOptionByQuestionID(ctx, a.QuestionID)
+			if err == nil && correctOpt != nil {
+				isCorrect := correctOpt.ID == a.SelectedOptionID
+				answer.IsCorrect = sql.NullBool{Bool: isCorrect, Valid: true}
+				if isCorrect {
+					// Find points for this question
+					if q, ok := questionMap[a.QuestionID]; ok {
+						answer.PointsEarned = sql.NullInt64{Int64: int64(q.Points), Valid: true}
+						totalScore += int64(q.Points)
+					}
+				} else {
+					answer.PointsEarned = sql.NullInt64{Int64: 0, Valid: true}
+				}
+			}
+		} else if a.QuestionType == string(TypeEssay) {
+			answer.AnswerText = sql.NullString{String: a.AnswerText, Valid: a.AnswerText != ""}
+			hasEssay = true
+		}
+
+		_ = s.repo.SaveAnswer(ctx, answer)
+	}
+
+	// Determine completion status
+	newStatus := SubmissionSubmitted
+	var percentage *float64
+	var isPassed *bool
+
+	if !hasEssay {
+		// All auto-gradable – complete immediately
+		newStatus = SubmissionCompleted
+
+		if test.TotalPoints > 0 {
+			pct := float64(totalScore) / float64(test.TotalPoints) * 100
+			percentage = &pct
+			passed := pct >= float64(test.PassingScore)
+			isPassed = &passed
+		}
+	}
+
+	score := totalScore
+	if err := s.repo.UpdateSubmissionStatus(ctx, submissionID, newStatus, &score, percentage, isPassed); err != nil {
+		return nil, err
+	}
+
+	// Reload submission
+	sub, _ = s.repo.GetSubmissionByID(ctx, submissionID)
+	testResp := test.ToResponse()
+	return buildSubmissionResponse(sub, &testResp), nil
+}
+
+// =============== Response builders ===============
+
+func buildSubmissionResponse(sub *InterviewTestSubmission, test *InterviewTestResponse) *SubmissionResponse {
+	resp := &SubmissionResponse{
+		ID:     sub.ID,
+		Status: string(sub.Status),
+		Test:   *test,
+	}
+	if sub.Score.Valid {
+		v := sub.Score.Int64
+		resp.Score = &v
+	}
+	if sub.Percentage.Valid {
+		v := sub.Percentage.Float64
+		resp.Percentage = &v
+	}
+	if sub.IsPassed.Valid {
+		v := sub.IsPassed.Bool
+		resp.IsPassed = &v
+	}
+	// StartedAt is time.Time, not null - check if not zero value
+	if !sub.StartedAt.IsZero() {
+		t := sub.StartedAt.Format("2006-01-02T15:04:05Z07:00")
+		resp.StartedAt = &t
+	}
+	if sub.SubmittedAt.Valid {
+		t := sub.SubmittedAt.Time.Format("2006-01-02T15:04:05Z07:00")
+		resp.SubmittedAt = &t
+	}
+	if sub.ApplicationID.Valid {
+		v := uint64(sub.ApplicationID.Int64)
+		resp.ApplicationID = &v
+	}
+	return resp
+}

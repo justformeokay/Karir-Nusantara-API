@@ -348,3 +348,158 @@ func (r *Repository) GetByCompanyID(ctx context.Context, companyID uint64, statu
 
 	return tests, nil
 }
+
+// =============== Submission CRUD ===============
+
+// CreateSubmission inserts a new interview test submission
+func (r *Repository) CreateSubmission(ctx context.Context, sub *InterviewTestSubmission) error {
+	query := `
+		INSERT INTO interview_test_submissions (
+			interview_test_id, user_id, application_id, status,
+			started_at, created_at, updated_at
+		) VALUES (?, ?, ?, 'in_progress', NOW(), NOW(), NOW())
+	`
+
+	result, err := r.db.ExecContext(ctx, query,
+		sub.InterviewTestID,
+		sub.UserID,
+		sub.ApplicationID,
+	)
+	if err != nil {
+		return fmt.Errorf("failed to create submission: %w", err)
+	}
+
+	id, err := result.LastInsertId()
+	if err != nil {
+		return fmt.Errorf("failed to get last insert id: %w", err)
+	}
+	sub.ID = uint64(id)
+	return nil
+}
+
+// GetSubmissionByID retrieves a submission by ID
+func (r *Repository) GetSubmissionByID(ctx context.Context, id uint64) (*InterviewTestSubmission, error) {
+	var sub InterviewTestSubmission
+	query := `SELECT * FROM interview_test_submissions WHERE id = ?`
+	err := r.db.GetContext(ctx, &sub, query, id)
+	if err != nil {
+		if err == sql.ErrNoRows {
+			return nil, nil
+		}
+		return nil, fmt.Errorf("failed to get submission: %w", err)
+	}
+	return &sub, nil
+}
+
+// GetSubmissionByApplicationAndTest retrieves existing submission for specific application+test combination
+func (r *Repository) GetSubmissionByApplicationAndTest(ctx context.Context, applicationID uint64, testID uint64) (*InterviewTestSubmission, error) {
+	var sub InterviewTestSubmission
+	query := `SELECT * FROM interview_test_submissions WHERE application_id = ? AND interview_test_id = ? LIMIT 1`
+	err := r.db.GetContext(ctx, &sub, query, applicationID, testID)
+	if err != nil {
+		if err == sql.ErrNoRows {
+			return nil, nil
+		}
+		return nil, fmt.Errorf("failed to get submission: %w", err)
+	}
+	return &sub, nil
+}
+
+// GetSubmissionsByApplicationID retrieves all submissions for a given application
+func (r *Repository) GetSubmissionsByApplicationID(ctx context.Context, applicationID uint64) ([]*InterviewTestSubmission, error) {
+	var subs []*InterviewTestSubmission
+	query := `SELECT * FROM interview_test_submissions WHERE application_id = ? ORDER BY created_at DESC`
+	err := r.db.SelectContext(ctx, &subs, query, applicationID)
+	if err != nil {
+		return nil, fmt.Errorf("failed to get submissions: %w", err)
+	}
+	return subs, nil
+}
+
+// GetSubmissionsByUserID retrieves all submissions for a given job seeker user
+func (r *Repository) GetSubmissionsByUserID(ctx context.Context, userID uint64) ([]*InterviewTestSubmission, error) {
+	var subs []*InterviewTestSubmission
+	query := `SELECT * FROM interview_test_submissions WHERE user_id = ? ORDER BY created_at DESC`
+	err := r.db.SelectContext(ctx, &subs, query, userID)
+	if err != nil {
+		return nil, fmt.Errorf("failed to get submissions: %w", err)
+	}
+	return subs, nil
+}
+
+// UpdateSubmissionStatus updates the status, score, and completion fields of a submission
+func (r *Repository) UpdateSubmissionStatus(ctx context.Context, id uint64, status SubmissionStatus, score *int64, percentage *float64, isPassed *bool) error {
+	query := `
+		UPDATE interview_test_submissions
+		SET status = ?, score = ?, percentage = ?, is_passed = ?, 
+		    submitted_at = CASE WHEN ? IN ('submitted','completed') THEN NOW() ELSE submitted_at END,
+		    graded_at = CASE WHEN ? = 'completed' THEN NOW() ELSE graded_at END,
+		    updated_at = NOW()
+		WHERE id = ?
+	`
+	_, err := r.db.ExecContext(ctx, query, status, score, percentage, isPassed, status, status, id)
+	if err != nil {
+		return fmt.Errorf("failed to update submission: %w", err)
+	}
+	return nil
+}
+
+// SaveAnswer inserts or replaces an answer for a specific question in a submission
+func (r *Repository) SaveAnswer(ctx context.Context, answer *InterviewTestAnswer) error {
+	query := `
+		INSERT INTO interview_test_answers (
+			submission_id, interview_question_id, question_type,
+			answer_text, selected_option_id, is_correct, points_earned,
+			answered_at, created_at, updated_at
+		) VALUES (?, ?, ?, ?, ?, ?, ?, NOW(), NOW(), NOW())
+		ON DUPLICATE KEY UPDATE
+			answer_text = VALUES(answer_text),
+			selected_option_id = VALUES(selected_option_id),
+			is_correct = VALUES(is_correct),
+			points_earned = VALUES(points_earned),
+			answered_at = NOW(),
+			updated_at = NOW()
+	`
+	result, err := r.db.ExecContext(ctx, query,
+		answer.SubmissionID,
+		answer.InterviewQuestionID,
+		answer.QuestionType,
+		answer.AnswerText,
+		answer.SelectedOptionID,
+		answer.IsCorrect,
+		answer.PointsEarned,
+	)
+	if err != nil {
+		return fmt.Errorf("failed to save answer: %w", err)
+	}
+	id, _ := result.LastInsertId()
+	if answer.ID == 0 {
+		answer.ID = uint64(id)
+	}
+	return nil
+}
+
+// GetAnswersBySubmissionID retrieves all answers for a submission
+func (r *Repository) GetAnswersBySubmissionID(ctx context.Context, submissionID uint64) ([]*InterviewTestAnswer, error) {
+	var answers []*InterviewTestAnswer
+	query := `SELECT * FROM interview_test_answers WHERE submission_id = ? ORDER BY answered_at ASC`
+	err := r.db.SelectContext(ctx, &answers, query, submissionID)
+	if err != nil {
+		return nil, fmt.Errorf("failed to get answers: %w", err)
+	}
+	return answers, nil
+}
+
+// GetCorrectOptionByQuestionID returns the correct option for a multiple choice question
+func (r *Repository) GetCorrectOptionByQuestionID(ctx context.Context, questionID uint64) (*QuestionOption, error) {
+	var option QuestionOption
+	query := `SELECT * FROM interview_question_options WHERE interview_question_id = ? AND is_correct = 1 LIMIT 1`
+	err := r.db.GetContext(ctx, &option, query, questionID)
+	if err != nil {
+		if err == sql.ErrNoRows {
+			return nil, nil
+		}
+		return nil, fmt.Errorf("failed to get correct option: %w", err)
+	}
+	return &option, nil
+}

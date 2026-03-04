@@ -387,3 +387,142 @@ func (h *CompanyHandler) CopyFromAdmin(w http.ResponseWriter, r *http.Request) {
 	}
 	response.Success(w, http.StatusCreated, "Test copied successfully", result)
 }
+
+// AssignTest handles POST /company/applications/{applicationId}/assign-test
+func (h *CompanyHandler) AssignTest(w http.ResponseWriter, r *http.Request) {
+	appIDStr := chi.URLParam(r, "applicationId")
+	applicationID, err := strconv.ParseUint(appIDStr, 10, 64)
+	if err != nil {
+		response.Error(w, http.StatusBadRequest, "INVALID_ID", "Invalid application ID")
+		return
+	}
+
+	_, companyID, err := h.getCompanyIDFromContext(r)
+	if err != nil {
+		response.Error(w, http.StatusUnauthorized, "UNAUTHORIZED", err.Error())
+		return
+	}
+
+	var req struct {
+		InterviewTestID uint64 `json:"interview_test_id"`
+		CandidateUserID uint64 `json:"candidate_user_id"`
+	}
+	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
+		response.Error(w, http.StatusBadRequest, "INVALID_REQUEST", "Invalid request body")
+		return
+	}
+	if req.InterviewTestID == 0 || req.CandidateUserID == 0 {
+		response.Error(w, http.StatusBadRequest, "MISSING_FIELDS", "interview_test_id and candidate_user_id are required")
+		return
+	}
+
+	result, err := h.service.AssignTestToCandidate(r.Context(), req.InterviewTestID, req.CandidateUserID, applicationID, companyID)
+	if err != nil {
+		handleServiceError(w, err)
+		return
+	}
+	response.Success(w, http.StatusCreated, "Test assigned successfully", result)
+}
+
+// GetApplicationSubmissions handles GET /company/applications/{applicationId}/interview-tests
+func (h *CompanyHandler) GetApplicationSubmissions(w http.ResponseWriter, r *http.Request) {
+	appIDStr := chi.URLParam(r, "applicationId")
+	applicationID, err := strconv.ParseUint(appIDStr, 10, 64)
+	if err != nil {
+		response.Error(w, http.StatusBadRequest, "INVALID_ID", "Invalid application ID")
+		return
+	}
+
+	_, _, err = h.getCompanyIDFromContext(r)
+	if err != nil {
+		response.Error(w, http.StatusUnauthorized, "UNAUTHORIZED", err.Error())
+		return
+	}
+
+	results, err := h.service.GetSubmissionsForApplication(r.Context(), applicationID)
+	if err != nil {
+		handleServiceError(w, err)
+		return
+	}
+	response.Success(w, http.StatusOK, "Submissions retrieved successfully", results)
+}
+
+// =============== Job Seeker Handler ===============
+
+// JobSeekerHandler handles HTTP requests for job seeker test activities
+type JobSeekerHandler struct {
+	service *Service
+}
+
+// NewJobSeekerHandler creates a new job seeker interview test handler
+func NewJobSeekerHandler(service *Service) *JobSeekerHandler {
+	return &JobSeekerHandler{service: service}
+}
+
+// GetMySubmissions handles GET /jobseeker/interview-tests
+func (h *JobSeekerHandler) GetMySubmissions(w http.ResponseWriter, r *http.Request) {
+	userID := getAdminIDFromContext(r)
+	if userID == 0 {
+		response.Error(w, http.StatusUnauthorized, "UNAUTHORIZED", "Unauthorized")
+		return
+	}
+
+	results, err := h.service.GetSubmissionsForUser(r.Context(), userID)
+	if err != nil {
+		handleServiceError(w, err)
+		return
+	}
+	response.Success(w, http.StatusOK, "Submissions retrieved successfully", results)
+}
+
+// GetTestForSubmission handles GET /jobseeker/interview-tests/{submissionId}
+func (h *JobSeekerHandler) GetTestForSubmission(w http.ResponseWriter, r *http.Request) {
+	idStr := chi.URLParam(r, "submissionId")
+	submissionID, err := strconv.ParseUint(idStr, 10, 64)
+	if err != nil {
+		response.Error(w, http.StatusBadRequest, "INVALID_ID", "Invalid submission ID")
+		return
+	}
+
+	userID := getAdminIDFromContext(r)
+	if userID == 0 {
+		response.Error(w, http.StatusUnauthorized, "UNAUTHORIZED", "Unauthorized")
+		return
+	}
+
+	result, err := h.service.GetTestForSubmission(r.Context(), submissionID, userID)
+	if err != nil {
+		response.Error(w, http.StatusNotFound, "NOT_FOUND", err.Error())
+		return
+	}
+	response.Success(w, http.StatusOK, "Test retrieved successfully", result)
+}
+
+// SubmitAnswers handles POST /jobseeker/interview-tests/{submissionId}/submit
+func (h *JobSeekerHandler) SubmitAnswers(w http.ResponseWriter, r *http.Request) {
+	idStr := chi.URLParam(r, "submissionId")
+	submissionID, err := strconv.ParseUint(idStr, 10, 64)
+	if err != nil {
+		response.Error(w, http.StatusBadRequest, "INVALID_ID", "Invalid submission ID")
+		return
+	}
+
+	userID := getAdminIDFromContext(r)
+	if userID == 0 {
+		response.Error(w, http.StatusUnauthorized, "UNAUTHORIZED", "Unauthorized")
+		return
+	}
+
+	var req SubmitAnswersRequest
+	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
+		response.Error(w, http.StatusBadRequest, "INVALID_REQUEST", "Invalid request body")
+		return
+	}
+
+	result, err := h.service.SubmitTestAnswers(r.Context(), submissionID, userID, req.Answers)
+	if err != nil {
+		handleServiceError(w, err)
+		return
+	}
+	response.Success(w, http.StatusOK, "Test submitted successfully", result)
+}

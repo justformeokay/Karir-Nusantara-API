@@ -187,6 +187,10 @@ func main() {
 		companyInterviewTestsModule := interviewtests.NewCompanyModule(db, companyService)
 		companyInterviewTestsModule.RegisterRoutes(r, authMiddleware.Authenticate)
 
+		// Job Seeker interview tests module routes
+		jobSeekerInterviewTestsModule := interviewtests.NewJobSeekerModule(db)
+		jobSeekerInterviewTestsModule.RegisterJobSeekerRoutes(r, authMiddleware.Authenticate)
+
 		// Admin module routes
 		adminModule := admin.NewModuleWithQuota(db, cfg, authMiddleware, quotaService, emailService, invoiceService)
 		adminModule.RegisterRoutes(r)

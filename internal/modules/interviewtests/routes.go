@@ -74,4 +74,37 @@ func (m *CompanyModule) RegisterRoutes(r chi.Router, authenticate func(http.Hand
 		// Copy admin test
 		r.Post("/{id}/copy", m.handler.CopyFromAdmin)
 	})
+
+	// Application-level assignment endpoints
+	r.Route("/company/applications/{applicationId}", func(r chi.Router) {
+		r.Use(authenticate)
+		r.Post("/assign-test", m.handler.AssignTest)
+		r.Get("/interview-tests", m.handler.GetApplicationSubmissions)
+	})
+}
+
+// JobSeekerModule represents the interview tests module for job seeker portal
+type JobSeekerModule struct {
+	handler *JobSeekerHandler
+}
+
+// NewJobSeekerModule creates a new job seeker interview tests module
+func NewJobSeekerModule(db *sqlx.DB) *JobSeekerModule {
+	repo := NewRepository(db)
+	service := NewService(repo)
+	handler := NewJobSeekerHandler(service)
+
+	return &JobSeekerModule{
+		handler: handler,
+	}
+}
+
+// RegisterJobSeekerRoutes registers job seeker interview test routes
+func (m *JobSeekerModule) RegisterJobSeekerRoutes(r chi.Router, authenticate func(http.Handler) http.Handler) {
+	r.Route("/jobseeker/interview-tests", func(r chi.Router) {
+		r.Use(authenticate)
+		r.Get("/", m.handler.GetMySubmissions)
+		r.Get("/{submissionId}", m.handler.GetTestForSubmission)
+		r.Post("/{submissionId}/submit", m.handler.SubmitAnswers)
+	})
 }
