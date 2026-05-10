@@ -19,10 +19,11 @@ type Config struct {
 
 // AppConfig holds application-specific configuration
 type AppConfig struct {
-	Name  string
-	Env   string
-	Port  string
-	Debug bool
+	Name    string
+	Env     string
+	Port    string
+	Debug   bool
+	BaseURL string
 }
 
 // DatabaseConfig holds database configuration
@@ -70,10 +71,11 @@ func Load() (*Config, error) {
 
 	config := &Config{
 		App: AppConfig{
-			Name:  getEnv("APP_NAME", "karir-nusantara-api"),
-			Env:   getEnv("APP_ENV", "development"),
-			Port:  getEnv("APP_PORT", "8081"),
-			Debug: getEnvBool("APP_DEBUG", true),
+			Name:    getEnv("APP_NAME", "karir-nusantara-api"),
+			Env:     getEnv("APP_ENV", "development"),
+			Port:    getEnv("APP_PORT", "8081"),
+			Debug:   getEnvBool("APP_DEBUG", true),
+			BaseURL: getEnv("APP_BASE_URL", "http://localhost:8081"),
 		},
 		Database: DatabaseConfig{
 			Host:            getEnv("DB_HOST", "localhost"),

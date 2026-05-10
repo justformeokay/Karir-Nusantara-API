@@ -27,7 +27,7 @@ SET time_zone = "+00:00";
 -- Table structure for table `announcements`
 --
 
-CREATE TABLE `announcements` (
+CREATE TABLE IF NOT EXISTS `announcements` (
   `id` bigint(20) UNSIGNED NOT NULL,
   `title` varchar(255) NOT NULL COMMENT 'Title of the announcement',
   `content` text NOT NULL COMMENT 'Content/body of the announcement',
@@ -73,7 +73,7 @@ INSERT INTO `announcements` (`id`, `title`, `content`, `type`, `target_audience`
 -- Table structure for table `applicant_documents`
 --
 
-CREATE TABLE `applicant_documents` (
+CREATE TABLE IF NOT EXISTS `applicant_documents` (
   `id` bigint(20) UNSIGNED NOT NULL,
   `user_id` bigint(20) UNSIGNED NOT NULL,
   `document_type` enum('cv_uploaded','cv_generated','certificate','transcript','portfolio','ktp','other') NOT NULL,
@@ -100,7 +100,7 @@ INSERT INTO `applicant_documents` (`id`, `user_id`, `document_type`, `document_n
 -- Table structure for table `applicant_profiles`
 --
 
-CREATE TABLE `applicant_profiles` (
+CREATE TABLE IF NOT EXISTS `applicant_profiles` (
   `id` bigint(20) UNSIGNED NOT NULL,
   `user_id` bigint(20) UNSIGNED NOT NULL,
   `date_of_birth` date DEFAULT NULL,
@@ -144,7 +144,7 @@ INSERT INTO `applicant_profiles` (`id`, `user_id`, `date_of_birth`, `gender`, `n
 -- Table structure for table `applications`
 --
 
-CREATE TABLE `applications` (
+CREATE TABLE IF NOT EXISTS `applications` (
   `id` bigint(20) UNSIGNED NOT NULL,
   `user_id` bigint(20) UNSIGNED NOT NULL,
   `job_id` bigint(20) UNSIGNED NOT NULL,
@@ -180,7 +180,7 @@ INSERT INTO `applications` (`id`, `user_id`, `job_id`, `cv_snapshot_id`, `cover_
 -- Table structure for table `application_timelines`
 --
 
-CREATE TABLE `application_timelines` (
+CREATE TABLE IF NOT EXISTS `application_timelines` (
   `id` bigint(20) UNSIGNED NOT NULL,
   `application_id` bigint(20) UNSIGNED NOT NULL,
   `status` enum('submitted','viewed','shortlisted','interview_scheduled','interview_completed','assessment','offer_sent','offer_accepted','hired','rejected','withdrawn') NOT NULL,
@@ -238,7 +238,7 @@ INSERT INTO `application_timelines` (`id`, `application_id`, `status`, `note`, `
 -- Table structure for table `audit_logs`
 --
 
-CREATE TABLE `audit_logs` (
+CREATE TABLE IF NOT EXISTS `audit_logs` (
   `id` bigint(20) UNSIGNED NOT NULL,
   `user_id` bigint(20) UNSIGNED DEFAULT NULL,
   `action` varchar(100) NOT NULL,
@@ -257,7 +257,7 @@ CREATE TABLE `audit_logs` (
 -- Table structure for table `chat_messages`
 --
 
-CREATE TABLE `chat_messages` (
+CREATE TABLE IF NOT EXISTS `chat_messages` (
   `id` bigint(20) UNSIGNED NOT NULL,
   `conversation_id` bigint(20) UNSIGNED NOT NULL,
   `sender_id` bigint(20) UNSIGNED NOT NULL,
@@ -298,7 +298,7 @@ INSERT INTO `chat_messages` (`id`, `conversation_id`, `sender_id`, `sender_type`
 -- Table structure for table `companies`
 --
 
-CREATE TABLE `companies` (
+CREATE TABLE IF NOT EXISTS `companies` (
   `id` bigint(20) UNSIGNED NOT NULL,
   `user_id` bigint(20) UNSIGNED NOT NULL,
   `company_name` varchar(255) NOT NULL,
@@ -349,7 +349,7 @@ INSERT INTO `companies` (`id`, `user_id`, `company_name`, `company_description`,
 -- Table structure for table `company_quotas`
 --
 
-CREATE TABLE `company_quotas` (
+CREATE TABLE IF NOT EXISTS `company_quotas` (
   `id` bigint(20) UNSIGNED NOT NULL,
   `company_id` bigint(20) UNSIGNED NOT NULL,
   `free_quota_used` int(11) NOT NULL DEFAULT 0,
@@ -376,7 +376,7 @@ INSERT INTO `company_quotas` (`id`, `company_id`, `free_quota_used`, `paid_quota
 -- Table structure for table `conversations`
 --
 
-CREATE TABLE `conversations` (
+CREATE TABLE IF NOT EXISTS `conversations` (
   `id` bigint(20) UNSIGNED NOT NULL,
   `company_id` bigint(20) UNSIGNED NOT NULL,
   `title` varchar(255) NOT NULL,
@@ -406,16 +406,16 @@ INSERT INTO `conversations` (`id`, `company_id`, `title`, `subject`, `category`,
 -- Table structure for table `cvs`
 --
 
-CREATE TABLE `cvs` (
+CREATE TABLE IF NOT EXISTS `cvs` (
   `id` bigint(20) UNSIGNED NOT NULL,
   `user_id` bigint(20) UNSIGNED NOT NULL,
   `personal_info` longtext CHARACTER SET utf8mb4 COLLATE utf8mb4_bin NOT NULL CHECK (json_valid(`personal_info`)),
-  `education` longtext CHARACTER SET utf8mb4 COLLATE utf8mb4_bin NOT NULL DEFAULT '[]' CHECK (json_valid(`education`)),
-  `experience` longtext CHARACTER SET utf8mb4 COLLATE utf8mb4_bin NOT NULL DEFAULT '[]' CHECK (json_valid(`experience`)),
-  `skills` longtext CHARACTER SET utf8mb4 COLLATE utf8mb4_bin NOT NULL DEFAULT '[]' CHECK (json_valid(`skills`)),
-  `certifications` longtext CHARACTER SET utf8mb4 COLLATE utf8mb4_bin NOT NULL DEFAULT '[]' CHECK (json_valid(`certifications`)),
-  `languages` longtext CHARACTER SET utf8mb4 COLLATE utf8mb4_bin NOT NULL DEFAULT '[]' CHECK (json_valid(`languages`)),
-  `projects` longtext CHARACTER SET utf8mb4 COLLATE utf8mb4_bin NOT NULL DEFAULT '[]' CHECK (json_valid(`projects`)),
+  `education` longtext CHARACTER SET utf8mb4 COLLATE utf8mb4_bin NOT NULL CHECK (json_valid(`education`)),
+  `experience` longtext CHARACTER SET utf8mb4 COLLATE utf8mb4_bin NOT NULL CHECK (json_valid(`experience`)),
+  `skills` longtext CHARACTER SET utf8mb4 COLLATE utf8mb4_bin NOT NULL CHECK (json_valid(`skills`)),
+  `certifications` longtext CHARACTER SET utf8mb4 COLLATE utf8mb4_bin NOT NULL CHECK (json_valid(`certifications`)),
+  `languages` longtext CHARACTER SET utf8mb4 COLLATE utf8mb4_bin NOT NULL CHECK (json_valid(`languages`)),
+  `projects` longtext CHARACTER SET utf8mb4 COLLATE utf8mb4_bin NOT NULL CHECK (json_valid(`projects`)),
   `last_updated_at` timestamp NOT NULL DEFAULT current_timestamp() ON UPDATE current_timestamp(),
   `completeness_score` int(10) UNSIGNED NOT NULL DEFAULT 0,
   `created_at` timestamp NOT NULL DEFAULT current_timestamp(),
@@ -437,7 +437,7 @@ INSERT INTO `cvs` (`id`, `user_id`, `personal_info`, `education`, `experience`, 
 -- Table structure for table `cv_snapshots`
 --
 
-CREATE TABLE `cv_snapshots` (
+CREATE TABLE IF NOT EXISTS `cv_snapshots` (
   `id` bigint(20) UNSIGNED NOT NULL,
   `cv_id` bigint(20) UNSIGNED NOT NULL,
   `user_id` bigint(20) UNSIGNED NOT NULL,
@@ -446,8 +446,8 @@ CREATE TABLE `cv_snapshots` (
   `experience` longtext CHARACTER SET utf8mb4 COLLATE utf8mb4_bin NOT NULL CHECK (json_valid(`experience`)),
   `skills` longtext CHARACTER SET utf8mb4 COLLATE utf8mb4_bin NOT NULL CHECK (json_valid(`skills`)),
   `certifications` longtext CHARACTER SET utf8mb4 COLLATE utf8mb4_bin NOT NULL CHECK (json_valid(`certifications`)),
-  `languages` longtext CHARACTER SET utf8mb4 COLLATE utf8mb4_bin NOT NULL DEFAULT '[]' CHECK (json_valid(`languages`)),
-  `projects` longtext CHARACTER SET utf8mb4 COLLATE utf8mb4_bin NOT NULL DEFAULT '[]' CHECK (json_valid(`projects`)),
+  `languages` longtext CHARACTER SET utf8mb4 COLLATE utf8mb4_bin NOT NULL CHECK (json_valid(`languages`)),
+  `projects` longtext CHARACTER SET utf8mb4 COLLATE utf8mb4_bin NOT NULL CHECK (json_valid(`projects`)),
   `snapshot_hash` varchar(64) NOT NULL,
   `completeness_score` int(10) UNSIGNED NOT NULL DEFAULT 0,
   `created_at` timestamp NOT NULL DEFAULT current_timestamp()
@@ -476,7 +476,7 @@ INSERT INTO `cv_snapshots` (`id`, `cv_id`, `user_id`, `personal_info`, `educatio
 -- Table structure for table `interview_questions`
 --
 
-CREATE TABLE `interview_questions` (
+CREATE TABLE IF NOT EXISTS `interview_questions` (
   `id` bigint(20) UNSIGNED NOT NULL,
   `interview_test_id` bigint(20) UNSIGNED NOT NULL COMMENT 'Foreign key ke interview_tests',
   `question_text` longtext NOT NULL COMMENT 'Teks Pertanyaan',
@@ -511,7 +511,7 @@ INSERT INTO `interview_questions` (`id`, `interview_test_id`, `question_text`, `
 --
 -- Triggers `interview_questions`
 --
-DELIMITER $$
+/* DELIMITER $$
 CREATE TRIGGER `after_interview_question_delete` AFTER DELETE ON `interview_questions` FOR EACH ROW BEGIN
   UPDATE `interview_tests`
   SET `total_points` = (
@@ -521,8 +521,8 @@ CREATE TRIGGER `after_interview_question_delete` AFTER DELETE ON `interview_ques
   WHERE `id` = OLD.interview_test_id;
 END
 $$
-DELIMITER ;
-DELIMITER $$
+DELIMITER ; */
+/* DELIMITER $$
 CREATE TRIGGER `after_interview_question_insert` AFTER INSERT ON `interview_questions` FOR EACH ROW BEGIN
   UPDATE `interview_tests`
   SET `total_points` = (
@@ -532,8 +532,8 @@ CREATE TRIGGER `after_interview_question_insert` AFTER INSERT ON `interview_ques
   WHERE `id` = NEW.interview_test_id;
 END
 $$
-DELIMITER ;
-DELIMITER $$
+DELIMITER ; */
+/* DELIMITER $$
 CREATE TRIGGER `after_interview_question_update` AFTER UPDATE ON `interview_questions` FOR EACH ROW BEGIN
   UPDATE `interview_tests`
   SET `total_points` = (
@@ -543,7 +543,7 @@ CREATE TRIGGER `after_interview_question_update` AFTER UPDATE ON `interview_ques
   WHERE `id` = NEW.interview_test_id;
 END
 $$
-DELIMITER ;
+DELIMITER ; */
 
 -- --------------------------------------------------------
 
@@ -551,7 +551,7 @@ DELIMITER ;
 -- Table structure for table `interview_question_options`
 --
 
-CREATE TABLE `interview_question_options` (
+CREATE TABLE IF NOT EXISTS `interview_question_options` (
   `id` bigint(20) UNSIGNED NOT NULL,
   `interview_question_id` bigint(20) UNSIGNED NOT NULL COMMENT 'Foreign key ke interview_questions',
   `option_text` longtext NOT NULL COMMENT 'Teks Opsi Jawaban',
@@ -625,7 +625,7 @@ INSERT INTO `interview_question_options` (`id`, `interview_question_id`, `option
 -- Table structure for table `interview_tests`
 --
 
-CREATE TABLE `interview_tests` (
+CREATE TABLE IF NOT EXISTS `interview_tests` (
   `id` bigint(20) UNSIGNED NOT NULL,
   `title` varchar(255) NOT NULL COMMENT 'Nama Tes',
   `description` longtext NOT NULL COMMENT 'Deskripsi Tes',
@@ -660,7 +660,7 @@ INSERT INTO `interview_tests` (`id`, `title`, `description`, `duration_minutes`,
 -- Table structure for table `interview_test_answers`
 --
 
-CREATE TABLE `interview_test_answers` (
+CREATE TABLE IF NOT EXISTS `interview_test_answers` (
   `id` bigint(20) UNSIGNED NOT NULL,
   `submission_id` bigint(20) UNSIGNED NOT NULL COMMENT 'Foreign key ke interview_test_submissions',
   `interview_question_id` bigint(20) UNSIGNED NOT NULL COMMENT 'Foreign key ke interview_questions',
@@ -681,7 +681,7 @@ CREATE TABLE `interview_test_answers` (
 -- Table structure for table `interview_test_submissions`
 --
 
-CREATE TABLE `interview_test_submissions` (
+CREATE TABLE IF NOT EXISTS `interview_test_submissions` (
   `id` bigint(20) UNSIGNED NOT NULL,
   `interview_test_id` bigint(20) UNSIGNED NOT NULL COMMENT 'Foreign key ke interview_tests',
   `user_id` bigint(20) UNSIGNED NOT NULL COMMENT 'Candidate user_id yang mengerjakan tes',
@@ -705,7 +705,7 @@ CREATE TABLE `interview_test_submissions` (
 -- Table structure for table `jobs`
 --
 
-CREATE TABLE `jobs` (
+CREATE TABLE IF NOT EXISTS `jobs` (
   `id` bigint(20) UNSIGNED NOT NULL,
   `company_id` bigint(20) UNSIGNED NOT NULL,
   `title` varchar(255) NOT NULL,
@@ -811,7 +811,7 @@ INSERT INTO `jobs` (`id`, `company_id`, `title`, `category`, `slug`, `descriptio
 -- Table structure for table `job_shares`
 --
 
-CREATE TABLE `job_shares` (
+CREATE TABLE IF NOT EXISTS `job_shares` (
   `id` bigint(20) UNSIGNED NOT NULL,
   `job_id` bigint(20) UNSIGNED NOT NULL,
   `user_id` bigint(20) UNSIGNED DEFAULT NULL COMMENT 'Applicant user_id who shared (optional)',
@@ -835,7 +835,7 @@ INSERT INTO `job_shares` (`id`, `job_id`, `user_id`, `platform`, `shared_at`) VA
 -- Table structure for table `job_skills`
 --
 
-CREATE TABLE `job_skills` (
+CREATE TABLE IF NOT EXISTS `job_skills` (
   `id` bigint(20) UNSIGNED NOT NULL,
   `job_id` bigint(20) UNSIGNED NOT NULL,
   `skill_name` varchar(100) NOT NULL,
@@ -939,7 +939,7 @@ INSERT INTO `job_skills` (`id`, `job_id`, `skill_name`, `is_required`) VALUES
 -- Table structure for table `job_views`
 --
 
-CREATE TABLE `job_views` (
+CREATE TABLE IF NOT EXISTS `job_views` (
   `id` bigint(20) UNSIGNED NOT NULL,
   `job_id` bigint(20) UNSIGNED NOT NULL,
   `user_id` bigint(20) UNSIGNED NOT NULL COMMENT 'Applicant user_id who viewed',
@@ -965,7 +965,7 @@ INSERT INTO `job_views` (`id`, `job_id`, `user_id`, `viewed_at`) VALUES
 -- Table structure for table `notifications`
 --
 
-CREATE TABLE `notifications` (
+CREATE TABLE IF NOT EXISTS `notifications` (
   `id` bigint(20) UNSIGNED NOT NULL,
   `user_id` bigint(20) UNSIGNED NOT NULL,
   `type` varchar(50) NOT NULL,
@@ -983,7 +983,7 @@ CREATE TABLE `notifications` (
 -- Table structure for table `partner_commissions`
 --
 
-CREATE TABLE `partner_commissions` (
+CREATE TABLE IF NOT EXISTS `partner_commissions` (
   `id` bigint(20) UNSIGNED NOT NULL,
   `partner_id` bigint(20) UNSIGNED NOT NULL,
   `referral_id` bigint(20) UNSIGNED NOT NULL COMMENT 'partner_referrals.id',
@@ -1006,7 +1006,7 @@ CREATE TABLE `partner_commissions` (
 --
 -- Triggers `partner_commissions`
 --
-DELIMITER $$
+/* DELIMITER $$
 CREATE TRIGGER `after_commission_insert` AFTER INSERT ON `partner_commissions` FOR EACH ROW BEGIN
   UPDATE `referral_partners`
   SET 
@@ -1023,8 +1023,8 @@ CREATE TRIGGER `after_commission_insert` AFTER INSERT ON `partner_commissions` F
   WHERE `id` = NEW.partner_id;
 END
 $$
-DELIMITER ;
-DELIMITER $$
+DELIMITER ; */
+/* DELIMITER $$
 CREATE TRIGGER `after_commission_update` AFTER UPDATE ON `partner_commissions` FOR EACH ROW BEGIN
   -- When status changes from pending to approved
   IF OLD.status = 'pending' AND NEW.status = 'approved' THEN
@@ -1064,7 +1064,7 @@ CREATE TRIGGER `after_commission_update` AFTER UPDATE ON `partner_commissions` F
   END IF;
 END
 $$
-DELIMITER ;
+DELIMITER ; */
 
 -- --------------------------------------------------------
 
@@ -1072,7 +1072,7 @@ DELIMITER ;
 -- Table structure for table `partner_payouts`
 --
 
-CREATE TABLE `partner_payouts` (
+CREATE TABLE IF NOT EXISTS `partner_payouts` (
   `id` bigint(20) UNSIGNED NOT NULL,
   `partner_id` bigint(20) UNSIGNED NOT NULL,
   `amount` bigint(20) NOT NULL COMMENT 'Payout amount (IDR)',
@@ -1104,7 +1104,7 @@ INSERT INTO `partner_payouts` (`id`, `partner_id`, `amount`, `bank_name`, `bank_
 -- Table structure for table `partner_referrals`
 --
 
-CREATE TABLE `partner_referrals` (
+CREATE TABLE IF NOT EXISTS `partner_referrals` (
   `id` bigint(20) UNSIGNED NOT NULL,
   `partner_id` bigint(20) UNSIGNED NOT NULL COMMENT 'referral_partners.id',
   `company_id` bigint(20) UNSIGNED NOT NULL COMMENT 'companies.id',
@@ -1125,7 +1125,7 @@ INSERT INTO `partner_referrals` (`id`, `partner_id`, `company_id`, `referral_cod
 --
 -- Triggers `partner_referrals`
 --
-DELIMITER $$
+/* DELIMITER $$
 CREATE TRIGGER `after_referral_insert` AFTER INSERT ON `partner_referrals` FOR EACH ROW BEGIN
   UPDATE `referral_partners`
   SET 
@@ -1134,7 +1134,7 @@ CREATE TRIGGER `after_referral_insert` AFTER INSERT ON `partner_referrals` FOR E
   WHERE `id` = NEW.partner_id;
 END
 $$
-DELIMITER ;
+DELIMITER ; */
 
 -- --------------------------------------------------------
 
@@ -1142,7 +1142,7 @@ DELIMITER ;
 -- Table structure for table `password_resets`
 --
 
-CREATE TABLE `password_resets` (
+CREATE TABLE IF NOT EXISTS `password_resets` (
   `id` bigint(20) UNSIGNED NOT NULL,
   `user_id` bigint(20) UNSIGNED NOT NULL,
   `token` varchar(255) NOT NULL,
@@ -1163,7 +1163,7 @@ INSERT INTO `password_resets` (`id`, `user_id`, `token`, `expires_at`, `created_
 -- Table structure for table `password_reset_tokens`
 --
 
-CREATE TABLE `password_reset_tokens` (
+CREATE TABLE IF NOT EXISTS `password_reset_tokens` (
   `id` bigint(20) UNSIGNED NOT NULL,
   `email` varchar(255) NOT NULL,
   `token` varchar(255) NOT NULL,
@@ -1192,7 +1192,7 @@ INSERT INTO `password_reset_tokens` (`id`, `email`, `token`, `expires_at`, `used
 -- Table structure for table `payments`
 --
 
-CREATE TABLE `payments` (
+CREATE TABLE IF NOT EXISTS `payments` (
   `id` bigint(20) UNSIGNED NOT NULL,
   `company_id` bigint(20) UNSIGNED NOT NULL,
   `job_id` bigint(20) UNSIGNED DEFAULT NULL,
@@ -1236,7 +1236,7 @@ INSERT INTO `payments` (`id`, `company_id`, `job_id`, `package_id`, `quota_amoun
 -- Table structure for table `quota_packages`
 --
 
-CREATE TABLE `quota_packages` (
+CREATE TABLE IF NOT EXISTS `quota_packages` (
   `id` bigint(20) UNSIGNED NOT NULL,
   `package_id` varchar(50) NOT NULL,
   `name` varchar(100) NOT NULL,
@@ -1269,7 +1269,7 @@ INSERT INTO `quota_packages` (`id`, `package_id`, `name`, `quota`, `bonus_quota`
 -- Table structure for table `referral_partners`
 --
 
-CREATE TABLE `referral_partners` (
+CREATE TABLE IF NOT EXISTS `referral_partners` (
   `id` bigint(20) UNSIGNED NOT NULL,
   `user_id` bigint(20) UNSIGNED NOT NULL COMMENT 'Link to users table',
   `referral_code` varchar(20) NOT NULL COMMENT 'Unique referral code e.g., AHMAD2024',
@@ -1306,7 +1306,7 @@ INSERT INTO `referral_partners` (`id`, `user_id`, `referral_code`, `commission_r
 -- Table structure for table `refresh_tokens`
 --
 
-CREATE TABLE `refresh_tokens` (
+CREATE TABLE IF NOT EXISTS `refresh_tokens` (
   `id` bigint(20) UNSIGNED NOT NULL,
   `user_id` bigint(20) UNSIGNED NOT NULL,
   `token_hash` varchar(255) NOT NULL,
@@ -1743,7 +1743,7 @@ INSERT INTO `refresh_tokens` (`id`, `user_id`, `token_hash`, `expires_at`, `revo
 -- Table structure for table `saved_jobs`
 --
 
-CREATE TABLE `saved_jobs` (
+CREATE TABLE IF NOT EXISTS `saved_jobs` (
   `id` bigint(20) UNSIGNED NOT NULL,
   `user_id` bigint(20) UNSIGNED NOT NULL,
   `job_id` bigint(20) UNSIGNED NOT NULL,
@@ -1764,7 +1764,7 @@ INSERT INTO `saved_jobs` (`id`, `user_id`, `job_id`, `created_at`) VALUES
 -- Table structure for table `support_tickets`
 --
 
-CREATE TABLE `support_tickets` (
+CREATE TABLE IF NOT EXISTS `support_tickets` (
   `id` bigint(20) UNSIGNED NOT NULL,
   `user_id` bigint(20) UNSIGNED NOT NULL,
   `title` varchar(100) NOT NULL,
@@ -1792,7 +1792,7 @@ INSERT INTO `support_tickets` (`id`, `user_id`, `title`, `description`, `categor
 -- Table structure for table `system_settings`
 --
 
-CREATE TABLE `system_settings` (
+CREATE TABLE IF NOT EXISTS `system_settings` (
   `id` bigint(20) UNSIGNED NOT NULL,
   `key` varchar(100) NOT NULL,
   `value` longtext NOT NULL,
@@ -1818,7 +1818,7 @@ INSERT INTO `system_settings` (`id`, `key`, `value`, `data_type`, `description`,
 -- Table structure for table `ticket_responses`
 --
 
-CREATE TABLE `ticket_responses` (
+CREATE TABLE IF NOT EXISTS `ticket_responses` (
   `id` bigint(20) UNSIGNED NOT NULL,
   `ticket_id` bigint(20) UNSIGNED NOT NULL,
   `sender_id` bigint(20) UNSIGNED NOT NULL,
@@ -1840,7 +1840,7 @@ INSERT INTO `ticket_responses` (`id`, `ticket_id`, `sender_id`, `sender_type`, `
 -- Table structure for table `users`
 --
 
-CREATE TABLE `users` (
+CREATE TABLE IF NOT EXISTS `users` (
   `id` bigint(20) UNSIGNED NOT NULL,
   `email` varchar(255) NOT NULL,
   `password_hash` varchar(255) NOT NULL,
@@ -1891,7 +1891,7 @@ INSERT INTO `users` (`id`, `email`, `password_hash`, `role`, `full_name`, `phone
 -- Stand-in structure for view `v_partner_dashboard_stats`
 -- (See below for the actual view)
 --
-CREATE TABLE `v_partner_dashboard_stats` (
+CREATE TABLE IF NOT EXISTS `v_partner_dashboard_stats` (
 `partner_id` bigint(20) unsigned
 ,`user_id` bigint(20) unsigned
 ,`referral_code` varchar(20)
@@ -1909,7 +1909,7 @@ CREATE TABLE `v_partner_dashboard_stats` (
 -- Stand-in structure for view `v_partner_monthly_stats`
 -- (See below for the actual view)
 --
-CREATE TABLE `v_partner_monthly_stats` (
+CREATE TABLE IF NOT EXISTS `v_partner_monthly_stats` (
 `partner_id` bigint(20) unsigned
 ,`month_year` varchar(7)
 ,`month_name` varchar(32)

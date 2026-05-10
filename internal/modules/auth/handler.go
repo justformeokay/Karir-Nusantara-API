@@ -26,6 +26,20 @@ func NewHandler(service Service, validator *validator.Validator, emailService *e
 	}
 }
 
+// setRefreshTokenCookie sets or clears the refresh token httpOnly cookie
+func (h *Handler) setRefreshTokenCookie(w http.ResponseWriter, r *http.Request, token string, maxAge int) {
+	secure := r.Header.Get("X-Forwarded-Proto") == "https" || r.TLS != nil
+	http.SetCookie(w, &http.Cookie{
+		Name:     "refresh_token",
+		Value:    token,
+		HttpOnly: true,
+		Secure:   secure,
+		SameSite: http.SameSiteNoneMode,
+		Path:     "/",
+		MaxAge:   maxAge,
+	})
+}
+
 // Register handles user registration
 // POST /api/v1/auth/register
 func (h *Handler) Register(w http.ResponseWriter, r *http.Request) {
@@ -63,6 +77,7 @@ func (h *Handler) Register(w http.ResponseWriter, r *http.Request) {
 		}()
 	}
 
+	h.setRefreshTokenCookie(w, r, authResp.RefreshToken, 7*24*3600)
 	response.Created(w, "Registration successful", authResp)
 }
 
@@ -88,31 +103,36 @@ func (h *Handler) Login(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	h.setRefreshTokenCookie(w, r, authResp.RefreshToken, 7*24*3600)
 	response.OK(w, "Login successful", authResp)
 }
 
 // RefreshToken handles token refresh
 // POST /api/v1/auth/refresh
 func (h *Handler) RefreshToken(w http.ResponseWriter, r *http.Request) {
-	var req RefreshTokenRequest
-	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
-		response.BadRequest(w, "Invalid request body")
-		return
+	// Check cookie first, then JSON body
+	var refreshTokenStr string
+	if cookie, err := r.Cookie("refresh_token"); err == nil && cookie.Value != "" {
+		refreshTokenStr = cookie.Value
+	} else {
+		var req RefreshTokenRequest
+		json.NewDecoder(r.Body).Decode(&req)
+		refreshTokenStr = req.RefreshToken
 	}
 
-	// Validate request
-	if errors := h.validator.Validate(&req); errors != nil {
-		response.UnprocessableEntity(w, "Validation failed", errors)
+	if refreshTokenStr == "" {
+		response.BadRequest(w, "Refresh token is required")
 		return
 	}
 
 	// Refresh token
-	authResp, err := h.service.RefreshToken(r.Context(), req.RefreshToken)
+	authResp, err := h.service.RefreshToken(r.Context(), refreshTokenStr)
 	if err != nil {
 		handleError(w, err)
 		return
 	}
 
+	h.setRefreshTokenCookie(w, r, authResp.RefreshToken, 7*24*3600)
 	response.OK(w, "Token refreshed", authResp)
 }
 
@@ -137,6 +157,7 @@ func (h *Handler) Logout(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	h.setRefreshTokenCookie(w, r, "", -1)
 	response.OK(w, "Logged out successfully", nil)
 }
 
